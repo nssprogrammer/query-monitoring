@@ -14,7 +14,7 @@
 
 # %% [markdown]
 # ## NOT RUN — future work; no numbers in the paper come from this script
-# Paper: "The Limits of Query Monitoring for Distributed Model Extraction".
+# Paper: "The Limits of Query Monitoring against Distributed Model Extraction".
 #
 # **NOT RUN — future work; no numbers in the paper come from this script; it implements open tests listed in §11 'Limitations and open tests'.**
 # Specifically, it implements several of the experiments §11 names as future work: an anytime-valid sequential test on the hollowed score,

@@ -1,6 +1,6 @@
-# The Limits of Query Monitoring for Distributed Model Extraction
+# The Limits of Query Monitoring against Distributed Model Extraction
 
-Code for the paper *The Limits of Query Monitoring for Distributed Model Extraction* (under double-blind review at TMLR).
+Code for the paper *The Limits of Query Monitoring against Distributed Model Extraction* (under double-blind review at TMLR).
 
 A model provider faces a distillation campaign spread over many accounts, and it cannot link those accounts through network or payment metadata. What can it learn from the **queries alone**? This repository contains the full query-only monitor, every experiment behind the paper's numbers, the figure script, and a standalone tool that measures the quantity the paper finds decisive: how coordinated a provider's *benign* traffic is.
 
@@ -143,7 +143,7 @@ The experiments include constructions that evade the monitor: padding colluder a
 
 ```bibtex
 @article{anonymous2026limits,
-  title   = {The Limits of Query Monitoring for Distributed Model Extraction},
+  title   = {The Limits of Query Monitoring against Distributed Model Extraction},
   author  = {Anonymous},
   journal = {Under review at Transactions on Machine Learning Research},
   year    = {2026}

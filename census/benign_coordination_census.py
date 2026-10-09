@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ---------------------------------------------------------------------------------------------
-# Paper: "The Limits of Query Monitoring for Distributed Model Extraction"
+# Paper: "The Limits of Query Monitoring against Distributed Model Extraction"
 # Implements: the benign-coordination census recommended in §9 "Guidance for providers", item 1
 #   ("Measure your benign coordination first"), as a standalone tool for a provider's own logs.
 # Quantities and where the paper reports them for WildChat:
@@ -18,7 +18,7 @@
 # identical digits. To reproduce the paper's exact numbers, run those scripts.
 # ---------------------------------------------------------------------------------------------
 """Benign-coordination census: measure, in your own traffic, the quantities that decide what a
-query-only extraction monitor can see (see "The Limits of Query Monitoring for Distributed
+query-only extraction monitor can see (see "The Limits of Query Monitoring against Distributed
 Model Extraction", Guidance for providers, item 1).
 
 Input: an .npz file with

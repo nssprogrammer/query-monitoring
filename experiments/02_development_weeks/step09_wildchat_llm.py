@@ -14,7 +14,7 @@
 
 # %% [markdown]
 # ## Paper numbers reproduced by this script
-# Paper: "The Limits of Query Monitoring for Distributed Model Extraction".
+# Paper: "The Limits of Query Monitoring against Distributed Model Extraction".
 # Run on Kaggle (see "Kaggle setup:" line below for hardware/time). Seeds are fixed in the configuration cell;
 # re-runs vary by a few points (the paper reports run-to-run spread up to ~0.07-0.14 for weekly detection).
 #

@@ -1,4 +1,4 @@
-"""Draws every data figure in "The Limits of Query Monitoring for Distributed Model Extraction".
+"""Draws every data figure in "The Limits of Query Monitoring against Distributed Model Extraction".
 
 The figures plot numbers recorded from the experiment scripts (Kaggle runs); this script does not
 re-run experiments. Each data array below is annotated with the script that produces it, so a reader can

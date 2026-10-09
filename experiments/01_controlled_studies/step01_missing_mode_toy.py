@@ -1,5 +1,5 @@
 # ## Paper numbers reproduced by this script
-# Paper: "The Limits of Query Monitoring for Distributed Model Extraction".
+# Paper: "The Limits of Query Monitoring against Distributed Model Extraction".
 # Plain Python script (CPU/numpy, not a Kaggle notebook; see the "Run:" lines in the docstring below for
 # runtime). Seeds are fixed (--seed, default 12345);
 # re-runs vary by a few points (the paper reports run-to-run spread up to ~0.07-0.14 for weekly detection).

@@ -1,6 +1,6 @@
 # Reproducing the paper: which code produces which number
 
-This file maps every table, figure and quoted number in *The Limits of Query Monitoring for Distributed Model Extraction* to the script that computes it. The same information sits inside each script: a header cell titled **"Paper numbers reproduced by this script"** and inline comments of the form
+This file maps every table, figure and quoted number in *The Limits of Query Monitoring against Distributed Model Extraction* to the script that computes it. The same information sits inside each script: a header cell titled **"Paper numbers reproduced by this script"** and inline comments of the form
 
 ```python
 # [PAPER] Table 3 (row "Half padding", col "Hollowed"): weekly paired detection 0.57
