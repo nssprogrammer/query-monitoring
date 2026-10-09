@@ -1,9 +1,5 @@
 \documentclass[10pt]{article} % For LaTeX2e
-\usepackage{tmlr}
-% If accepted, instead use the following line for the camera-ready submission:
-%\usepackage[accepted]{tmlr}
-% To de-anonymize and remove mentions to TMLR (for example for posting to preprint servers), instead use the following:
-%\usepackage[preprint]{tmlr}
+\usepackage[preprint]{tmlr}
 
 \input{math_commands.tex}
 
@@ -32,20 +28,17 @@
 
 \title{The Limits of Query Monitoring against\\ Distributed Model Extraction}
 
-% Authors must not appear in the submitted version.
-\author{\name Anonymous authors \email anonymous@example.com \\
-      \addr Paper under double-blind review}
+\author{\name Snigdha Chandan Khilar \email snkhilar@gmail.com \\
+      \addr Independent Researcher}
 
-\def\month{MM}
-\def\year{YYYY}
-\def\openreview{\url{https://openreview.net/forum?id=XXXX}}
+\newcommand{\coderepo}{\url{https://github.com/nssprogrammer/query-monitoring}}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-Model providers now face distillation campaigns run through thousands of accounts, each of which looks like an ordinary user. When network and payment metadata cannot link those accounts, the only evidence left is what they ask. We study what a provider can and cannot learn from those queries alone, using one million real chat turns for development and 17 later weeks that no design choice touched for a single frozen evaluation. The answer is set less by anything specific to extraction than by benign coordination: a campaign is visible only if it is more distinctive than the most distinctive group of ordinary users in the same week. We make this precise, show that a small but positive difference between campaign and users buys a detection \emph{time} rather than detectability, and identify the campaign that is hardest to detect. Empirically, a calibrated monitor catches naive distributed extraction that per-account monitors miss (0.86--1.00 of weeks), and one variant---selecting accounts that move together after discounting how topical each one is---still catches campaigns padded with natural text (0.50--0.96 of weeks) where the other two spectral detectors catch none. Distilling each campaign into a small student shows that, in our testbed, campaigns that evaded every detector kept at most 42\% of the capability of a detectable one. The limits are equally concrete: a campaign that ramps up slowly poisons every detector's calibration, benign evaluation pipelines look exactly like distillation, we found no deployable detector at colluder shares of 2.5\% or below, and campaigns that relay real users' requests may be invisible to any query-only monitor. Every prediction we locked before each run, including the 74 that failed, is released with the code.
+Model providers now face distillation campaigns run through thousands of accounts, each of which looks like an ordinary user. When network and payment metadata cannot link those accounts, the only evidence left is what they ask. We study what a provider can and cannot learn from those queries alone, using one million real chat turns for development and 17 later weeks that no design choice touched for a single frozen evaluation. The answer is set less by anything specific to extraction than by benign coordination: a campaign is visible only if it is more distinctive than the most distinctive group of ordinary users in the same week. We make this precise, show that a small but positive difference between campaign and users buys a detection \emph{time} rather than detectability, and identify the campaign that is hardest to detect. Empirically, a calibrated monitor catches naive distributed extraction that per-account monitors miss (0.86--1.00 of weeks), and one variant---selecting accounts that move together after discounting how topical each one is---still catches campaigns padded with natural text (0.50--0.96 of weeks) where the other two spectral detectors catch none. Distilling each campaign into a small student shows that, in our testbed, campaigns that evaded every detector kept at most 42\% of the capability of a detectable one. The limits are equally concrete: a campaign that ramps up slowly poisons every detector's calibration, benign evaluation pipelines look exactly like distillation, we found no deployable detector at colluder shares of 2.5\% or below, and campaigns that relay real users' requests may be invisible to any query-only monitor. Every prediction we locked before each run, including the 74 that failed, is released with the code at \coderepo.
 \end{abstract}
 
 \input{sections/s1_intro}

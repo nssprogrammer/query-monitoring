@@ -1,6 +1,6 @@
 # The Limits of Query Monitoring against Distributed Model Extraction
 
-Code for the paper *The Limits of Query Monitoring against Distributed Model Extraction* (under double-blind review at TMLR).
+Code for the paper *The Limits of Query Monitoring against Distributed Model Extraction* by Snigdha Chandan Khilar (Independent Researcher). Repository: <https://github.com/nssprogrammer/query-monitoring>.
 
 A model provider faces a distillation campaign spread over many accounts, and it cannot link those accounts through network or payment metadata. What can it learn from the **queries alone**? This repository contains the full query-only monitor, every experiment behind the paper's numbers, the figure script, and a standalone tool that measures the quantity the paper finds decisive: how coordinated a provider's *benign* traffic is.
 
@@ -43,7 +43,7 @@ A model provider faces a distillation campaign spread over many accounts, and it
 ├── docs/
 │   ├── prediction_log.md           all 184 locked predictions with outcomes, each linked to its script
 │   └── corrections.md              corrections made during the study
-├── paper/                          LaTeX source of the submission and the compiled PDF
+├── paper/                          LaTeX source of the arXiv preprint and the compiled PDF
 └── tools/
     └── sync_notebooks.py           regenerates the Kaggle .ipynb files from the annotated .py sources
 ```
@@ -142,11 +142,11 @@ The experiments include constructions that evade the monitor: padding colluder a
 ## Citation
 
 ```bibtex
-@article{anonymous2026limits,
-  title   = {The Limits of Query Monitoring against Distributed Model Extraction},
-  author  = {Anonymous},
-  journal = {Under review at Transactions on Machine Learning Research},
-  year    = {2026}
+@misc{khilar2026limits,
+  title  = {The Limits of Query Monitoring against Distributed Model Extraction},
+  author = {Khilar, Snigdha Chandan},
+  year   = {2026},
+  note   = {Code: https://github.com/nssprogrammer/query-monitoring}
 }
 ```
 

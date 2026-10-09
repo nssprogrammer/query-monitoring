@@ -2,13 +2,18 @@ cff-version: 1.2.0
 message: "If you use this code, please cite the paper."
 title: "The Limits of Query Monitoring against Distributed Model Extraction"
 authors:
-  - name: "Anonymous (under double-blind review)"
+  - family-names: "Khilar"
+    given-names: "Snigdha Chandan"
+    affiliation: "Independent Researcher"
+    email: "snkhilar@gmail.com"
 type: software
 license: MIT
+repository-code: "https://github.com/nssprogrammer/query-monitoring"
 preferred-citation:
   type: article
   title: "The Limits of Query Monitoring against Distributed Model Extraction"
   authors:
-    - name: "Anonymous (under double-blind review)"
-  journal: "Transactions on Machine Learning Research (under review)"
+    - family-names: "Khilar"
+      given-names: "Snigdha Chandan"
+      affiliation: "Independent Researcher"
   year: 2026
