@@ -1,0 +1,685 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.6
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# ## Paper numbers reproduced by this script
+# Paper: "The Limits of Query Monitoring for Distributed Model Extraction".
+# Run on Kaggle (see "Kaggle:" line below for hardware/time). Seeds are fixed in the configuration cell;
+# re-runs vary by a few points (the paper reports run-to-run spread up to ~0.07-0.14 for weekly detection).
+# This is the single frozen evaluation on the 17 untouched weeks (§7, App. I, Table 3, Fig. 1b).
+# Detector names: two-scale = `tsC`, hollowed = `tsRc`, multi-outlier = `Tmax`; Table 3's "Volume scan"
+# (eight preceding weeks) = `vol_roll`; the full-history volume baseline of App. I / P35g = `vol_conf`.
+#
+# | Paper location | Quantity | Value in paper | Where computed here |
+# |---|---|---|---|
+# | Table 3 (MiniLM, 64–252 accounts, row "False alarms"); Fig. 1b ("false alarms (1.9%)"); §7 'What held' and App. I ('1.8–1.9%'); App. P (Step 35, frozen calibration: 'Pass (1.8%, 1.9%, 1.9%') | held-out false-alarm rate, Two-scale / Hollowed / Multi-outlier / Volume scan (volume scan = rolling 8-week `vol_roll`) | 1.8% / 1.9% / 1.9% / 1.5% | Cell 8, `FPR_M = fpr_table(...)`, print "[P35a] held-out FPR" (tsC / tsRc / Tmax / vol_roll); Cell 14 P35a print and "[FPR matched]" |
+# | App. I 'What held' | weeks with any false alarm (MiniLM) | two or three of 17 weeks | Cell 8 print "[P35a]" (`weeks with FA`) |
+# | App. P (Step 35, frozen calibration) | week-unit 95% upper bound on false alarms | week-level upper 4–6% | `week_upper(...)` in Cell 4; printed in Cell 8 "[P35a]" and Cell 14 P35a |
+# | Table 3 (MiniLM, 64–252 accounts, row "Dataset (MetaMathQA)"); Fig. 1b; Table 2 (col "Weekly detection", untouched values); App. Table 15 (untouched, "Dataset"); App. P (Step 35, dataset campaigns: 'Pass (1.00, 0.97; 0.86)') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.86 / 1.00 / 0.97 / 0.61 | Cell 8, `RES_M = run_sources(...)`, print "[matched] metamath_unique" (tsC / tsRc / Tmax / vol_roll); Cell 14 P35b |
+# | Abstract ('0.86–1.00 of weeks'); §1 item 1 ('86–100% of weeks'); §7 and App. I ('0.86–1.00') | dataset-campaign detection range over both encoders | 0.86–1.00 | Cell 8 `RES_M` and Cell 13 `RES_E`, source metamath_unique |
+# | Table 3 (MiniLM, 64–252 accounts, row "Half padding"); Fig. 1b (0.57); Table 2 (untouched: two-scale 0.00, multi-outlier 0.00); App. Table 15 (untouched, "Half padding"); App. P (Step 35, mimicry: 'hollowed 0.57; Tmax 0.00; two-scale 0.00'); App. I ('0.37 against 0.00') | weekly paired detection under half padding, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.57 / 0.00 / 0.37 | Cell 8, `RES_M`, print "[matched] metamath_mixed"; Cell 14 P35c |
+# | §7 'What held'; App. I; Table 2 (Hollowed, Half padding, untouched); App. Table 15 (untouched, Hollowed) | hollowed detection of padded campaigns across three campaign seeds | 0.50–0.57 | Cell 8, `RES_M` (seed 0) and `RUNS[sd]` (seeds 1, 2); Cell 14 verdict rows "[matched]", "[seed1]", "[seed2]" metamath_mixed tsRc |
+# | Abstract ('0.50–0.96 of weeks'); §1 item 2 ('50–96% of untouched weeks') | hollowed detection of padded campaigns, over seeds, E5 and whole weeks | 0.50–0.96 | Cell 8 `RES_M`/`RUNS`, Cell 13 `RES_E`, Cell 12 `RES_L` (metamath_mixed, tsRc) |
+# | App. I 'What held'; App. P (Step 35, run-to-run spread: 'Pass (≤ 0.07)') | run-to-run spread across campaign seeds | at most 0.07 | Cell 14, `spread`, print "P35l" |
+# | Table 3 (MiniLM, 64–252 accounts, row "Least detectable (tilted)"); Fig. 1b (0.04); Table 2 (row "Least detectable", '≤0.04'); App. Table 15 (untouched, "Least detectable"); §7 and App. I ('at or below 0.04'); App. G.2 ('at most 0.04 on untouched weeks'); App. P (Step 35, tilted: 'Pass (≤ 0.04)') | weekly paired detection of the tilted campaign, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.04 / 0.00 / 0.10 | Cell 8, `RES_M`, print "[matched] tilted_c05"; Cell 14 P35d |
+# | Table 3 (MiniLM, 64–252 accounts, row "Random real prompts"); App. P (Step 35, random natural: 'Pass (0.00)') | weekly paired detection, all four detectors | 0.00 / 0.00 / 0.00 / 0.00 | Cell 8, `RES_M`, print "[matched] random"; Cell 14 P35e |
+# | Table 3 (MiniLM, 64–252 accounts, row "GSM8K sweep, 10 / 3 accounts") | weekly paired detection of benign evaluation sweeps, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.87 / 0.88, 1.00 / 0.34, 0.97 / 0.93, 0.46 / 0.46 | Cell 8, `RES_M`, prints "[matched] eval_gsm8k(10x100)" and "eval_gsm8k(3x300)" (from `R["EVALS"]`) |
+# | Table 3 (E5-small-v2, row "False alarms"); §7 and App. I ('0–1.3%') | held-out false-alarm rate, Two-scale / Hollowed / Multi-outlier / Volume scan | 1.3% / 0.3% / 0.0% / 6.2% | Cell 13, `FPR_E = fpr_table(...)`, print "[E5] held-out FPR" |
+# | Table 3 (E5-small-v2, row "Dataset"); App. P (Step 35, E5: 'Pass (1.00, 0.00, 0.00; ...') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.86 / 1.00 / 1.00 / 0.48 | Cell 13, `RES_E`, print "[matched] metamath_unique" (second occurrence); Cell 14 P35f |
+# | Table 3 (E5-small-v2, row "Half padding"); §7 and App. I ('0.89 with E5') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.89 / 0.00 / 0.09 | Cell 13, `RES_E`, print "[matched] metamath_mixed" (second occurrence); Cell 14 P35f |
+# | Table 3 (E5-small-v2, row "Least detectable") | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.03 / 0.00 / 0.02 | Cell 13, `RES_E`, print "[matched] tilted_c05" (second occurrence); Cell 14 P35f |
+# | Table 3 (MiniLM, whole weeks, row "False alarms"); App. P (Step 35, whole weeks: 'Fail (2.5%; 1.00)'); App. I ('fired on 6–11% of null windows elsewhere', with E5 6.2%) | held-out false-alarm rate, Two-scale / Hollowed / Multi-outlier / Volume scan | 1.0% / 0.5% / 2.5% / 11.3% | Cell 12, `FPR_L = fpr_table(...)`, print "[P35k] held-out FPR"; Cell 14 P35k |
+# | Table 3 (MiniLM, whole weeks, row "Dataset") | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.90 / 1.00 / 1.00 / 0.84 | Cell 12, `RES_L`, print "[large] metamath_unique"; Cell 14 P35k |
+# | Table 3 (MiniLM, whole weeks, row "Half padding"); §7 and App. I ('0.96 in whole weekly populations') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.96 / 0.00 / 0.51 | Cell 12, `RES_L`, print "[large] metamath_mixed" |
+# | Table 3 (row label "(260–469 accounts)"); App. I 'What could not be tested'; App. P (Step 35, whole weeks: 'weeks of 260–469 accounts only') | size of whole-week populations | 260–469 | plausibly Cell 12 print "[large] holdout weeks ... window sizes" (`sizes_L`); not otherwise isolated |
+# | App. I 'What could not be tested' | benign accounts flagged per week by multi-outlier selection at 10^5 accounts | about 160 | Cell 12, `FLAGGED_1E5`, print "[large] benign accounts flagged per week at 1e5" |
+# | App. I 'What held' | share of accounts flagged by multi-outlier selection that are colluders | 94% | `Tmax_precision` in `run_sources` (Cell 7); printed as "Tmax prec" in Cell 14 verdict rows (paper does not say which row) |
+# | App. I 'What held' ('changed nothing'); App. P (Step 35, addition vs replacement: 'Pass (0.00)') | change in random-campaign detection, addition vs replacement | 0.00 | Cell 8, `RES_ADD`; Cell 14 print "P35m" |
+# | §7 'What did not'; App. I; App. D.4 ('On the untouched weeks the ratio was 2.22'); App. P (Step 35, E5: '3.06 vs 2.22'; 'Census ratio 2.22, not 1.14') | real-to-shuffled top-eigenvalue ratio of R_c, MiniLM / E5 | 2.22 / 3.06 | Cell 9 `CEN["minilm"]` and Cell 13 `CEN["e5"]` (`census`), prints "[census]"; Cell 14 P35f |
+# | App. I ('calibrated but nearly powerless (0.03 on dataset campaigns)'); App. P (Step 35, volume scan: 'Fail (0.0%; 0.03; both 0.00)') | conformal volume scan: false alarms; dataset detection; padded detection (volume scan and T_max) | 0.0%; 0.03; both 0.00 | `vol_conf` detector: Cell 8 `FPR_M`/`RES_M`; Cell 14 print "P35g" |
+# | §7 'What held' and App. I ('49–59% of the non-sacrificial colluders'; 'both still caught every campaign'; selection on C 'again 0.00 here'); App. P (Step 35, sacrificial: 'Fail (1.00; recall 0.49)') | sacrificial scheduling: detection and non-sacrificial recall | 49–59%; 1.00; 0.00 | Cell 10, `SCHED`, print "[X] sacrificial" (and "[X] random" for comparison); Cell 14 P35h and "[SCHED]" |
+# | §7 'What did not' and App. I (ramp); App. P (Step 35, ramp: 'Fail (0.89 to 0.00)'); App. D.6 ('On the untouched weeks the attack defeated every detector') | abrupt -> ramped detection: multi-outlier; conformal two-scale; hollowed; rolling two-scale | 0.89 to 0.00; 0.80 to 0.02; 0.98 to 0.32; 0.79 to 0.32 | Cell 10, `TEMP`, print "[T] week" (cumulative; last line = final); Cell 14 P35i and "[TEMP]" |
+# | §7 'Covert is not invisible'; App. I; App. P (Step 35, tilted: 'Ranked by hollowed (AUC 0.97)') | AUC of hollowed selection: tilted (MiniLM), tilted (E5), random real prompts (MiniLM) | 0.97, 0.92, 0.88 | `roc(...)` in Cell 4 via `run_sources`; Cell 14 verdict rows "[matched] tilted_c05", "[e5] tilted_c05", "[matched] random", tsRc `auc=` |
+# | Table 2 (col "First weekly alarm", untouched values: Two-scale and Multi-outlier); App. P (Step 35, martingale: 'never') | median week of first weekly alarm: dataset / half padding | week 1 / none (both detectors) | Cell 11, `SEQ[('all', d, src)]['first_alarm']`, print "[SEQ] all"; Cell 14 P35j. GSM8K gains in parentheses come from the distillation steps, not this script |
+# | Table 2 (col "Anytime-valid", untouched values: Two-scale and Multi-outlier); App. P (Step 35, martingale: 'Fail (25% of runs in 16 weeks; ...') | median week of conformal-martingale alarm: dataset / half padding | week 3 / none (two-scale); week 3 / 25% of runs (multi-outlier) | Cell 11, `SEQ[('all', d, src)]['martingale']` and `['frac_m']`, print "[SEQ] all"; Cell 14 P35j |
+# | §6 and App. G.3 ('null runs alarmed within 16 weeks a quarter of the time on untouched weeks') | share of null runs with a first weekly alarm within 16 weeks | a quarter of the time | Cell 11, `SEQ[('all', d, 'null')]['frac_f']`; Cell 14 P35j ("first-alarm Tmax") |
+# | Table 2 (Hollowed, untouched: 'week 1 (8.8)', 'week 1 (5.6)') | first weekly alarm of hollowed selection | week 1 / week 1 | not isolated (Cell 11 runs the sequential rules for tsC and Tmax only) |
+# | §2 'Data'; §7; App. I 'Design' | untouched data: test weeks; history weeks; English user turns; hashed IPs | 17 weeks; 31 weeks; 757,000; 76,000 | Cell 2 print (turns, hashed IPs, history/holdout weeks); Cell 8 print "[matched] holdout test weeks" |
+# | Table 3 (row label "MiniLM, 64–252 accounts"); App. Table 15 ("Untouched weeks, 64–252 accounts"); App. I 'Design' | window sizes, matched regime | 64–252 | Cell 8 print "[matched] ... window sizes" |
+# | App. P (Step 35 rows) | locked predictions P35a-P35m | pass/fail as listed | Cell 14 ("predictions and verdict") |
+#
+# Not reported in the paper: oracle-threshold detection (`tpr1`) and bootstrap intervals, the rolling two-scale
+# (`tsC_roll`) and global-stream (`glob`) detectors' weekly rates, T_max recall, E5 random-prompt results,
+# whole-week random campaigns and the "largest weeks" rerun (`RES_LBIG`), census outlier counts (`k_median`,
+# `k_at_cap`), the balanced schedule, the "holdout"-scope sequential runs, and the task share `P_TASK`.
+
+# %% [markdown]
+# Step 35 — Frozen-pipeline evaluation on untouched weeks (WildChat-4.8M, May–Aug 2024), a second embedding, a trivial volume baseline, attacks on hollowed selection, one detection rule for both detectors, and real same-week populations
+# **Kaggle:** GPU (T4/P100) + Internet + `HF_TOKEN` (with access to `allenai/WildChat-4.8M`) → **Run All** (≈5–6 h). `QUICK=True` first (≈40 min).
+#
+# **Why.** Hollowing, centring, conformal thresholds over the full history, the 1.05× bulk edge, the participation filter (≥ 5) and the cap of 20 outliers were all developed on the same 24 WildChat-1M test weeks. This step freezes every one of those choices and evaluates them **once** on weeks none of them has touched: WildChat-4.8M conversations from **6 May to 1 September 2024**, after WildChat-1M ends and before the irregular traffic of later months. Weeks from October 2023 to early May 2024 serve only as calibration history (the PCA basis, topics, task-region classifier and every threshold are fitted on history weeks only).
+#
+# **Frozen (identical to Steps 23–32):** MiniLM-L6 embeddings, full 384-d, rescaled to total variance 4; 300 random Fourier modes, augmented real whitening, bandwidths 4 and 0.5; lagged reference = benign traffic of the 4 preceding weeks; accounts = hashed IPs, ≥ 10 queries per week, volume cap 500, 20% of IPs held out as the attacker pool; colluders replace K = 50 benign accounts with volumes drawn from the same week's benign volume distribution; top-group rule (fewest accounts carrying half the eigenvector weight, 3–100); centred hollowed matrix R_c; bulk edge by median matching, retain λ > 1.05 × edge with participation ≥ 5, at most 20; T_max = largest two-scale group score; conformal thresholds = (1 − α) quantile over all null windows of all prior weeks, α = 1%.
+#
+# **Changed, by design:** the paired null is now the *identical* window without the campaign (Steps 22–32 used a different null window of the same week; recorded as a correction).
+#
+# **Regimes.** *matched*: windows of 64–364 accounts (the WildChat-1M range), the direct replication; *large*: whole real weeks (accounts with ≥ 5 queries, 70% subsamples), campaign fixed at 1,640 queries over 50 colluders — real same-week populations with deployed thresholds, which the pooled populations of Steps 20–32 could not provide.
+#
+# | ID | Locked prediction (locked in this notebook before the run; outcomes in App. P (prediction log), Step 35) |
+# |---|---|
+# | **P35a** | Frozen calibration holds on untouched weeks (matched): held-out false alarms ≤ 2% for two-scale (conformal), hollowed and T_max |
+# | **P35b** | Dataset campaigns replicate: MetaMathQA weekly detection ≥ 0.9 (hollowed, T_max) and ≥ 0.7 (two-scale) |
+# | **P35c** | Mimicry replicates: mixed padding 0.25–0.65 (hollowed, T_max) and ≤ 0.35 (two-scale) |
+# | **P35d** | The tilted campaign evades: ≤ 0.05 on every calibrated detector |
+# | **P35e** | Random natural campaigns ≤ 0.05 on every calibrated detector |
+# | **P35f** | Second embedding (E5-small-v2): T_max detects MetaMathQA ≥ 0.7, mixed ≤ 0.6, tilted ≤ 0.1; benign-coordination ratio within ±50% of MiniLM's |
+# | **P35g** | Trivial baseline (largest standardised topic-cell share): with full-history conformal thresholds it is calibrated (≤ 2%) and detects MetaMathQA ≥ 0.5, but trails T_max by ≥ 0.2 under mixed padding |
+# | **P35h** | Sacrificial scheduling against T_max: detection stays ≥ 0.8, but the flagged group contains ≤ 10% of the non-sacrificial colluders |
+# | **P35i** | A ramp through the calibration weeks costs T_max (full-history conformal) ≤ 0.3 of its abrupt detection rate |
+# | **P35j** | One rule for both detectors: under the conformal test martingale, T_max flags mixed padding in a median ≤ 6 weeks; under the first weekly alarm, both detectors flag it in a median ≤ 3 weeks |
+# | **P35k** | Real same-week populations (large): T_max held-out false alarms ≤ 2%, and unpadded detection ≥ 0.5 in the largest weeks |
+# | **P35l** | Run-to-run spread for the same cell (three campaign seeds) ≤ 0.10 |
+# | **P35m** | Injection by addition instead of replacement changes paired detection of random campaigns by ≤ 0.03 on every detector |
+
+# %%
+# ===== Cell 1: configuration =====
+import math, json, time, os, gc, re, pickle
+import numpy as np
+QUICK = False
+SYNTHETIC_TEST = False
+SEED = 9091
+OUTDIR = "/kaggle/working" if os.path.isdir("/kaggle/working") else "."
+try:
+    import torch
+    HAS_TORCH = True; DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+except Exception:
+    HAS_TORCH, DEV = False, None
+USE_GPU = HAS_TORCH and DEV is not None and DEV.type == "cuda"
+if not USE_GPU and not SYNTHETIC_TEST:
+    raise RuntimeError("No GPU visible. Kaggle: Settings -> Accelerator -> GPU, then restart.")
+CHUNK = 32768 if USE_GPU else 8192
+# ---- FROZEN pipeline (identical to Steps 23-32) ----
+H_COARSE, H_FINE, M_MODES, ALPHA, FLOOR = 4.0, 0.5, 300, 0.01, 1e-4
+VOL_CAP, MIN_PER_ACCT, POOL_FRAC, SUB_FRAC = 500, 10, 0.2, 0.7
+N_TOPICS = 100
+EDGE_DELTA, MIN_PART, MAX_OUT = 0.05, 5, 20
+LAGB, CAL_N, K_COLL = 4, 8, 50
+if SYNTHETIC_TEST: M_MODES = 60                     # local smoke test only
+# ---- data split: nothing from HOLD_START on has been looked at ----
+HIST_START, HOLD_START, HOLD_END = "2023-10-02", "2024-05-06", "2024-09-02"
+if QUICK: HIST_START, HOLD_END = "2024-01-29", "2024-06-03"
+ENC = {"minilm": "sentence-transformers/all-MiniLM-L6-v2", "e5": "intfloat/e5-small-v2"}
+SIZE_RANGE, MIN_Q_LARGE, N_FIX = (64, 364), 5, 1640
+if QUICK:
+    R = dict(NULL_M=12, NULL_L=5, REPS=2, RUN_SEEDS=[0, 1], T_WEEKS=2, T_CAL=4, T_REPS=3, SEQ_H=6, SCHED_REPS=2, CONV_KEEP=0.5, EVALS=[(3, 60), (10, 20)])
+else:
+    R = dict(NULL_M=40, NULL_L=12, REPS=4, RUN_SEEDS=[0, 1, 2], T_WEEKS=6, T_CAL=10, T_REPS=10, SEQ_H=16, SCHED_REPS=3, CONV_KEEP=1.0, EVALS=[(3, 300), (10, 100)])
+if SYNTHETIC_TEST: SIZE_RANGE, N_FIX, K_COLL = (40, 90), 300, 10
+CACHE = f"{OUTDIR}/step35_{'quick' if QUICK else 'full'}{'_synth' if SYNTHETIC_TEST else ''}"
+def hf_token():
+    try:
+        from kaggle_secrets import UserSecretsClient; return UserSecretsClient().get_secret("HF_TOKEN")
+    except Exception:
+        return os.environ.get("HF_TOKEN")
+def st_encoder(name):
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError:
+        os.system("pip install -q sentence-transformers"); from sentence_transformers import SentenceTransformer
+    enc = SentenceTransformer(ENC[name], device="cuda"); enc.max_seq_length = 256; return enc
+PREFIX = {"minilm": "", "e5": "query: "}
+print(f"backend {'GPU ' + torch.cuda.get_device_name(0) if USE_GPU else 'CPU'} | QUICK={QUICK} | history {HIST_START} .. {HOLD_START} | holdout {HOLD_START} .. {HOLD_END}")
+
+# %% [markdown]
+# # Part 0 — data (WildChat-4.8M, history and holdout weeks)
+
+# %%
+# ===== Cell 2: English user turns from HIST_START to HOLD_END (cached) =====
+t0 = time.time()
+D0, D1, DH = np.datetime64(HIST_START), np.datetime64(HOLD_END), np.datetime64(HOLD_START)
+HOLD_WEEK = int((DH - D0).astype(int) // 7)
+if os.path.exists(CACHE + "_meta.npz") and os.path.exists(CACHE + "_txt.pkl"):
+    _c = np.load(CACHE + "_meta.npz"); ACCT, WEEK, CONV, TURN = _c["ACCT"], _c["WEEK"], _c["CONV"], _c["TURN"]
+    with open(CACHE + "_txt.pkl", "rb") as fh: TXT = pickle.load(fh)
+    print(f"loaded cache: {len(ACCT)} turns")
+elif SYNTHETIC_TEST:
+    rng = np.random.default_rng(0); n_weeks, n_ip = 26, 2500; HOLD_WEEK = 18; rows_a, rows_w = [], []
+    for w in range(n_weeks):
+        act = rng.choice(n_ip, 500, replace=False); vol = np.minimum(3 + rng.geometric(0.08, 500), 200)
+        rows_a.append(np.repeat(act, vol)); rows_w.append(np.full(vol.sum(), w))
+    ACCT = np.concatenate(rows_a).astype(np.int32); WEEK = np.concatenate(rows_w).astype(np.int16)
+    CONV = np.arange(len(ACCT), dtype=np.int32); TURN = np.ones(len(ACCT), np.int16); TXT = None
+else:
+    import pyarrow as pa, pyarrow.parquet as pq, pyarrow.compute as pc
+    from huggingface_hub import HfFileSystem, hf_hub_download
+    tok = hf_token(); fs = HfFileSystem(token=tok); REPO = "allenai/WildChat-4.8M"
+    files = sorted(fs.glob(f"datasets/{REPO}/data/*.parquet")); print(f"{len(files)} parquet shards")
+    def to_days(col):
+        col = col.combine_chunks() if hasattr(col, "combine_chunks") else col
+        if pa.types.is_timestamp(col.type):
+            v = pc.cast(col, pa.int64()).fill_null(0).to_numpy(zero_copy_only=False); return v.astype(f"datetime64[{col.type.unit}]").astype("datetime64[D]")
+        return np.array([str(x)[:10] if x is not None else "1970-01-01" for x in col.to_pylist()], dtype="datetime64[D]")
+    TXT, IPS, DAYS, CONV_L, TURN_L = [], [], [], [], []; cid = 0; tmp = os.path.join(OUTDIR, "_wc48"); os.makedirs(tmp, exist_ok=True)
+    rkeep = np.random.default_rng(SEED)
+    for fi, f in enumerate(files):
+        try:                                                     # pass 1: timestamps only, by column projection
+            with fs.open(f, "rb") as fh: d_ = to_days(pq.ParquetFile(fh).read(columns=["timestamp"]).column(0))
+            if d_.max() < D0 or d_.min() >= D1: continue
+        except Exception as ex:
+            print(f"  [{fi}] timestamp projection failed ({type(ex).__name__}); downloading the shard")
+        local = hf_hub_download(REPO, f.split(f"{REPO}/")[1], repo_type="dataset", token=tok, local_dir=tmp)
+        tbl = pq.read_table(local, columns=["conversation", "hashed_ip", "timestamp", "language"]); os.remove(local)
+        d_ = to_days(tbl["timestamp"]); lang = tbl["language"].to_numpy(zero_copy_only=False); ipv = tbl["hashed_ip"].to_numpy(zero_copy_only=False)
+        m = (d_ >= D0) & (d_ < D1) & (lang == "English") & np.array([x is not None for x in ipv])
+        if R["CONV_KEEP"] < 1: m &= rkeep.random(len(m)) < R["CONV_KEEP"]
+        if not m.any(): continue
+        tbl = tbl.filter(pa.array(m)); d_, ipv = d_[m], ipv[m]
+        conv = tbl["conversation"].combine_chunks(); par = pc.list_parent_indices(conv).to_numpy(); flat = pc.list_flatten(conv)
+        role, content = flat.field("role"), flat.field("content")
+        um = pc.fill_null(pc.and_(pc.equal(role, "user"), pc.greater(pc.utf8_length(content), 0)), False).to_numpy(zero_copy_only=False)
+        pu = par[um]; txt = [s[:1000] for s in pc.filter(content, pa.array(um)).to_pylist()]
+        st = np.r_[0, np.flatnonzero(np.diff(pu)) + 1]; first = np.repeat(st, np.diff(np.r_[st, len(pu)]))
+        TXT += txt; IPS.append(ipv[pu]); DAYS.append(d_[pu]); CONV_L.append(cid + pu); TURN_L.append(np.arange(len(pu)) - first + 1); cid += len(tbl)
+        print(f"  [{fi}] {f.split('/')[-1]}: {int(m.sum())} conversations in range, {len(pu)} user turns (total {len(TXT)}; {time.time()-t0:.0f}s)")
+    _, ACCT = np.unique(np.concatenate(IPS), return_inverse=True); ACCT = ACCT.astype(np.int32)
+    WEEK = ((np.concatenate(DAYS) - D0).astype(np.int64) // 7).astype(np.int16)
+    CONV, TURN = np.concatenate(CONV_L).astype(np.int32), np.minimum(np.concatenate(TURN_L), 32000).astype(np.int16); del IPS, DAYS; gc.collect()
+    np.savez(CACHE + "_meta.npz", ACCT=ACCT, WEEK=WEEK, CONV=CONV, TURN=TURN)
+    with open(CACHE + "_txt.pkl", "wb") as fh: pickle.dump(TXT, fh)
+n_w = int(WEEK.max()) + 1; n_acct = int(ACCT.max()) + 1
+HIST = WEEK < HOLD_WEEK
+# [PAPER] §2 / App. I 'Design': 757,000 English user turns from 76,000 hashed IPs; 31 history weeks, 17 test weeks
+print(f"{len(ACCT)} English user turns, {n_acct} hashed IPs, {n_w} weeks (history {HOLD_WEEK}, holdout {n_w - HOLD_WEEK}) ({time.time()-t0:.0f}s)")
+print("turns per week:", np.bincount(WEEK).tolist())
+
+# %%
+# ===== Cell 3: embeddings in both encoders, and campaign sources (cached) =====
+t0 = time.time(); EMB, SRC = {}, {}
+if SYNTHETIC_TEST:
+    r = np.random.default_rng(1); base = r.standard_normal((40, 384)); topic = r.integers(0, 40, n_acct)[ACCT]
+    E = base[topic] * 0.8 + r.standard_normal((len(ACCT), 384)) * 0.6; E /= np.linalg.norm(E, axis=1, keepdims=True)
+    Q, _ = np.linalg.qr(r.standard_normal((384, 384))); E2 = E @ Q + r.standard_normal(E.shape) * 0.2; E2 /= np.linalg.norm(E2, axis=1, keepdims=True)
+    EMB = {"minilm": E.astype(np.float16), "e5": E2.astype(np.float16)}
+    c = r.standard_normal(384) * 2; mm = c + r.standard_normal((1500, 384)) * 0.7; mm /= np.linalg.norm(mm, axis=1, keepdims=True)
+    eg = mm[:300] + r.standard_normal((300, 384)) * 0.1; eg /= np.linalg.norm(eg, axis=1, keepdims=True)
+    SRC = {"minilm": {"mm": mm.astype(np.float16), "eval": eg.astype(np.float16)}, "e5": {"mm": (mm @ Q).astype(np.float16), "eval": (eg @ Q).astype(np.float16)}}
+else:
+    from datasets import load_dataset
+    tok = hf_token()
+    mmd = load_dataset("meta-math/MetaMathQA", split="train", token=tok).select_columns(["query", "response", "original_question"]); groups = {}
+    for q, a, o in zip(mmd["query"], mmd["response"], mmd["original_question"]):
+        if q and a and o: groups.setdefault(o, []).append(q.strip()[:1000])
+    rr = np.random.default_rng(SEED); origs = list(groups); rr.shuffle(origs)
+    MMQ = [groups[o][int(rr.integers(len(groups[o])))] for o in origs]                       # one query per source problem (as Steps 14-32)
+    EVQ = [q[:1000] for q in load_dataset("openai/gsm8k", "main", split="test")["question"]]
+    for name in ENC:
+        path = CACHE + f"_{name}.npy"
+        if os.path.exists(path) and os.path.exists(CACHE + f"_{name}_src.npz"):
+            EMB[name] = np.load(path); _c = np.load(CACHE + f"_{name}_src.npz"); SRC[name] = {"mm": _c["mm"], "eval": _c["eval"]}; continue
+        enc = st_encoder(name); pre = PREFIX[name]; out = np.empty((len(TXT), 384), np.float16)
+        for s0 in range(0, len(TXT), 400000):
+            out[s0:s0 + 400000] = enc.encode([pre + t for t in TXT[s0:s0 + 400000]], batch_size=512, convert_to_numpy=True, normalize_embeddings=True, show_progress_bar=False).astype(np.float16)
+            print(f"  [{name}] embedded {min(s0 + 400000, len(TXT))}/{len(TXT)} ({time.time()-t0:.0f}s)")
+        emb = lambda T: enc.encode([pre + t for t in T], batch_size=512, convert_to_numpy=True, normalize_embeddings=True).astype(np.float16)
+        SRC[name] = {"mm": emb(MMQ), "eval": emb(EVQ)}; EMB[name] = out
+        np.save(path, out); np.savez(CACHE + f"_{name}_src.npz", **SRC[name]); del enc; gc.collect()
+        if USE_GPU: torch.cuda.empty_cache()
+TXT = None; gc.collect()
+print(f"embeddings: " + ", ".join(f"{k} {v.shape}" for k, v in EMB.items()) + f"; MetaMathQA {len(SRC['minilm']['mm'])}, GSM8K test {len(SRC['minilm']['eval'])} ({time.time()-t0:.0f}s)")
+
+# %% [markdown]
+# # Part 1 — the frozen statistics
+
+# %%
+# ===== Cell 4: frozen statistics (verbatim from Steps 23-32) plus the trivial volume baseline =====
+from functools import lru_cache
+def make_bank_aug(Zref, h, seed):
+    r = np.random.default_rng(seed); modes = r.standard_normal((M_MODES, Zref.shape[1])) / h / (2 * np.pi); m2 = 2 * M_MODES
+    if USE_GPU:
+        Mt = torch.as_tensor(modes, dtype=torch.float64, device=DEV); G = torch.zeros((m2, m2), dtype=torch.float64, device=DEV); mu = torch.zeros(m2, dtype=torch.float64, device=DEV)
+        for s0 in range(0, len(Zref), 16384):
+            th = (2 * math.pi) * (torch.as_tensor(Zref[s0:s0 + 16384], dtype=torch.float64, device=DEV) @ Mt.T)
+            X = torch.cat([torch.cos(th), torch.sin(th)], 1); G += X.T @ X; mu += X.sum(0)
+        G, mu = G.cpu().numpy(), mu.cpu().numpy()
+    else:
+        G = np.zeros((m2, m2)); mu = np.zeros(m2)
+        for s0 in range(0, len(Zref), 4096):
+            th = 2 * np.pi * (Zref[s0:s0 + 4096] @ modes.T); X = np.hstack([np.cos(th), np.sin(th)]); G += X.T @ X; mu += X.sum(0)
+    G /= len(Zref); mu /= len(Zref); Sig = G - np.outer(mu, mu); ew, U = np.linalg.eigh((Sig + Sig.T) / 2); keep = ew > FLOOR * ew.max()
+    B = dict(modes=modes, mu=mu, W=U[:, keep] / np.sqrt(ew[keep]), r=int(keep.sum()))
+    if USE_GPU:
+        B["MT"] = torch.as_tensor(modes, dtype=torch.float64, device=DEV); B["MU_T"] = torch.as_tensor(mu, dtype=torch.float64, device=DEV); B["W_T"] = torch.as_tensor(B["W"], dtype=torch.float64, device=DEV)
+    return B
+def whitened(pts, lab, cnt, B):
+    if USE_GPU:
+        Fc = torch.zeros((len(cnt), M_MODES), dtype=torch.float64, device=DEV); Fs = torch.zeros_like(Fc)
+        for s0 in range(0, len(pts), CHUNK):
+            P = torch.as_tensor(pts[s0:s0 + CHUNK], dtype=torch.float64, device=DEV); ix = torch.as_tensor(lab[s0:s0 + CHUNK], dtype=torch.long, device=DEV)
+            th = (2.0 * math.pi) * (P @ B["MT"].T); Fc.index_add_(0, ix, torch.cos(th)); Fs.index_add_(0, ix, torch.sin(th))
+        c = torch.as_tensor(cnt, dtype=torch.float64, device=DEV)
+        return (((torch.cat([Fc, Fs], 1) - c[:, None] * B["MU_T"][None, :]) / torch.sqrt(c)[:, None]) @ B["W_T"]).cpu().numpy()
+    import scipy.sparse as sp
+    X = np.zeros((len(cnt), 2 * M_MODES))
+    for s0 in range(0, len(pts), CHUNK):
+        P, l_ = pts[s0:s0 + CHUNK], lab[s0:s0 + CHUNK]; th = 2 * np.pi * (P @ B["modes"].T)
+        X += sp.csr_matrix((np.ones(len(P)), (l_, np.arange(len(P)))), shape=(len(cnt), len(P))) @ np.hstack([np.cos(th), np.sin(th)])
+    return ((X - cnt[:, None] * B["mu"][None, :]) / np.sqrt(cnt)[:, None]) @ B["W"]
+def union_S(Y, cnt, ix): return float(((Y[ix] * np.sqrt(cnt[ix])[:, None]).sum(0) ** 2).mean() / cnt[ix].sum())
+@lru_cache(maxsize=64)
+def mp_median(c):
+    a, b = (1 - np.sqrt(c)) ** 2, (1 + np.sqrt(c)) ** 2; x = np.linspace(a + 1e-9, b - 1e-9, 20001)
+    f = np.sqrt(np.maximum((b - x) * (x - a), 0)) / (2 * np.pi * c * x); F = np.cumsum(f) * (x[1] - x[0]); F /= F[-1]
+    return float(x[np.searchsorted(F, 0.5)])
+def top_group(v):
+    v2 = v ** 2 / (v ** 2).sum(); o = np.argsort(-v2); m = int(np.clip(np.searchsorted(np.cumsum(v2[o]), 0.5) + 1, 3, 100)); return o[:m]
+def ts_of(Yc, Yf, cnt, g): return float(np.log(union_S(Yc, cnt, g)) - np.log(union_S(Yf, cnt, g)))
+def gram(Yn, kk=50):
+    A_, r_ = Yn.shape
+    if A_ >= r_:
+        ev, U = np.linalg.eigh(Yn.T @ Yn); o = np.argsort(-ev); ev, U = ev[o], U[:, o]
+        V = Yn @ U[:, :kk] / np.sqrt(np.maximum(ev[:kk], 1e-12)); return ev, V
+    ev, V = np.linalg.eigh(Yn @ Yn.T); o = np.argsort(-ev); return ev[o], V[:, o][:, :kk]
+def stats35(pts, labs, cnt, Bc, Bf, top):
+    """Frozen stats27 (two-scale on C, hollowed R_c top group, multi-outlier T_max) + global stream + topic-cell shares."""
+    Yc = whitened(pts, labs, cnt, Bc); Yf = whitened(pts, labs, cnt, Bf); A_, r_ = Yc.shape
+    ev, Vc = np.linalg.eigh(Yc.T @ Yc / r_); gC = top_group(Yc @ Vc[:, -1])
+    Ycc = Yc - Yc.mean(0, keepdims=True); Yn = Ycc / np.maximum(np.linalg.norm(Ycc, axis=1, keepdims=True), 1e-12)
+    lam, V = gram(Yn); nz = lam[: min(A_, r_)]; g_ = A_ / r_
+    e_hat = float(np.median(nz) / (max(g_, 1.0) * mp_median(min(g_, 1 / g_))) * (1 + np.sqrt(g_)) ** 2 - 1)
+    J, kpre = [0], 0
+    for j in range(min(MAX_OUT, V.shape[1])):
+        if lam[j] - 1 > (1 + EDGE_DELTA) * e_hat:
+            kpre += 1
+            if j > 0 and 1.0 / np.sum(V[:, j] ** 4) >= MIN_PART: J.append(j)
+    groups = [top_group(V[:, j]) for j in J]; sc = [ts_of(Yc, Yf, cnt, g) for g in groups]; jm = int(np.argmax(sc))
+    return dict(tsC=ts_of(Yc, Yf, cnt, gC), tsRc=sc[0], Tmax=float(max(sc)), glob=union_S(Yc, cnt, np.arange(A_)), k=len(J) - 1, kpre=kpre,
+                lam1=float(lam[0] - 1), gC=gC, gR=groups[0], gT=groups[jm], share=np.bincount(top, minlength=N_TOPICS) / len(top), A=A_)
+def lam1_shuffled(pts, labs, cnt, Bc, r):
+    Yc = whitened(pts[r.permutation(len(pts))], labs, cnt, Bc); Ycc = Yc - Yc.mean(0, keepdims=True)
+    Yn = Ycc / np.maximum(np.linalg.norm(Ycc, axis=1, keepdims=True), 1e-12); return float(gram(Yn, 1)[0][0] - 1)
+def boot_ci(x, B=1000, rng=np.random.default_rng(7)):
+    x = np.array(x, float)
+    if len(x) == 0: return (float("nan"),) * 3
+    bs = [x[rng.integers(0, len(x), len(x))].mean() for _ in range(B)]; return float(x.mean()), float(np.quantile(bs, .025)), float(np.quantile(bs, .975))
+# [PAPER] App. P (Step 35, frozen calibration): week-level upper 4–6%
+def week_upper(fpr_by_week):
+    """95% upper bound on the false-alarm rate with weeks as the unit: 1 - 0.05^(1/W) when no week had a false alarm."""
+    f = np.array(fpr_by_week); W = len(f)
+    return float(1 - 0.05 ** (1 / W)) if f.sum() == 0 else boot_ci(f)[2]
+def roc(null_vals, att_vals):
+    null_vals, att_vals = np.array(null_vals), np.array(att_vals)
+    # [PAPER] §7 / App. I: hollowed (tsRc) AUC 0.97 (tilted, MiniLM), 0.92 (tilted, E5), 0.88 (random, MiniLM); printed in Cell 14 verdict rows
+    auc = float(np.mean(att_vals[:, None] > null_vals[None, :]) + 0.5 * np.mean(att_vals[:, None] == null_vals[None, :]))
+    return dict(auc=auc, tpr1=float(np.mean(att_vals > np.quantile(null_vals, 0.99))))
+print("frozen statistics defined")
+
+
+# %%
+# ===== Cell 5: per-encoder setup — projection, topics, attacker pool, weekly groups, lagged banks =====
+def setup(name):
+    global EN, Z, TOPIC, km, DZ, is_pool, pool_idx, ON, OFF, P_TASK, clf_t
+    from sklearn.cluster import MiniBatchKMeans
+    from sklearn.linear_model import LogisticRegression
+    t0 = time.time(); EN = EMB[name]
+    rng = np.random.default_rng(SEED); hi = np.flatnonzero(HIST)
+    fit = EN[rng.choice(hi, min(100000, len(hi)), replace=False)].astype(np.float32)          # PCA basis from history weeks only
+    MU = fit.mean(0); ew, U = np.linalg.eigh(np.cov(fit - MU, rowvar=False)); EW, UB = ew[::-1], U[:, ::-1].copy()
+    W_ = UB[:, :384] / math.sqrt(EW[:384].sum() / 4.0); Z = np.empty((len(EN), 384), np.float32)
+    for s0 in range(0, len(EN), 200000): Z[s0:s0 + 200000] = (EN[s0:s0 + 200000].astype(np.float32) - MU) @ W_
+    DZ = {k: ((v.astype(np.float32) - MU) @ W_).astype(np.float32) for k, v in SRC[name].items()}
+    is_pool = np.random.default_rng(SEED + 1).random(n_acct) < POOL_FRAC; pool_idx = np.flatnonzero(is_pool[ACCT])
+    ben_h = np.flatnonzero(~is_pool[ACCT] & HIST)
+    km = MiniBatchKMeans(n_clusters=N_TOPICS, random_state=SEED, batch_size=4096, n_init=3).fit(Z[np.random.default_rng(1).choice(ben_h, min(200000, len(ben_h)), replace=False)])
+    TOPIC = km.predict(Z).astype(np.int32); DZ["mm_top"] = km.predict(DZ["mm"]).astype(np.int32); DZ["eval_top"] = km.predict(DZ["eval"]).astype(np.int32)
+    # task region (MetaMathQA vs benign chat of the first 8 history weeks) -> tilted campaign; defined on MiniLM rows, reused for E5
+    if name == "minilm":
+        neg = np.flatnonzero(~is_pool[ACCT] & (WEEK < 8)); neg = np.random.default_rng(4).choice(neg, min(4 * len(DZ["mm"]), len(neg)), replace=False)
+        clf_t = LogisticRegression(max_iter=2000, class_weight="balanced").fit(np.vstack([SRC[name]["mm"].astype(np.float32), EN[neg].astype(np.float32)]), np.r_[np.ones(len(DZ["mm"])), np.zeros(len(neg))])
+        post = np.zeros(len(EN), np.float32)
+        for s0 in range(0, len(EN), 200000): post[s0:s0 + 200000] = clf_t.predict_proba(EN[s0:s0 + 200000].astype(np.float32))[:, 1]
+        IN_S = post >= 0.5; P_TASK = float(IN_S[~is_pool[ACCT] & HIST].mean()); ON = pool_idx[IN_S[pool_idx]]
+        if len(ON) < 50: ON = pool_idx[np.argsort(-post[pool_idx])[: max(50, len(pool_idx) // 50)]]
+        OFF = np.setdiff1d(pool_idx, ON)
+    print(f"[{name}] projection, topics and pool ready; task share p = {P_TASK:.4f}, on-task pool prompts {len(ON)} ({time.time()-t0:.0f}s)")
+def groups_by_week(min_q):
+    order = np.lexsort((ACCT, WEEK)); keys = WEEK[order].astype(np.int64) * n_acct + ACCT[order]; GA = {b: [] for b in range(n_w)}
+    for g in np.split(order, np.flatnonzero(np.diff(keys)) + 1):
+        if not is_pool[int(ACCT[g[0]])] and len(g) >= min_q: GA[int(WEEK[g[0]])].append(g[:VOL_CAP])
+    return GA
+def make_banks():
+    BANK = {}
+    for b in range(1, n_w):
+        prev = [np.concatenate(GAM[v]) for v in range(max(0, b - LAGB), b) if GAM[v]]
+        if not prev: continue
+        ref = np.concatenate(prev); ref = np.random.default_rng(b).choice(ref, min(100000, len(ref)), replace=False)
+        BANK[b] = (make_bank_aug(Z[ref], H_COARSE, SEED + 7), make_bank_aug(Z[ref], H_FINE, SEED + 8))
+    return BANK
+def sub_window(GA, b, r, regime):
+    G = GA[b]; k = max(20, int(SUB_FRAC * len(G)))
+    if regime == "matched": k = min(k, int(r.integers(SIZE_RANGE[0], SIZE_RANGE[1] + 1)))
+    pick = r.choice(len(G), k, replace=False); parts = [G[i] for i in pick]
+    vols = np.array([len(p) for p in parts]); return np.concatenate(parts), np.repeat(np.arange(len(parts)), vols), vols
+
+
+# %%
+# ===== Cell 6: campaign sources, injection (replacement, as frozen; addition as a control), schedules =====
+def campaign_points(src, n, r):
+    if src == "random": ix = r.choice(pool_idx, n, replace=False); return Z[ix], TOPIC[ix]
+    if src == "metamath_unique": ix = r.choice(len(DZ["mm"]), n, replace=n > len(DZ["mm"])); return DZ["mm"][ix], DZ["mm_top"][ix]
+    if src == "eval_gsm8k": ix = r.choice(len(DZ["eval"]), n, replace=n > len(DZ["eval"])); return DZ["eval"][ix], DZ["eval_top"][ix]
+    if src == "metamath_mixed":
+        nm = (n + 1) // 2; ix = r.choice(len(DZ["mm"]), nm, replace=False); jx = r.choice(pool_idx, n - nm, replace=False)
+        Zs = np.empty((n, Z.shape[1]), np.float32); Ts = np.empty(n, np.int32); Zs[0::2], Ts[0::2] = DZ["mm"][ix], DZ["mm_top"][ix]; Zs[1::2], Ts[1::2] = Z[jx], TOPIC[jx]
+        return Zs, Ts
+    if src == "tilted_c05":
+        n_on = (n + 1) // 2; ix = np.empty(n, int); ix[0::2] = r.choice(ON, n_on, replace=n_on > len(ON))[: len(ix[0::2])]; ix[1::2] = r.choice(OFF, len(ix[1::2]), replace=False)
+        return Z[ix], TOPIC[ix]
+    raise ValueError(src)
+def proj_fn(Bc):
+    def f(Zc):
+        Y1 = whitened(Zc, np.arange(len(Zc)), np.ones(len(Zc)), Bc); m = Y1.mean(0); return Y1 @ m / (np.linalg.norm(m) + 1e-12)
+    return f
+def attack(GA, b, regime, src, r, rc, banks, K_=None, n_fix=None, per_acct=None, schedule="random", add=False):
+    """Returns (attacked stats, identical-window null stats, colluder count) or None."""
+    K_ = K_ or K_COLL; idx, lab, vols = sub_window(GA, b, r, regime); A_ = int(lab.max()) + 1
+    if K_ >= A_ // 2: return None
+    if per_acct: cv = np.full(K_, per_acct)
+    else:
+        cv = r.choice(np.array([len(g) for g in GA[b]]), K_, replace=True)
+        if n_fix: cv = np.maximum(1, np.round(cv * n_fix / cv.sum())).astype(int)
+    Zc, Tc = campaign_points(src, int(cv.sum()), rc); n = len(Zc); labc = np.repeat(np.arange(K_), cv)[:n]
+    if schedule != "random":
+        o = np.argsort(-proj_fn(banks[0])(Zc))
+        if schedule == "balanced": labc = np.empty(n, int); labc[o] = np.arange(n) % K_
+        else: n_top = int(0.3 * n); labc = np.empty(n, int); labc[o[:n_top]] = np.arange(n_top) % 5; labc[o[n_top:]] = 5 + np.arange(n - n_top) % (K_ - 5)
+    keep = np.ones(len(lab), bool) if add else lab >= K_
+    lab2 = lab[keep] + (K_ if add else 0)
+    _, inv = np.unique(np.concatenate([labc, lab2]), return_inverse=True)
+    sa = stats35(np.vstack([Zc, Z[idx[keep]]]), inv, np.bincount(inv), *banks, np.concatenate([Tc, TOPIC[idx[keep]]]))
+    sb = stats35(Z[idx], lab, np.bincount(lab), *banks, TOPIC[idx])
+    return sa, sb, K_
+
+
+# %%
+# ===== Cell 7: null windows and thresholds (conformal over all prior weeks; rolling 8 weeks; volume scans) =====
+DCONF = ["tsC", "tsRc", "Tmax", "glob"]
+DETS = ["tsC", "tsC_roll", "tsRc", "Tmax", "glob", "vol_roll", "vol_conf"]
+def build_nulls(GA, regime, n_per, banks):
+    t0 = time.time(); NUL = {}
+    for b in sorted(banks):
+        if len(GA[b]) < 20: continue
+        NUL[b] = [stats35(Z[i], l, np.bincount(l), *banks[b], TOPIC[i]) for i, l, v in (sub_window(GA, b, np.random.default_rng(SEED + 100 * b + t), regime) for t in range(n_per))]
+    print(f"  [{regime}] null windows for {len(NUL)} weeks ({time.time()-t0:.0f}s)")
+    return NUL
+def vol_model(wins):
+    half, rest = wins[0::2], (wins[1::2] if len(wins) > 1 else wins)
+    SH = np.array([w["share"] for w in half]); med = np.median(SH, 0); sc = np.maximum(1.4826 * np.median(np.abs(SH - med), 0), 0.002 + 0.1 * med)
+    th = float(np.quantile([np.max((w["share"] - med) / sc) for w in rest], 1 - ALPHA)); return dict(med=med, sc=sc, th=th)
+def thresholds(NUL):
+    TH = {}; wk = sorted(NUL)
+    for b in wk:
+        prior = [s for v in wk if v < b for s in NUL[v]]; roll = [s for v in wk if b - CAL_N <= v < b for s in NUL[v]]
+        if len([v for v in wk if b - CAL_N <= v < b]) < CAL_N: continue
+        T = {d: float(np.quantile([s[d] for s in prior], 1 - ALPHA)) for d in DCONF}; T["tsC_roll"] = float(np.quantile([s["tsC"] for s in roll], 1 - ALPHA))
+        T["vol_roll"], T["vol_conf"] = vol_model(roll), vol_model(prior); T["n_prior"] = len(prior); TH[b] = T
+    return TH
+def score(s, T, d):
+    if d in ("vol_roll", "vol_conf"): return float(np.max((s["share"] - T[d]["med"]) / T[d]["sc"]))
+    return s["tsC"] if d == "tsC_roll" else s[d]
+def fires(s, T, d): return score(s, T, d) > (T[d]["th"] if d in ("vol_roll", "vol_conf") else T[d])
+def fpr_table(NUL, TH, weeks):
+    out = {}
+    for d in DETS:
+        fw = [np.mean([fires(s, TH[b], d) for s in NUL[b]]) for b in weeks]
+        m, lo, hi = boot_ci(fw); out[d] = dict(fpr=m, lo=lo, hi=hi, week_upper=week_upper(fw), weeks_with_fa=int(np.sum(np.array(fw) > 0)), W=len(fw))
+    return out
+def run_sources(GA, regime, TH, banks, sources, weeks, reps, seed_off=0, **kw):
+    rows = []
+    for src in sources:
+        name = src if isinstance(src, str) else f"eval_gsm8k({src[0]}x{src[1]})"
+        pw = {d: [] for d in DETS}; nv, av = {d: [] for d in DETS}, {d: [] for d in DETS}; prec, rec = [], []
+        for b in weeks:
+            acc = {d: [] for d in DETS}
+            for rep in range(reps):
+                r = np.random.default_rng(SEED + 9_000_000 + 1000 * b + 10 * rep + seed_off); rc = np.random.default_rng(SEED + 17 * b + rep + seed_off)
+                if isinstance(src, tuple): out = attack(GA, b, regime, "eval_gsm8k", r, rc, banks[b], K_=src[0], per_acct=src[1])
+                else: out = attack(GA, b, regime, src, r, rc, banks[b], **kw)
+                if out is None: continue
+                sa, sb, K_ = out
+                for d in DETS: acc[d].append(float(fires(sa, TH[b], d) and not fires(sb, TH[b], d))); nv[d].append(score(sb, TH[b], d)); av[d].append(score(sa, TH[b], d))
+                # [PAPER] App. I 'What held': flagged accounts were colluders 94% of the time (Tmax_precision)
+                if fires(sa, TH[b], "Tmax"): prec.append(float(np.mean(sa["gT"] < K_))); rec.append(float(np.sum(sa["gT"] < K_) / K_))
+            for d in DETS:
+                if acc[d]: pw[d].append(np.mean(acc[d]))
+        row = dict(source=name, **{d: boot_ci(pw[d]) for d in DETS}, **{d + "_roc": roc(nv[d], av[d]) for d in DETS},
+                   Tmax_precision=float(np.mean(prec)) if prec else float("nan"), Tmax_recall=float(np.mean(rec)) if rec else float("nan"))
+        rows.append(row)
+        print(f"  [{regime}] {name:>22} | deployed " + " ".join(f"{d}={row[d][0]:.2f}" for d in DETS) + " | oracle " + " ".join(f"{d}={row[d+'_roc']['tpr1']:.2f}" for d in ["tsC", "Tmax", "vol_conf"]))
+    return rows
+
+
+# %% [markdown]
+# # Part 2 — MiniLM: frozen replication on untouched weeks (matched regime)
+
+# %%
+# ===== Cell 8: MiniLM, matched regime =====
+t0 = time.time(); setup("minilm")
+GAM = groups_by_week(MIN_PER_ACCT); BANK = make_banks()
+NULM = build_nulls(GAM, "matched", R["NULL_M"], BANK); THM = thresholds(NULM)
+HOLDW = [b for b in sorted(THM) if b >= HOLD_WEEK and len(GAM[b]) >= 40]
+sizes = [s["A"] for b in HOLDW for s in NULM[b]]
+# [PAPER] Table 3 / App. Table 15 / App. I: windows of 64–252 accounts on 17 untouched weeks
+print(f"[matched] holdout test weeks {HOLDW}; window sizes {min(sizes)}-{max(sizes)} accounts; eligible accounts per holdout week {[len(GAM[b]) for b in HOLDW]}")
+FPR_M = fpr_table(NULM, THM, HOLDW)
+# [PAPER] Table 3 (MiniLM, "False alarms"), Fig. 1b, §7, App. P (Step 35): 1.8% / 1.9% / 1.9% / 1.5% (tsC / tsRc / Tmax / vol_roll)
+# [PAPER] App. I: two or three of 17 weeks had any false alarm (weeks with FA)
+print("[P35a] held-out FPR: " + " ".join(f"{d}={FPR_M[d]['fpr']:.4f}(weeks with FA {FPR_M[d]['weeks_with_fa']}/{FPR_M[d]['W']}, week-unit 95% upper {FPR_M[d]['week_upper']:.3f})" for d in DETS))
+# [PAPER] Table 3 (MiniLM, 64–252 accounts), Fig. 1b, Table 2 & App. Table 15 (untouched): Dataset 0.86 / 1.00 / 0.97 / 0.61;
+# [PAPER]   Half padding 0.00 / 0.57 / 0.00 / 0.37; Least detectable 0.00 / 0.04 / 0.00 / 0.10; Random 0.00 / 0.00 / 0.00 / 0.00;
+# [PAPER]   GSM8K sweep 10 / 3 accounts 0.87 / 0.88, 1.00 / 0.34, 0.97 / 0.93, 0.46 / 0.46 (tsC / tsRc / Tmax / vol_roll)
+RES_M = run_sources(GAM, "matched", THM, BANK, ["metamath_unique", "metamath_mixed", "tilted_c05", "random"] + [tuple(e) for e in R["EVALS"]], HOLDW, R["REPS"])
+# [PAPER] App. I / App. P (Step 35): addition vs replacement changes random-campaign detection by 0.00
+RES_ADD = run_sources(GAM, "matched", THM, BANK, ["random"], HOLDW, R["REPS"], add=True)
+RUNS = {}
+for sd in R["RUN_SEEDS"][1:]:
+    # [PAPER] §7 / App. I / Table 2 / App. Table 15: hollowed half-padding detection 0.50–0.57 across three campaign seeds
+    RUNS[sd] = run_sources(GAM, "matched", THM, BANK, ["metamath_unique", "metamath_mixed"], HOLDW, R["REPS"], seed_off=7919 * sd)
+print(f"[matched] done ({time.time()-t0:.0f}s)")
+
+
+# %%
+# ===== Cell 9: benign-coordination census on holdout weeks (real vs shuffled lambda_1 of R_c; outliers per window) =====
+def census(GA, NUL, banks, weeks, regime):
+    real, shuf, ks = [], [], []
+    for b in weeks:
+        for t in range(2):
+            r = np.random.default_rng(SEED + 300 * b + t); i, l, v = sub_window(GA, b, r, regime); cnt = np.bincount(l)
+            real.append(stats35(Z[i], l, cnt, *banks[b], TOPIC[i])["lam1"]); shuf.append(lam1_shuffled(Z[i], l, cnt, banks[b][0], r))
+        ks += [s["k"] for s in NUL[b]]
+    return dict(ratio=float(np.median(real) / np.median(shuf)), k_median=float(np.median(ks)), k_at_cap=float(np.mean(np.array(ks) >= MAX_OUT - 1)))
+CEN = {"minilm": census(GAM, NULM, BANK, HOLDW, "matched")}
+# [PAPER] §7 / App. I / App. D.4: real-to-shuffled ratio of R_c 2.22 (MiniLM), against 1.14 on development weeks
+print(f"[census] MiniLM holdout: real/shuffled lambda_1(R_c) {CEN['minilm']['ratio']:.2f} (WildChat-1M: 1.14); outliers per window median {CEN['minilm']['k_median']:.0f}")
+
+# %%
+# ===== Cell 10: scheduling and ramp attacks against hollowed and multi-outlier selection =====
+t0 = time.time(); SCHED = {}
+for sched in ["random", "balanced", "sacrificial"]:
+    det = {d: [] for d in ["tsC", "tsRc", "Tmax"]}; rec_ns = {d: [] for d in det}
+    for b in HOLDW:
+        for rep in range(R["SCHED_REPS"]):
+            r = np.random.default_rng(SEED + 9_500 + 1000 * b + rep); out = attack(GAM, b, "matched", "metamath_unique", r, r, BANK[b], n_fix=N_FIX, schedule=sched)
+            if out is None: continue
+            sa, sb, K_ = out
+            for d, gk in [("tsC", "gC"), ("tsRc", "gR"), ("Tmax", "gT")]:
+                f = fires(sa, THM[b], d) and not fires(sb, THM[b], d); det[d].append(float(f))
+                if f: g = sa[gk]; rec_ns[d].append(float(np.sum((g >= 5) & (g < K_)) / (K_ - 5)))
+    SCHED[sched] = {d: dict(det=float(np.mean(det[d])) if det[d] else float("nan"), recall_nonsac=float(np.mean(rec_ns[d])) if rec_ns[d] else float("nan")) for d in det}
+    # [PAPER] §7 / App. I: sacrificial schedule - hollowed and multi-outlier detect 1.00, non-sacrificial recall 49–59%; selection on C 0.00
+    # [PAPER] App. P (Step 35, sacrificial): Fail (1.00; recall 0.49)
+    print(f"[X] {sched:>11}: " + " | ".join(f"{d} det {SCHED[sched][d]['det']:.2f}, non-sacrificial recall {SCHED[sched][d]['recall_nonsac']:.2f}" for d in det) + f"  ({time.time()-t0:.0f}s)")
+TEMP = {d: {"abrupt": [], "ramped": []} for d in ["tsC", "tsC_roll", "tsRc", "Tmax"]}
+TWK = [b for b in HOLDW if b - CAL_N - LAGB >= 0][:: max(1, len(HOLDW) // R["T_WEEKS"])][: R["T_WEEKS"]]
+for b in TWK:
+    camp = campaign_points("metamath_unique", N_FIX * 2, np.random.default_rng(b))[0]
+    prev = [np.concatenate(GAM[v]) for v in range(b - LAGB, b) if GAM[v]]; ref = np.random.default_rng(b).choice(np.concatenate(prev), 100000 if not (QUICK or SYNTHETIC_TEST) else 5000, replace=True)
+    frac_ref = np.mean([1 - j / CAL_N for j in range(1, LAGB + 1)]); n_c = int(frac_ref * N_FIX * LAGB / (sum(len(np.concatenate(GAM[v])) for v in range(b - LAGB, b)) / len(ref)))
+    Bt = (make_bank_aug(np.vstack([Z[ref], camp[: max(0, min(n_c, len(camp)))]]), H_COARSE, SEED + 7), make_bank_aug(np.vstack([Z[ref], camp[: max(0, min(n_c, len(camp)))]]), H_FINE, SEED + 8))
+    cal = []
+    for j in range(1, CAL_N + 1):
+        v = b - j; vol = max(1, int((1 - j / CAL_N) * N_FIX))
+        for k in range(R["T_CAL"]):
+            r = np.random.default_rng(SEED + 9_700 + 100 * v + k)
+            out = attack(GAM, v, "matched", "metamath_unique", r, r, Bt, n_fix=vol) if vol >= 50 else None
+            if out is None:
+                i, l, _ = sub_window(GAM, v, r, "matched"); cal.append(stats35(Z[i], l, np.bincount(l), *Bt, TOPIC[i]))
+            else: cal.append(out[0])
+    older = [s for v in sorted(NULM) if v < b - CAL_N for s in NULM[v]]
+    Tr = {d: float(np.quantile([s[d] for s in older + cal], 1 - ALPHA)) for d in ["tsC", "tsRc", "Tmax"]}; Tr["tsC_roll"] = float(np.quantile([s["tsC"] for s in cal], 1 - ALPHA))
+    for rep in range(R["T_REPS"]):
+        r = np.random.default_rng(SEED + 9_800 + 100 * b + rep); st = r.bit_generator.state
+        out_a = attack(GAM, b, "matched", "metamath_unique", r, np.random.default_rng(rep), BANK[b], n_fix=N_FIX)
+        r2 = np.random.default_rng(0); r2.bit_generator.state = st
+        out_r = attack(GAM, b, "matched", "metamath_unique", r2, np.random.default_rng(rep), Bt, n_fix=N_FIX)
+        if out_a is None or out_r is None: continue
+        for d in TEMP:
+            TEMP[d]["abrupt"].append(float(fires(out_a[0], THM[b], d) and not fires(out_a[1], THM[b], d)))
+            TEMP[d]["ramped"].append(float(score(out_r[0], Tr, d) > Tr[d] and not score(out_r[1], Tr, d) > Tr[d]))
+    # [PAPER] §7 / App. I ramp (abrupt -> ramped): Tmax 0.89 to 0.00, tsC 0.80 to 0.02, tsRc 0.98 to 0.32, tsC_roll 0.79 to 0.32
+    print(f"[T] week {b}: " + " | ".join(f"{d} abrupt {np.mean(TEMP[d]['abrupt']):.2f} ramped {np.mean(TEMP[d]['ramped']):.2f}" for d in TEMP) + f"  ({time.time()-t0:.0f}s)")
+
+# %%
+# ===== Cell 11: one detection rule for both detectors — conformal test martingale and first weekly alarm =====
+t0 = time.time()
+def calib_e(p):
+    p = np.clip(p, 1e-12, 1.0)
+    with np.errstate(all="ignore"): return np.where(p >= 1.0, 0.0, (1 - p + p * np.log(p)) / (p * np.log(p) ** 2))
+SEQW = sorted(THM); PRIOR = {b: {d: np.array([s[d] for v in sorted(NULM) if v < b for s in NULM[v]]) for d in ["tsC", "Tmax"]} for b in SEQW}
+def pval(x, b, d): cal = PRIOR[b][d]; return float((1 + np.sum(cal >= x)) / (len(cal) + 1))
+SEQ_SC = {"null": {}}
+for b in SEQW: SEQ_SC["null"][b] = NULM[b][0]
+for src in ["metamath_unique", "metamath_mixed"]:
+    SEQ_SC[src] = {}
+    for b in SEQW:
+        out = attack(GAM, b, "matched", src, np.random.default_rng(SEED + 12_000 + b), np.random.default_rng(SEED + 12_500 + b), BANK[b])
+        if out is not None: SEQ_SC[src][b] = out[0]
+def run_times(sc, start, H, d):
+    M, tM, tF = 1.0, None, None; ws = [w for w in SEQW if w >= start][:H]
+    for k, w in enumerate(ws):
+        if w not in sc: continue
+        M *= float(calib_e(pval(sc[w][d], w, d)))
+        if tM is None and M >= 1 / ALPHA: tM = k + 1
+        if tF is None and sc[w][d] > THM[w][d]: tF = k + 1
+    return tM, tF
+SEQ = {}
+for scope, starts in [("all", [w for w in SEQW if len([x for x in SEQW if x >= w]) >= R["SEQ_H"]]), ("holdout", [w for w in SEQW if w >= HOLD_WEEK][:1])]:
+    H = R["SEQ_H"] if scope == "all" else len([w for w in SEQW if w >= HOLD_WEEK])
+    for d in ["tsC", "Tmax"]:
+        for src in ["null", "metamath_unique", "metamath_mixed"]:
+            tt = [run_times(SEQ_SC[src], s0, H, d) for s0 in starts]
+            m_ = [t[0] if t[0] else np.inf for t in tt]; f_ = [t[1] if t[1] else np.inf for t in tt]
+            SEQ[(scope, d, src)] = dict(martingale=float(np.median(m_)) if m_ else float("nan"), first_alarm=float(np.median(f_)) if f_ else float("nan"),
+                                        frac_m=float(np.mean(np.isfinite(m_))) if m_ else float("nan"), frac_f=float(np.mean(np.isfinite(f_))) if f_ else float("nan"), runs=len(starts), H=H)
+            # [PAPER] Table 2 (untouched, two-scale / multi-outlier): first weekly alarm week 1 (dataset) / none (half padding);
+            # [PAPER]   anytime-valid week 3 (dataset) / none (two-scale) and 25% of runs (multi-outlier, half padding); scope 'all'
+            # [PAPER] §6 / App. G.3: null runs alarmed within 16 weeks a quarter of the time (null frac_f)
+            print(f"[SEQ] {scope:>7} {d:>5} {src:>16}: martingale median {SEQ[(scope, d, src)]['martingale']} (alarmed {SEQ[(scope, d, src)]['frac_m']:.2f}); first weekly alarm median {SEQ[(scope, d, src)]['first_alarm']} (alarmed {SEQ[(scope, d, src)]['frac_f']:.2f}); {len(starts)} runs of {H} weeks")
+print(f"({time.time()-t0:.0f}s)")
+
+# %% [markdown]
+# # Part 3 — real same-week populations (whole weeks, ≥ 5 queries per account)
+
+# %%
+# ===== Cell 12: large regime — deployed conformal thresholds in real weekly populations =====
+t0 = time.time(); GAL = groups_by_week(MIN_Q_LARGE)
+NULL_L = build_nulls(GAL, "large", R["NULL_L"], BANK); THL = thresholds(NULL_L)
+HOLDL = [b for b in sorted(THL) if b >= HOLD_WEEK and len(GAL[b]) >= 4 * K_COLL]
+sizes_L = [s["A"] for b in HOLDL for s in NULL_L[b]]
+# [PAPER] Table 3 / App. I / App. P (Step 35): whole weeks of 260–469 accounts (plausibly these window sizes)
+print(f"[large] holdout weeks {HOLDL}; window sizes {min(sizes_L)}-{max(sizes_L)} accounts (colluder share {100*K_COLL/max(sizes_L):.2f}-{100*K_COLL/min(sizes_L):.2f}%)")
+FPR_L = fpr_table(NULL_L, THL, HOLDL)
+# [PAPER] Table 3 (MiniLM, whole weeks, "False alarms"): 1.0% / 0.5% / 2.5% / 11.3% (tsC / tsRc / Tmax / vol_roll)
+print("[P35k] held-out FPR: " + " ".join(f"{d}={FPR_L[d]['fpr']:.4f}(weeks with FA {FPR_L[d]['weeks_with_fa']}/{FPR_L[d]['W']})" for d in DETS))
+# [PAPER] Table 3 (MiniLM, whole weeks): Dataset 0.90 / 1.00 / 1.00 / 0.84; Half padding 0.00 / 0.96 / 0.00 / 0.51
+RES_L = run_sources(GAL, "large", THL, BANK, ["metamath_unique", "metamath_mixed", "random"], HOLDL, max(2, R["REPS"] - 1), n_fix=N_FIX)
+big = [b for b in HOLDL if len(GAL[b]) >= np.median([len(GAL[x]) for x in HOLDL])] or HOLDL
+RES_LBIG = run_sources(GAL, "large", THL, BANK, ["metamath_unique"], big, max(2, R["REPS"] - 1), n_fix=N_FIX, seed_off=31)
+gsz = float(np.mean([len(s["gT"]) for b in HOLDL for s in NULL_L[b]])); A_mean = float(np.mean(sizes_L))
+FLAGGED_1E5 = float(1e5 / A_mean * FPR_L["Tmax"]["fpr"] * gsz)
+# [PAPER] App. I: multi-outlier selection would flag about 160 benign accounts a week at 10^5 accounts
+print(f"[large] benign accounts flagged per week at 1e5 accounts by T_max: {FLAGGED_1E5:.1f} ({time.time()-t0:.0f}s)")
+del NULL_L; gc.collect()
+
+# %% [markdown]
+# # Part 4 — second embedding (E5-small-v2), matched regime
+
+# %%
+# ===== Cell 13: E5-small-v2 =====
+t0 = time.time(); del Z; gc.collect()
+setup("e5"); GAM = groups_by_week(MIN_PER_ACCT); BANK_E = make_banks()
+NUL_E = build_nulls(GAM, "matched", R["NULL_M"], BANK_E); TH_E = thresholds(NUL_E)
+HOLDW_E = [b for b in sorted(TH_E) if b >= HOLD_WEEK and len(GAM[b]) >= 40]
+FPR_E = fpr_table(NUL_E, TH_E, HOLDW_E)
+# [PAPER] Table 3 (E5-small-v2, "False alarms"): 1.3% / 0.3% / 0.0% / 6.2% (tsC / tsRc / Tmax / vol_roll)
+print("[E5] held-out FPR: " + " ".join(f"{d}={FPR_E[d]['fpr']:.4f}" for d in DETS))
+# [PAPER] Table 3 (E5-small-v2): Dataset 0.86 / 1.00 / 1.00 / 0.48; Half padding 0.00 / 0.89 / 0.00 / 0.09;
+# [PAPER]   Least detectable 0.00 / 0.03 / 0.00 / 0.02 (tsC / tsRc / Tmax / vol_roll)
+RES_E = run_sources(GAM, "matched", TH_E, BANK_E, ["metamath_unique", "metamath_mixed", "tilted_c05", "random"], HOLDW_E, R["REPS"])
+CEN["e5"] = census(GAM, NUL_E, BANK_E, HOLDW_E, "matched")
+# [PAPER] §7 / App. I / App. P (Step 35, E5): real-to-shuffled ratio of R_c 3.06 (E5) vs 2.22 (MiniLM)
+print(f"[census] E5 holdout: real/shuffled lambda_1(R_c) {CEN['e5']['ratio']:.2f}; outliers per window median {CEN['e5']['k_median']:.0f} ({time.time()-t0:.0f}s)")
+
+# %% [markdown]
+# # Predictions and VERDICT REPORT — copy into the chat
+
+# %%
+# ===== Cell 14: predictions and verdict =====
+g = lambda rows, src, d: next(r[d][0] for r in rows if r["source"] == src)
+o = lambda rows, src, d: next(r[d + "_roc"]["tpr1"] for r in rows if r["source"] == src)
+cal3 = ["tsC", "tsRc", "Tmax"]
+# [PAPER] App. P (Step 35): P35a Pass (1.8%, 1.9%, 1.9%; week-level upper 4–6%)
+print(f"P35a matched FPR " + ", ".join(f"{d} {FPR_M[d]['fpr']:.4f} (week-unit upper {FPR_M[d]['week_upper']:.3f})" for d in cal3) + " (pass if all <= 0.02)")
+# [PAPER] App. P (Step 35): P35b Pass (1.00, 0.97; 0.86)
+print(f"P35b MetaMathQA: tsRc {g(RES_M,'metamath_unique','tsRc'):.2f}, Tmax {g(RES_M,'metamath_unique','Tmax'):.2f} (>= 0.9); tsC {g(RES_M,'metamath_unique','tsC'):.2f} (>= 0.7)")
+# [PAPER] App. P (Step 35): P35c Partial (hollowed 0.57; Tmax 0.00; two-scale 0.00)
+print(f"P35c mixed: tsRc {g(RES_M,'metamath_mixed','tsRc'):.2f}, Tmax {g(RES_M,'metamath_mixed','Tmax'):.2f} (0.25-0.65); tsC {g(RES_M,'metamath_mixed','tsC'):.2f} (<= 0.35)")
+# [PAPER] App. P (Step 35): P35d Pass (≤ 0.04)
+print(f"P35d tilted: " + ", ".join(f"{d} {g(RES_M,'tilted_c05',d):.2f}" for d in cal3 + ["vol_conf"]) + " (<= 0.05)")
+# [PAPER] App. P (Step 35): P35e Pass (0.00)
+print(f"P35e random: " + ", ".join(f"{d} {g(RES_M,'random',d):.2f}" for d in cal3 + ["vol_conf"]) + " (<= 0.05)")
+# [PAPER] App. P (Step 35): P35f Pass (1.00, 0.00, 0.00; 3.06 vs 2.22)
+print(f"P35f E5: Tmax MetaMathQA {g(RES_E,'metamath_unique','Tmax'):.2f} (>= 0.7), mixed {g(RES_E,'metamath_mixed','Tmax'):.2f} (<= 0.6), tilted {g(RES_E,'tilted_c05','Tmax'):.2f} (<= 0.1); FPR Tmax {FPR_E['Tmax']['fpr']:.4f}; census ratio E5 {CEN['e5']['ratio']:.2f} vs MiniLM {CEN['minilm']['ratio']:.2f} (within +-50%)")
+# [PAPER] App. P (Step 35): P35g Fail (0.0%; 0.03; both 0.00); App. I 'nearly powerless (0.03 on dataset campaigns)'
+print(f"P35g volume scan: FPR conformal {FPR_M['vol_conf']['fpr']:.4f} (<= 0.02), rolling {FPR_M['vol_roll']['fpr']:.4f}; MetaMathQA {g(RES_M,'metamath_unique','vol_conf'):.2f} (>= 0.5); mixed {g(RES_M,'metamath_mixed','vol_conf'):.2f} vs Tmax {g(RES_M,'metamath_mixed','Tmax'):.2f} (trails by >= 0.2)")
+# [PAPER] App. P (Step 35): P35h Fail (1.00; recall 0.49)
+print(f"P35h sacrificial vs Tmax: detection {SCHED['sacrificial']['Tmax']['det']:.2f} (>= 0.8), non-sacrificial recall {SCHED['sacrificial']['Tmax']['recall_nonsac']:.2f} (<= 0.10); random schedule recall {SCHED['random']['Tmax']['recall_nonsac']:.2f}")
+# [PAPER] App. P (Step 35): P35i Fail (0.89 to 0.00)
+print(f"P35i ramp: Tmax abrupt {np.mean(TEMP['Tmax']['abrupt']):.2f} vs ramped {np.mean(TEMP['Tmax']['ramped']):.2f} (drop <= 0.3); rolling two-scale {np.mean(TEMP['tsC_roll']['abrupt']):.2f} -> {np.mean(TEMP['tsC_roll']['ramped']):.2f}")
+# [PAPER] App. P (Step 35): P35j Fail (25% of runs in 16 weeks; never)
+print(f"P35j martingale median weeks, mixed: Tmax {SEQ[('all','Tmax','metamath_mixed')]['martingale']} (<= 6), tsC {SEQ[('all','tsC','metamath_mixed')]['martingale']}; first weekly alarm, mixed: Tmax {SEQ[('all','Tmax','metamath_mixed')]['first_alarm']}, tsC {SEQ[('all','tsC','metamath_mixed')]['first_alarm']} (both <= 3); null all-time alarms: martingale Tmax {SEQ[('all','Tmax','null')]['frac_m']:.2f}, first-alarm Tmax {SEQ[('all','Tmax','null')]['frac_f']:.2f}")
+# [PAPER] App. P (Step 35): P35k Fail (2.5%; 1.00)
+print(f"P35k large: Tmax FPR {FPR_L['Tmax']['fpr']:.4f} (<= 0.02); MetaMathQA {g(RES_L,'metamath_unique','Tmax'):.2f}, largest weeks {g(RES_LBIG,'metamath_unique','Tmax'):.2f} (>= 0.5); mixed {g(RES_L,'metamath_mixed','Tmax'):.2f}; oracle Tmax {o(RES_L,'metamath_unique','Tmax'):.2f}")
+spread = {(src, d): [g(RES_M, src, d)] + [g(RUNS[s], src, d) for s in RUNS] for src in ["metamath_unique", "metamath_mixed"] for d in cal3}
+# [PAPER] App. P (Step 35): P35l Pass (≤ 0.07); App. I 'at most 0.07'
+print(f"P35l run-to-run spread: " + ", ".join(f"{s}/{d} {max(v)-min(v):.2f}" for (s, d), v in spread.items()) + " (pass if all <= 0.10)")
+# [PAPER] App. P (Step 35): P35m Pass (0.00)
+print(f"P35m addition vs replacement (random): " + ", ".join(f"{d} {abs(g(RES_ADD,'random',d)-g(RES_M,'random',d)):.2f}" for d in DETS) + " (<= 0.03)")
+print("=" * 90); print("STEP 35 VERDICT REPORT"); print("=" * 90)
+for nm_, F_ in [("matched", FPR_M), ("large", FPR_L), ("e5", FPR_E)]: print(f"[FPR {nm_}]", json.dumps({d: {k: (round(v, 4) if isinstance(v, float) else v) for k, v in F_[d].items()} for d in DETS}))
+for nm_, rows in [("matched", RES_M), ("add", RES_ADD), ("large", RES_L), ("large_big", RES_LBIG), ("e5", RES_E)] + [(f"seed{s}", RUNS[s]) for s in RUNS]:
+    # [PAPER] §7 / App. I: tsRc auc 0.97 ([matched] tilted_c05), 0.92 ([e5] tilted_c05), 0.88 ([matched] random); App. I 'Tmax prec' 94%
+    for r in rows: print(f"[{nm_}] {r['source']:>22} " + " ".join(f"{d}={r[d][0]:.2f}[{r[d][1]:.2f},{r[d][2]:.2f}] o={r[d+'_roc']['tpr1']:.2f} auc={r[d+'_roc']['auc']:.2f}" for d in DETS) + f" | Tmax prec {r['Tmax_precision']:.2f} rec {r['Tmax_recall']:.2f}")
+print("[SCHED]", json.dumps(SCHED)); print("[TEMP]", json.dumps({d: {k: float(np.mean(v)) if v else None for k, v in x.items()} for d, x in TEMP.items()}))
+print("[SEQ]", json.dumps({"|".join(k): v for k, v in SEQ.items()})); print("[CENSUS]", json.dumps(CEN)); print(f"[TASK] p={P_TASK:.4f} on-task pool {len(ON)} | [LARGE] sizes {min(sizes_L)}-{max(sizes_L)} flagged/wk@1e5 {FLAGGED_1E5:.1f}")
+print("=" * 90)

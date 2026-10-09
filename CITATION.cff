@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper."
+title: "The Limits of Query Monitoring for Distributed Model Extraction"
+authors:
+  - name: "Anonymous (under double-blind review)"
+type: software
+license: MIT
+preferred-citation:
+  type: article
+  title: "The Limits of Query Monitoring for Distributed Model Extraction"
+  authors:
+    - name: "Anonymous (under double-blind review)"
+  journal: "Transactions on Machine Learning Research (under review)"
+  year: 2026

@@ -1,0 +1,628 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.6
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# ## Paper numbers reproduced by this script
+# Paper: "The Limits of Query Monitoring for Distributed Model Extraction".
+# Run on Kaggle (see "Kaggle:" line below for hardware/time). Seeds are fixed in the configuration cell;
+# re-runs vary by a few points (the paper reports run-to-run spread up to ~0.07-0.14 for weekly detection).
+#
+# | Paper location | Quantity | Value in paper | Where computed here |
+# |---|---|---|---|
+# | §5 'Padding, and a fix that looks at directions'; App. D.4; App. P (Step 23, "Common-mode removal: real/shuffled λmax (Rc) ≥ 1") | top eigenvalue of Rc, real / shuffled weeks | 1.14 (App. P: Pass (1.14)) | Cell 9, `RATIO` ("[C1]" print); print "P23.1" |
+# | §5 'Padding, and a fix that looks at directions'; App. D.4; App. Table 9 caption; App. P (Step 23, "Conformal hollowed selection: false alarms ≤ 2%") | held-out false alarms, conformal thresholds (Rc and C) | no false alarm in 960 windows; Pass (0/960 windows; week-level bound 12%) | Cell 9, `FPR[("conf","tsRc")]`, `FPR[("conf","tsC")]`; print "P23.2" |
+# | App. Table 9 (top, row "Selection on Rc"; cols MetaMathQA, Mixed, Follow-up, Random, Sweep 3 accts, Sweep 10 accts) | weekly deployed detection (conformal) | 1.00; 0.48; 0.46; 0.00; 0.42; 0.97 | Cell 9, `RES` key `"conf/tsRc"` ("[W]" print) |
+# | App. Table 9 (top, row "Selection on C", same cols) | weekly deployed detection (conformal) | 0.82; 0.00; 0.02; 0.00; 0.80; 0.82 | Cell 9, `RES` key `"conf/tsC"` |
+# | §5 'Padding, and a fix that looks at directions'; App. D.4; Table 3 caption (development-week hollowed values); App. P (Step 23, "Calibrated hollowed selection ≥ 0.6 under padding": Fail (0.48)) | hollowed vs C selection on padded campaigns; hollowed on dataset | 0.46–0.48 against 0.00–0.02; dataset 1.00 | Cell 9, `"conf/tsRc"` / `"conf/tsC"` for metamath_mixed, metamath_followup, metamath_unique; print "P23.3" |
+# | Table 2 (row "Hollowed", col "Weekly detection", development weeks); App. Table 15 (development weeks, col "Hollowed") | weekly detection, dataset; half padding | 1.00; 0.44–0.48 | plausibly Cell 9 `"conf/tsRc"` (this script gives 1.00 and 0.46–0.48; the 0.44 end plausibly from the Steps 27–31 run) |
+# | App. D.4; App. P (Step 23, "Sweeps: 3 accounts ≤ 0.4, 10 accounts ≥ 0.5") | benign GSM8K evaluation sweep flagged (Rc, conformal) | 0.97 (ten accounts), 0.42 (three accounts); Partial (0.42; 0.97) | Cell 9, `"conf/tsRc"` for `eval_gsm8k(10x100)` and `eval_gsm8k(3x300)`; print "P23.5" |
+# | App. Table 9 (bottom, pooled oracle TPR at 1%, A = 250 / 1,000 / 2,500 / 5,000 / 10,000; rows "C, unpadded", "Rc, unpadded", "Rc, mixed padding") | oracle TPR at 1% | 0.97 0.75 0.28 0.12 0.05; 1.00 1.00 0.00 0.00 0.03; 1.00 0.10 0.00 0.00 0.03 | Cell 10, `SCALE` rows, `row["tsC"]`, `row["tsRc"]` ("[S]" print) |
+# | App. Table 9 (bottom, row "Colluders in Rc's group"); App. P (Step 23, "Hollowed selection ≥ 0.5 at 1% colluders") | share of colluders in the Rc-selected group; Rc TPR at A = 5,000 | 1.00 1.00 0.00 0.00 0.00; Fail (0.00; group has no colluders) | Cell 10, `row["recall_Rc"]`, `row["tsRc"]`; print "P23.4" |
+# | App. Table 15 (row "Pooled, 1,000 accounts, 5% colluders / Dataset", col "Two-scale") | oracle detection | 0.75–0.80 | plausibly Cell 10 `SCALE` `tsC` at A = 1,000 (0.75; the 0.80 is App. Table 10 from a separate run) |
+#
+# Not reported in the paper: rolling-calibration (`roll/...`) false alarms and power; selection on the uncentred hollowed matrix R (`tsR`) in this run; weekly oracle TPR/AUC; the true-colluder-set score `orc` in `SCALE` (App. Table 10 comes from a separate run); the figure `step23_figure.png`.
+
+# %% [markdown]
+# # Step 23 — Hollowed selection: removing the common drift mode, calibration, and the selection gap at 10⁴ accounts
+# **Kaggle:** GPU + Internet + `HF_TOKEN` → **Run All** (≈60–90 min; reuses earlier caches). `QUICK=True` first.
+#
+# Step 22 found that selecting the group on the hollowed, degree-corrected matrix R = D^{-1/2}(YYᵀ − D)D^{-1/2} detects padded campaigns 0.93–0.94 of the time at an oracle-matched 1% rate (against 0.21 with selection on C), but fires on 8.4% of null weeks, apparently because a weekly common drift mode dominates R (real/shuffled λmax 0.35). Here:
+# * **Common-mode removal**: Rc is the hollowed matrix of the rows after subtracting their mean across accounts. Selection on C, R and Rc, each scored with the two-scale statistic.
+# * **Calibration**: thresholds from the 8 preceding weeks (rolling) and from all prior weeks (conformal, expanding history).
+# * **Mimicry and benign sweeps**: MetaMathQA, mixed padding, follow-up mimicry, random natural, and GSM8K evaluation sweeps from 3 × 300 and 10 × 100 accounts.
+# * **Scale**: pooled populations of A = 250 … 10,000 account-weeks, campaign fixed at 1,640 queries over 50 colluders, oracle thresholds. The top eigenvector of R is computed matrix-free (Lanczos), so A = 10⁴ is cheap.
+#
+# | ID | Locked prediction (paper's App. P (prediction log), Step 23 rows) |
+# |---|---|
+# | **P23.1** | Removing the common mode exposes coordination: real/shuffled λmax(Rc) ≥ 1 |
+# | **P23.2** | Hollowed selection can be calibrated: Rc with the conformal threshold has held-out false alarms ≤ 2% |
+# | **P23.3** | Calibrated hollowed selection resists padding: deployed power ≥ 0.6 on mixed padding |
+# | **P23.4** | It closes the gap at scale: oracle TPR at 1% ≥ 0.5 at A = 5,000 (1% colluders), against 0.15 for C |
+# | **P23.5** | It needs many coordinated accounts: GSM8K sweeps from 3 accounts flagged ≤ 0.4, from 10 accounts ≥ 0.5 |
+
+# %%
+# ===== Cell 1: configuration =====
+import math, json, time, os, gc, re, pickle
+import numpy as np
+QUICK = False
+SYNTHETIC_TEST = False
+SEED = 9091
+OUTDIR = "/kaggle/working" if os.path.isdir("/kaggle/working") else "."
+try:
+    import torch
+    HAS_TORCH = True; DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+except Exception:
+    HAS_TORCH, DEV = False, None
+USE_GPU = HAS_TORCH and DEV.type == "cuda"
+if not USE_GPU and not SYNTHETIC_TEST:
+    raise RuntimeError("No GPU visible. Kaggle: Settings -> Accelerator -> GPU, then restart.")
+CHUNK = 32768 if USE_GPU else 8192
+H_COARSE, H_FINE, M_MODES, ALPHA, FLOOR = 4.0, 0.5, 300, 0.01, 1e-4
+VOL_CAP, MIN_PER_ACCT, POOL_FRAC, SUB_FRAC = 500, 10, 0.2, 0.7
+N_TOPICS, N_REF_BATCH, REF_BATCH, MMD_WIN, MINCELL = 100, 20, 500, 2000, 20
+DETS = ["twoscale", "qc", "qcount", "mmd", "gmmd", "glob", "spec", "fraudar"]
+SRC_MAIN = ["metamath_unique", "metamath_mixed", "metamath_followup", "gsm8k_human", "random"]
+EVALS = [("eval_gsm8k", 3, 300), ("eval_gsm8k", 10, 100), ("eval_mmlu", 3, 300), ("eval_mmlu", 10, 100)]
+SRC_EXTRA = ["wild_cluster"]
+CAMO_FRAC = 0.2
+if QUICK:
+    WK = dict(KS=[20], CAL_N=4, LAGB=2, N_TEST=3, NULL_PER=12, REPS=2)
+    POP = dict(AS=[40, 70], K=6, N_FIX=200, STEP=4, FIRST=12, N_CAL=12, N_TEST=6, REPS=3)
+    EVALS = [("eval_gsm8k", 3, 40), ("eval_mmlu", 3, 40)]
+    MMD_WIN, N_REF_BATCH, REF_BATCH = 400, 5, 200
+else:
+    WK = dict(KS=[50], CAL_N=8, LAGB=4, N_TEST=24, NULL_PER=40, REPS=4)
+    POP = dict(AS=[250, 500, 1000], K=50, N_FIX=1640, STEP=4, FIRST=20, N_CAL=40, N_TEST=20, REPS=10)
+CACHE11 = f"{OUTDIR}/step11_wildchat_E384_{'quick' if QUICK else 'full'}{'_synth' if SYNTHETIC_TEST else ''}.npz"
+CACHE13 = f"{OUTDIR}/step13_distill_{'quick' if QUICK else 'full'}{'_synth' if SYNTHETIC_TEST else ''}.npz"
+CACHE14 = f"{OUTDIR}/step14_meta_{'quick' if QUICK else 'full'}{'_synth' if SYNTHETIC_TEST else ''}.npz"
+CACHE15 = f"{OUTDIR}/step15_extra_{'quick' if QUICK else 'full'}{'_synth' if SYNTHETIC_TEST else ''}.npz"
+N_CONV = 30000 if QUICK else None; DIMS = [384]
+print(f"backend {'GPU ' + torch.cuda.get_device_name(0) if USE_GPU else 'CPU'} | QUICK={QUICK}")
+CACHE18 = f"{OUTDIR}/step18_evals_{'quick' if QUICK else 'full'}{'_synth' if SYNTHETIC_TEST else ''}.npz"
+if QUICK: S23 = dict(K=20, REPS=2, AS=[30, 60, 120], NUL={30: 30, 60: 20, 120: 15}, ATT=6, KP=6, NP=200, EVALS=[("eval_gsm8k", 3, 40), ("eval_gsm8k", 10, 15)])
+else:     S23 = dict(K=50, REPS=4, AS=[250, 1000, 2500, 5000, 10000], NUL={250: 300, 1000: 200, 2500: 150, 5000: 100, 10000: 60}, ATT=40, KP=50, NP=1640, EVALS=[("eval_gsm8k", 3, 300), ("eval_gsm8k", 10, 100)])
+
+# %% [markdown]
+# ## Part 0 — caches
+
+# %%
+# ===== Cell 2: full 384-d MiniLM embeddings of English user turns (cached as float16) =====
+if os.path.exists(CACHE11):
+    _c = np.load(CACHE11); E16, ACCT, WEEK = _c["E16"], _c["ACCT"], _c["WEEK"]; print(f"loaded cache: {E16.shape}")
+else:
+    t0 = time.time()
+    if SYNTHETIC_TEST:
+        rng = np.random.default_rng(0); n_ip, n_rows = 3000, 60000
+        ACCT = rng.integers(0, n_ip, n_rows).astype(np.int32); WEEK = rng.integers(0, 30, n_rows).astype(np.int16)
+        topic = rng.integers(0, 40, n_ip)[ACCT]; base = rng.standard_normal((40, 384))
+        E = (base[topic] * 0.8 + rng.standard_normal((n_rows, 384)) * 0.6).astype(np.float32)
+    else:
+        from datasets import load_dataset
+        tok = None
+        try:
+            from kaggle_secrets import UserSecretsClient; tok = UserSecretsClient().get_secret("HF_TOKEN")
+        except Exception:
+            tok = os.environ.get("HF_TOKEN")
+        split = "train" if N_CONV is None else f"train[:{N_CONV}]"
+        ds = load_dataset("allenai/WildChat-1M", split=split, token=tok).select_columns(["conversation", "hashed_ip", "timestamp", "language"])
+        texts, ips, tss = [], [], []
+        for batch in ds.iter(batch_size=2000):
+            for conv, ip, ts, lang in zip(batch["conversation"], batch["hashed_ip"], batch["timestamp"], batch["language"]):
+                if lang != "English" or ip is None or ts is None: continue
+                for turn in conv:
+                    if turn.get("role") == "user" and turn.get("content"):
+                        texts.append(turn["content"][:1000]); ips.append(ip); tss.append(ts)
+        print(f"{len(texts)} English user turns from {len(set(ips))} IPs ({time.time()-t0:.0f}s)")
+        _, ACCT = np.unique(np.array(ips), return_inverse=True); ACCT = ACCT.astype(np.int32)
+        days = np.array([np.datetime64(t.replace(tzinfo=None) if hasattr(t, "replace") else t, "D") for t in tss])
+        WEEK = ((days - days.min()).astype(np.int64) // 7).astype(np.int16); del ds; gc.collect()
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            os.system("pip install -q sentence-transformers"); from sentence_transformers import SentenceTransformer
+        enc = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device="cuda"); enc.max_seq_length = 256
+        E = enc.encode(texts, batch_size=512, convert_to_numpy=True, normalize_embeddings=True, show_progress_bar=True).astype(np.float32)
+        del texts; gc.collect()
+    E16 = E.astype(np.float16); del E; gc.collect()
+    np.savez(CACHE11, E16=E16, ACCT=ACCT, WEEK=WEEK); print(f"cached ({time.time()-t0:.0f}s)")
+n_w = int(WEEK.max()) + 1
+# PCA basis on a 100k fit sample (nested: the first d components of the same basis for every d)
+rng = np.random.default_rng(SEED); fit = E16[rng.choice(len(E16), min(100000, len(E16)), replace=False)].astype(np.float32)
+MU_E = fit.mean(0); ew, U = np.linalg.eigh(np.cov(fit - MU_E, rowvar=False)); EW, UB = ew[::-1], U[:, ::-1].copy()
+for d in DIMS: print(f"d={d:3d}: explains {EW[:d].sum()/EW.sum():.3f} of embedding variance")
+def make_Z(d):
+    W_ = UB[:, :d] / math.sqrt(EW[:d].sum() / 4.0); Z = np.empty((len(E16), d), dtype=np.float32)
+    for s0 in range(0, len(E16), 200000): Z[s0:s0 + 200000] = (E16[s0:s0 + 200000].astype(np.float32) - MU_E) @ W_
+    return Z
+
+
+# %%
+# ===== Cell 3: conversation ids, turn indices and attacker-pool text pairs (same order as the cache), MetaMathQA pairs =====
+import pickle
+rng = np.random.default_rng(SEED + 1); n_acct = int(ACCT.max()) + 1; is_pool = rng.random(n_acct) < POOL_FRAC    # identical to Steps 12-13
+PAIRS_PKL = CACHE14.replace(".npz", "_pairs.pkl")
+if os.path.exists(CACHE14) and os.path.exists(PAIRS_PKL):
+    _c = np.load(CACHE14); CONV, TURN, D_MMU = _c["CONV"], _c["TURN"], _c["D_MMU"]
+    with open(PAIRS_PKL, "rb") as fh: POOL_TXT, MM_PAIRS = pickle.load(fh)
+    print(f"loaded metadata cache: {len(CONV)} turns, {len(POOL_TXT)} pool pairs, {len(MM_PAIRS)} MetaMathQA pairs")
+else:
+    t0 = time.time()
+    if SYNTHETIC_TEST:
+        r = np.random.default_rng(5); CONV = np.cumsum(r.random(len(E16)) < 0.4).astype(np.int32); TURN = np.ones(len(E16), np.int16)
+        for i in range(1, len(E16)):
+            if CONV[i] == CONV[i - 1]: TURN[i] = TURN[i - 1] + 1
+        POOL_TXT = {int(i): (f"user prompt {i}", f"assistant reply {i} " * 5) for i in np.flatnonzero(is_pool[ACCT])}
+        MM_PAIRS = [(f"What is {a} plus {a+1}?", f"{a} + {a+1} = {2*a+1}. The answer is: {2*a+1}") for a in range(1500)]
+        D_MMU = (np.random.default_rng(3).standard_normal(384) * 2 + np.random.default_rng(4).standard_normal((1500, 384)) * 0.7).astype(np.float16)
+    else:
+        from datasets import load_dataset
+        tok = None
+        try:
+            from kaggle_secrets import UserSecretsClient; tok = UserSecretsClient().get_secret("HF_TOKEN")
+        except Exception:
+            tok = os.environ.get("HF_TOKEN")
+        split = "train" if N_CONV is None else f"train[:{N_CONV}]"
+        ds = load_dataset("allenai/WildChat-1M", split=split, token=tok).select_columns(["conversation", "hashed_ip", "timestamp", "language"])
+        ips, conv_id, turn_ix, users, replies = [], [], [], [], []; cid = 0
+        for batch in ds.iter(batch_size=2000):
+            for conv, ip, ts, lang in zip(batch["conversation"], batch["hashed_ip"], batch["timestamp"], batch["language"]):
+                if lang != "English" or ip is None or ts is None: continue
+                t = 0
+                for j, turn in enumerate(conv):
+                    if turn.get("role") == "user" and turn.get("content"):
+                        t += 1; nxt = next((c.get("content") or "" for c in conv[j + 1:] if c.get("role") == "assistant"), "")
+                        ips.append(ip); conv_id.append(cid); turn_ix.append(t); users.append(turn["content"][:1000]); replies.append(nxt[:1500])
+                cid += 1
+        _, ACCT2 = np.unique(np.array(ips), return_inverse=True)
+        assert len(ACCT2) == len(ACCT) and np.array_equal(ACCT2.astype(np.int32), ACCT), "re-read order does not match the Step 11 cache"
+        CONV, TURN = np.array(conv_id, np.int32), np.array(turn_ix, np.int16)
+        POOL_TXT = {int(i): (users[i], replies[i]) for i in np.flatnonzero(is_pool[ACCT])}
+        del users, replies, ds; gc.collect()
+        print(f"re-read WildChat: order verified, {len(CONV)} turns in {int(CONV.max())+1} conversations, {len(POOL_TXT)} pool pairs ({time.time()-t0:.0f}s)")
+        mm = load_dataset("meta-math/MetaMathQA", split="train", token=tok).select_columns(["query", "response", "original_question"])
+        groups = {}
+        for q, a, o in zip(mm["query"], mm["response"], mm["original_question"]):
+            if q and a and o: groups.setdefault(o, []).append((q.strip()[:1000], a.strip()[:2000]))
+        rr = np.random.default_rng(SEED); origs = list(groups); rr.shuffle(origs)
+        MM_PAIRS = [groups[o][int(rr.integers(len(groups[o])))] for o in origs]          # one (query, response) per source problem
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            os.system("pip install -q sentence-transformers"); from sentence_transformers import SentenceTransformer
+        enc = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device="cuda"); enc.max_seq_length = 256
+        D_MMU = enc.encode([q for q, _ in MM_PAIRS], batch_size=512, convert_to_numpy=True, normalize_embeddings=True).astype(np.float16)
+        print(f"MetaMathQA: {len(MM_PAIRS)} (query, response) pairs, one per source problem ({time.time()-t0:.0f}s)")
+    np.savez(CACHE14, CONV=CONV, TURN=TURN, D_MMU=D_MMU)
+    with open(PAIRS_PKL, "wb") as fh: pickle.dump((POOL_TXT, MM_PAIRS), fh)
+DIST = {"metamath_unique": D_MMU}
+print(f"follow-up turns (turn >= 2) among all turns: {np.mean(TURN >= 2):.3f}")
+
+# %%
+# ===== Cell 3: MetaMathQA grouped by source problem (unique vs rephrased) + Magicoder, MiniLM, cached =====
+if os.path.exists(CACHE13):
+    _c = np.load(CACHE13); DIST13 = {k[2:]: _c[k] for k in _c.files if k.startswith("D_")}; MM_GROUP = _c["MM_GROUP"]; print({k: v.shape for k, v in DIST13.items()})
+else:
+    t0 = time.time(); DIST13 = {}
+    if SYNTHETIC_TEST:
+        r = np.random.default_rng(3); c = r.standard_normal(384) * 2
+        base = c + r.standard_normal((1500, 384)) * 0.7
+        DIST13["metamath_unique"] = base.astype(np.float16)
+        reph = np.repeat(base[:600], 4, axis=0) + r.standard_normal((2400, 384)) * 0.05; DIST13["metamath_rephrase"] = reph.astype(np.float16)
+        MM_GROUP = np.repeat(np.arange(600), 4)
+        DIST13["magicoder"] = (r.standard_normal(384) * 2 + r.standard_normal((2000, 384)) * 0.7).astype(np.float16)
+    else:
+        from datasets import load_dataset
+        tok = None
+        try:
+            from kaggle_secrets import UserSecretsClient; tok = UserSecretsClient().get_secret("HF_TOKEN")
+        except Exception:
+            tok = os.environ.get("HF_TOKEN")
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            os.system("pip install -q sentence-transformers"); from sentence_transformers import SentenceTransformer
+        enc = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device="cuda"); enc.max_seq_length = 256
+        emb = lambda T: enc.encode(T, batch_size=512, convert_to_numpy=True, normalize_embeddings=True).astype(np.float16)
+        mm = load_dataset("meta-math/MetaMathQA", split="train", token=tok).select_columns(["query", "original_question"])
+        qs, oq = mm["query"], mm["original_question"]; groups = {}
+        for q, o in zip(qs, oq):
+            if q and o: groups.setdefault(o, set()).add(q.strip()[:1000])
+        rng = np.random.default_rng(SEED); origs = list(groups); rng.shuffle(origs)
+        uniq = [sorted(groups[o])[int(rng.integers(len(groups[o])))] for o in origs]
+        multi = [o for o in origs if len(groups[o]) >= 4][:6000]
+        reph, gid = [], []
+        for j, o in enumerate(multi):
+            for q in rng.permutation(sorted(groups[o]))[:4]: reph.append(q); gid.append(j)
+        DIST13["metamath_unique"] = emb(uniq); DIST13["metamath_rephrase"] = emb(reph); MM_GROUP = np.array(gid)
+        print(f"MetaMathQA: {len(uniq)} source problems (unique set), {len(multi)} problems x 4 variants (rephrase set) ({time.time()-t0:.0f}s)")
+        mg = load_dataset("ise-uiuc/Magicoder-OSS-Instruct-75K", split="train", token=tok)
+        idx = np.random.default_rng(SEED).choice(len(mg), min(25000, len(mg)), replace=False)
+        DIST13["magicoder"] = emb(list(dict.fromkeys(str(mg[int(i)]["problem"])[:1000] for i in idx)))
+        print(f"Magicoder: {len(DIST13['magicoder'])} prompts ({time.time()-t0:.0f}s)")
+    np.savez(CACHE13, MM_GROUP=MM_GROUP, **{f"D_{k}": v for k, v in DIST13.items()})
+
+# %%
+# ===== Cell 4: extra sources — human GSM8K questions, templated MetaMathQA, natural-likeness scores (cached) =====
+if os.path.exists(CACHE15):
+    _c = np.load(CACHE15); D_GSM, D_TMPL, NAT = _c["D_GSM"], _c["D_TMPL"], _c["NAT"]
+else:
+    t0 = time.time()
+    if SYNTHETIC_TEST:
+        r = np.random.default_rng(11); D_GSM = (D_MMU[:1000].astype(np.float32) + r.standard_normal((1000, 384)) * 0.3).astype(np.float16)
+        D_TMPL = (D_MMU.astype(np.float32) * 0.7 + 0.3).astype(np.float16)
+    else:
+        from datasets import load_dataset
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            os.system("pip install -q sentence-transformers"); from sentence_transformers import SentenceTransformer
+        enc = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device="cuda"); enc.max_seq_length = 256
+        emb = lambda T: enc.encode(T, batch_size=512, convert_to_numpy=True, normalize_embeddings=True).astype(np.float16)
+        g = load_dataset("openai/gsm8k", "main", split="train")
+        D_GSM = emb([q[:1000] for q in g["question"]])                                    # human-written math word problems
+        TEMPLATE = "You are a careful math tutor. Solve the following problem step by step and state the final answer.\n\n"
+        D_TMPL = emb([TEMPLATE + q for q, _ in MM_PAIRS])                                   # same problems, fixed template prefix
+    # natural-likeness of each MetaMathQA prompt: mean cosine similarity to its 10 nearest benign WildChat turns
+    ben = np.flatnonzero(~is_pool[ACCT]); smp = np.random.default_rng(3).choice(ben, min(50000, len(ben)), replace=False)
+    B_ = E16[smp].astype(np.float32); Q_ = D_MMU.astype(np.float32); NAT = np.empty(len(Q_), np.float32)
+    for s0 in range(0, len(Q_), 2048):
+        if USE_GPU:
+            sims = torch.as_tensor(Q_[s0:s0 + 2048], device=DEV) @ torch.as_tensor(B_, device=DEV).T
+            NAT[s0:s0 + 2048] = sims.topk(10, dim=1).values.mean(1).cpu().numpy()
+        else:
+            sims = Q_[s0:s0 + 2048] @ B_.T; NAT[s0:s0 + 2048] = np.sort(sims, 1)[:, -10:].mean(1)
+    np.savez(CACHE15, D_GSM=D_GSM, D_TMPL=D_TMPL, NAT=NAT); print(f"extra sources built ({time.time()-t0:.0f}s)")
+CAMO = np.flatnonzero(NAT >= np.quantile(NAT, 1 - CAMO_FRAC))
+DIST = {"metamath_unique": D_MMU, "metamath_rephrase": DIST13["metamath_rephrase"], "gsm8k_human": D_GSM, "metamath_template": D_TMPL}
+print(f"sources: " + ", ".join(f"{k}:{len(v)}" for k, v in DIST.items()) + f" | camouflage pool {len(CAMO)} (natural-likeness >= {np.quantile(NAT, 1 - CAMO_FRAC):.3f}; all MetaMathQA median {np.median(NAT):.3f})")
+# ---- benchmark sweeps for the benign evaluation-pipeline test (GSM8K test questions, MMLU questions)
+if os.path.exists(CACHE18):
+    _c = np.load(CACHE18); D_EG, D_EM = _c["D_EG"], _c["D_EM"]
+else:
+    if SYNTHETIC_TEST:
+        r = np.random.default_rng(21); D_EG = (D_GSM[:300].astype(np.float32) + r.standard_normal((300, 384)) * 0.2).astype(np.float16)
+        D_EM = (r.standard_normal(384) * 2 + r.standard_normal((800, 384)) * 0.6).astype(np.float16)
+    else:
+        from datasets import load_dataset
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            os.system("pip install -q sentence-transformers"); from sentence_transformers import SentenceTransformer
+        enc = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device="cuda"); enc.max_seq_length = 256
+        emb = lambda T: enc.encode(T, batch_size=512, convert_to_numpy=True, normalize_embeddings=True).astype(np.float16)
+        D_EG = emb([q[:1000] for q in load_dataset("openai/gsm8k", "main", split="test")["question"]])
+        mm = load_dataset("cais/mmlu", "all", split="test")
+        D_EM = emb([(q + "\n" + "\n".join(f"{chr(65+i)}. {c}" for i, c in enumerate(ch)))[:1000] for q, ch in zip(mm["question"], mm["choices"])])
+    np.savez(CACHE18, D_EG=D_EG, D_EM=D_EM)
+DIST["eval_gsm8k"], DIST["eval_mmlu"] = D_EG, D_EM
+print(f"evaluation sweeps: GSM8K test {len(D_EG)}, MMLU {len(D_EM)}")
+
+# %% [markdown]
+# ## Part 1 — projection, topics, statistics
+
+# %%
+# ===== Cell 4: projection, topics, natural source cluster with farthest-point order =====
+from sklearn.cluster import MiniBatchKMeans
+rng = np.random.default_rng(SEED + 1); n_acct = int(ACCT.max()) + 1; is_pool = rng.random(n_acct) < POOL_FRAC; pool_idx = np.flatnonzero(is_pool[ACCT])
+Z = make_Z(384); W384 = UB[:, :384] / math.sqrt(EW[:384].sum() / 4.0); EN = E16
+DZ = {k: ((v.astype(np.float32) - MU_E) @ W384).astype(np.float32) for k, v in DIST.items()}
+t0 = time.time(); ben = np.flatnonzero(~is_pool[ACCT])
+km = MiniBatchKMeans(n_clusters=N_TOPICS, random_state=SEED, batch_size=4096, n_init=3).fit(Z[np.random.default_rng(1).choice(ben, min(200000, len(ben)), replace=False)])
+TOPIC = km.predict(Z).astype(np.int32)
+CL10 = MiniBatchKMeans(n_clusters=10, random_state=SEED + 1, batch_size=4096, n_init=3).fit(Z[pool_idx]).labels_
+WILD = pool_idx[CL10 == int(np.argmax(np.bincount(CL10)))]
+def fps(X, N, seed=0):
+    N = min(N, len(X)); r = np.random.default_rng(seed); i0 = int(r.integers(len(X)))
+    if USE_GPU:
+        Xt = torch.as_tensor(X, dtype=torch.float32, device=DEV); d2 = ((Xt - Xt[i0]) ** 2).sum(1); sel = torch.empty(N, dtype=torch.long, device=DEV); sel[0] = i0
+        for t in range(1, N): i = torch.argmax(d2); sel[t] = i; d2 = torch.minimum(d2, ((Xt - Xt[i]) ** 2).sum(1))
+        return sel.cpu().numpy()
+    sel = [i0]; d2 = ((X - X[i0]) ** 2).sum(1)
+    for _ in range(N - 1): i = int(np.argmax(d2)); sel.append(i); d2 = np.minimum(d2, ((X - X[i]) ** 2).sum(1))
+    return np.array(sel)
+WILD_FPS = WILD[fps(Z[WILD], min(len(WILD), 20000), seed=SEED)]
+_sub = EN[np.random.default_rng(2).choice(len(EN), 2000, replace=False)].astype(np.float32)
+_d2 = ((_sub[:1000, None, :] - _sub[None, 1000:, :]) ** 2).sum(-1); MMD_BW = float(np.sqrt(np.median(_d2) / 2)); del _d2
+print(f"natural source cluster {len(WILD)} prompts (farthest-point order {len(WILD_FPS)}); sources: " + ", ".join(f"{k}:{len(v)}" for k, v in DIST.items()) + f" ({time.time()-t0:.0f}s)")
+
+
+# %%
+# ===== Cell 5: augmented real whitening, statistics, MMD, Fraudar =====
+def make_bank_aug(Zref, h, seed):
+    r = np.random.default_rng(seed); modes = r.standard_normal((M_MODES, Zref.shape[1])) / h / (2 * np.pi); m2 = 2 * M_MODES
+    if USE_GPU:
+        Mt = torch.as_tensor(modes, dtype=torch.float64, device=DEV); G = torch.zeros((m2, m2), dtype=torch.float64, device=DEV); mu = torch.zeros(m2, dtype=torch.float64, device=DEV)
+        for s0 in range(0, len(Zref), 16384):
+            th = (2 * math.pi) * (torch.as_tensor(Zref[s0:s0 + 16384], dtype=torch.float64, device=DEV) @ Mt.T)
+            X = torch.cat([torch.cos(th), torch.sin(th)], 1); G += X.T @ X; mu += X.sum(0)
+        G, mu = G.cpu().numpy(), mu.cpu().numpy()
+    else:
+        G = np.zeros((m2, m2)); mu = np.zeros(m2)
+        for s0 in range(0, len(Zref), 4096):
+            th = 2 * np.pi * (Zref[s0:s0 + 4096] @ modes.T); X = np.hstack([np.cos(th), np.sin(th)]); G += X.T @ X; mu += X.sum(0)
+    G /= len(Zref); mu /= len(Zref); Sig = G - np.outer(mu, mu); ew, U = np.linalg.eigh((Sig + Sig.T) / 2); keep = ew > FLOOR * ew.max()
+    B = dict(modes=modes, mu=mu, W=U[:, keep] / np.sqrt(ew[keep]), r=int(keep.sum()))
+    if USE_GPU:
+        B["MT"] = torch.as_tensor(modes, dtype=torch.float64, device=DEV); B["MU_T"] = torch.as_tensor(mu, dtype=torch.float64, device=DEV); B["W_T"] = torch.as_tensor(B["W"], dtype=torch.float64, device=DEV)
+    return B
+def whitened(pts, lab, cnt, B):
+    if USE_GPU:
+        Fc = torch.zeros((len(cnt), M_MODES), dtype=torch.float64, device=DEV); Fs = torch.zeros_like(Fc)
+        for s0 in range(0, len(pts), CHUNK):
+            P = torch.as_tensor(pts[s0:s0 + CHUNK], dtype=torch.float64, device=DEV); ix = torch.as_tensor(lab[s0:s0 + CHUNK], dtype=torch.long, device=DEV)
+            th = (2.0 * math.pi) * (P @ B["MT"].T); Fc.index_add_(0, ix, torch.cos(th)); Fs.index_add_(0, ix, torch.sin(th))
+        c = torch.as_tensor(cnt, dtype=torch.float64, device=DEV)
+        return (((torch.cat([Fc, Fs], 1) - c[:, None] * B["MU_T"][None, :]) / torch.sqrt(c)[:, None]) @ B["W_T"]).cpu().numpy()
+    import scipy.sparse as sp
+    X = np.zeros((len(cnt), 2 * M_MODES))
+    for s0 in range(0, len(pts), CHUNK):
+        P, l_ = pts[s0:s0 + CHUNK], lab[s0:s0 + CHUNK]; th = 2 * np.pi * (P @ B["modes"].T)
+        X += sp.csr_matrix((np.ones(len(P)), (l_, np.arange(len(P)))), shape=(len(cnt), len(P))) @ np.hstack([np.cos(th), np.sin(th)])
+    return ((X - cnt[:, None] * B["mu"][None, :]) / np.sqrt(cnt)[:, None]) @ B["W"]
+def union_S(Y, cnt, ix): return float(((Y[ix] * np.sqrt(cnt[ix])[:, None]).sum(0) ** 2).mean() / cnt[ix].sum())
+def mmd2(Xw, refs):
+    # Liu-Guo-Dong style: unbiased MMD^2 between window sample and each benign reference batch, averaged
+    def k(A_, B_):
+        if USE_GPU: return torch.exp(-torch.cdist(A_, B_) ** 2 / (2 * MMD_BW ** 2))
+        d2 = (A_ ** 2).sum(1)[:, None] + (B_ ** 2).sum(1)[None, :] - 2 * A_ @ B_.T; return np.exp(-np.maximum(d2, 0) / (2 * MMD_BW ** 2))
+    X = torch.as_tensor(Xw, dtype=torch.float32, device=DEV) if USE_GPU else Xw
+    n = len(X); Kxx = k(X, X); sxx = (Kxx.sum() - Kxx.diagonal().sum()) / (n * (n - 1)); out = []
+    for R in refs:
+        m = len(R); Kyy = k(R, R); Kxy = k(X, R)
+        out.append(float(sxx + (Kyy.sum() - Kyy.diagonal().sum()) / (m * (m - 1)) - 2 * Kxy.mean()))
+    return float(np.mean(out))
+def fraudar(lab, top, A_):
+    C = np.zeros((A_, N_TOPICS)); np.add.at(C, (lab, top), 1.0); wt = 1.0 / np.log(C.sum(0) + 5.0); Wm = C * wt[None, :]
+    da, dt = Wm.sum(1), Wm.sum(0); alive_a, alive_t = np.ones(A_, bool), np.ones(N_TOPICS, bool); tot = Wm.sum(); n = A_ + N_TOPICS; best = tot / n
+    for _ in range(n - 1):
+        ia = np.where(alive_a, da, np.inf).argmin(); it = np.where(alive_t, dt, np.inf).argmin()
+        if da[ia] <= dt[it]:
+            alive_a[ia] = False; tot -= da[ia]; dt -= Wm[ia] * alive_t; da[ia] = np.inf
+        else:
+            alive_t[it] = False; tot -= dt[it]; da -= Wm[:, it] * alive_a; dt[it] = np.inf
+        n -= 1; best = max(best, tot / max(n, 1))
+    return float(best)
+def window_stats(idx_pts, lab, cnt, Bc, Bf, refs, extra=None, en_extra=None, top_extra=None):
+    pts = Z[idx_pts] if extra is None else np.vstack([extra[0], Z[idx_pts]]); labs = lab if extra is None else np.concatenate([extra[1], lab])
+    en = EN[idx_pts] if extra is None else np.vstack([en_extra, EN[idx_pts]]); top = TOPIC[idx_pts] if extra is None else np.concatenate([top_extra, TOPIC[idx_pts]])
+    Yc = whitened(pts, labs, cnt, Bc); Yf = whitened(pts, labs, cnt, Bf); A_ = len(cnt)
+    ev, V = np.linalg.eigh(Yc.T @ Yc / Bc["r"]); v = Yc @ V[:, -1]; v2 = v ** 2 / (v ** 2).sum()
+    o = np.argsort(-v2); m = int(np.clip(np.searchsorted(np.cumsum(v2[o]), 0.5) + 1, 3, 100)); grp = o[:m]
+    r2 = (Yc ** 2).mean(1); rr = np.random.default_rng(len(labs)); samp = rr.choice(len(en), min(MMD_WIN, len(en)), replace=False)
+    return dict(spec=float(ev[-1]), r2=r2, acct=float(r2.max()), glob=union_S(Yc, cnt, np.arange(A_)),
+                mmd=mmd2(en[samp].astype(np.float32), refs), fraudar=fraudar(labs, top, A_),
+                vol=float(np.sort(cnt)[-10:].sum() / cnt.sum()), twoscale=float(np.log(union_S(Yc, cnt, grp)) - np.log(union_S(Yf, cnt, grp))), v2=v2, grp=grp)
+def hc_stat(x, ns):
+    M_ = len(ns); p = np.sort((1 + M_ - np.searchsorted(ns, x, side="left")) / (M_ + 1)); A_ = len(p); k = max(1, A_ // 2)
+    i = np.arange(1, k + 1); pp = p[:k]; return float(np.max(np.sqrt(A_) * (i / A_ - pp) / np.sqrt(pp * (1 - pp))))
+
+
+# %%
+# ===== Cell 7: sources, query-cluster statistics, extended window statistics =====
+FOLLOW = np.array([i for i in POOL_TXT if TURN[i] >= 2]) if len(POOL_TXT) else pool_idx
+def _mm(key, ix): return DZ[key][ix], DIST[key][ix].astype(np.float32), km.predict(DZ[key][ix]).astype(np.int32)
+def campaign_points(src, n, r):
+    if src == "random": ix = r.choice(pool_idx, n, replace=False); return Z[ix], EN[ix].astype(np.float32), TOPIC[ix]
+    if src == "wild_cluster": ix = r.choice(WILD, min(n, len(WILD)), replace=n > len(WILD)); return Z[ix], EN[ix].astype(np.float32), TOPIC[ix]
+    if src in ("metamath_unique", "gsm8k_human", "metamath_template", "eval_gsm8k", "eval_mmlu"):
+        D = DIST[src]; return _mm(src, r.choice(len(D), min(n, len(D)), replace=n > len(D)))
+    if src == "metamath_camouflage": return _mm("metamath_unique", r.choice(CAMO, min(n, len(CAMO)), replace=n > len(CAMO)))
+    if src == "metamath_rephrase":
+        g = r.permutation(int(MM_GROUP.max()) + 1)[: int(math.ceil(n / 4))]; ix = np.flatnonzero(np.isin(MM_GROUP, g))[:n]; return _mm(src, ix)
+    if src == "metamath_repeat":
+        half = (n + 1) // 2; ix = r.choice(len(D_MMU), half, replace=False); ix = np.repeat(ix, 2)[:n]; return _mm("metamath_unique", ix)
+    nm = (n + 1) // 2; ix = r.choice(len(D_MMU), nm, replace=False); other = FOLLOW if src == "metamath_followup" else pool_idx   # mixed / follow-up
+    jx = r.choice(other, n - nm, replace=False); a, b, c = _mm("metamath_unique", ix)
+    Zs, Es, Ts = np.empty((n, Z.shape[1]), np.float32), np.empty((n, EN.shape[1]), np.float32), np.empty(n, np.int32)
+    Zs[0::2], Es[0::2], Ts[0::2] = a, b, c; Zs[1::2], Es[1::2], Ts[1::2] = Z[jx], EN[jx].astype(np.float32), TOPIC[jx]
+    return Zs, Es, Ts                                                     # prompt and its padding/follow-up land in the same account
+
+def cell_stats(pts, top, Bc, Bf):
+    # two-scale score per topic cell, pooling queries across all accounts
+    u, inv = np.unique(top, return_inverse=True); cnt = np.bincount(inv)
+    yc = (whitened(pts, inv, cnt, Bc) ** 2).mean(1); yf = (whitened(pts, inv, cnt, Bf) ** 2).mean(1)
+    ts = np.full(N_TOPICS, np.nan); n = np.zeros(N_TOPICS); n[u] = cnt; ok = cnt >= MINCELL
+    ts[u[ok]] = np.log(yc[ok]) - np.log(yf[ok]); return ts, n / n.sum()
+def window_stats15(idx_pts, lab, cnt, Bc, Bf, refs, extra=None, en_extra=None, top_extra=None):
+    s = window_stats(idx_pts, lab, cnt, Bc, Bf, refs, extra=extra, en_extra=en_extra, top_extra=top_extra)
+    pts = Z[idx_pts] if extra is None else np.vstack([extra[0], Z[idx_pts]]); labs = lab if extra is None else np.concatenate([extra[1], lab])
+    en = EN[idx_pts] if extra is None else np.vstack([en_extra, EN[idx_pts]]); top = TOPIC[idx_pts] if extra is None else np.concatenate([top_extra, TOPIC[idx_pts]])
+    s["cell_ts"], s["cell_share"] = cell_stats(pts, top, Bc, Bf)
+    gm = np.isin(labs, s["grp"]); ge = en[gm]
+    if len(ge) > MMD_WIN: ge = ge[np.random.default_rng(len(labs)).choice(len(ge), MMD_WIN, replace=False)]
+    s["gmmd"] = mmd2(ge.astype(np.float32), refs) if len(ge) >= 20 else 0.0
+    s["labs"] = labs; s["top"] = top; s["n_total"] = len(top); return s
+def hc_stat(x, ns):
+    M_ = len(ns); p = np.sort((1 + M_ - np.searchsorted(ns, x, side="left")) / (M_ + 1)); A_ = len(p); k = max(1, A_ // 2)
+    i = np.arange(1, k + 1); pp = p[:k]; return float(np.max(np.sqrt(A_) * (i / A_ - pp) / np.sqrt(pp * (1 - pp))))
+def calibrate15(recs):
+    half = recs[0::2]; rest = recs[1::2] if len(recs) > 1 else recs
+    TS = np.array([r["cell_ts"] for r in half]); SH = np.array([r["cell_share"] for r in half]); NT = np.array([r["n_total"] for r in half], float)
+    LN = np.log(np.maximum(SH * NT[:, None], 1.0)); valid = np.mean(~np.isnan(TS), 0) >= 0.5
+    A_ = np.zeros(N_TOPICS); B_ = np.zeros(N_TOPICS); SC = np.ones(N_TOPICS)
+    for t in np.flatnonzero(valid):
+        ok = ~np.isnan(TS[:, t]); x, y = LN[ok, t], TS[ok, t]
+        b_, a_ = np.polyfit(x, y, 1) if np.ptp(x) > 0 else (0.0, float(np.median(y)))
+        res = y - (a_ + b_ * x); A_[t], B_[t] = a_, b_; SC[t] = max(1.4826 * np.median(np.abs(res - np.median(res))), 0.05)
+    med_sh = np.median(SH, 0); sc_sh = np.maximum(1.4826 * np.median(np.abs(SH - med_sh), 0), 0.002 + 0.1 * med_sh)
+    T = dict(A=A_, B=B_, SC=SC, valid=valid, med_sh=med_sh, sc_sh=sc_sh)
+    for r in recs: add_scores(r, T)
+    q_ = lambda a: float(np.quantile(a, 1 - ALPHA))
+    for d in DETS: T[d] = q_([r[d] for r in rest])
+    return T
+def add_scores(s, T):
+    ln = np.log(np.maximum(s["cell_share"] * s["n_total"], 1.0))
+    with np.errstate(all="ignore"):
+        z = np.where(T["valid"] & ~np.isnan(s["cell_ts"]), (s["cell_ts"] - (T["A"] + T["B"] * ln)) / T["SC"], np.nan)
+    s["qc"] = float(np.nanmax(z)) if np.any(~np.isnan(z)) else -1e9; s["qc_cell"] = int(np.nanargmax(z)) if np.any(~np.isnan(z)) else -1
+    s["qcount"] = float(np.max((s["cell_share"] - T["med_sh"]) / T["sc_sh"])); return s
+def fires15(s, T): return {d: s[d] > T[d] for d in DETS}
+def boot_ci(x, B=1000, rng=np.random.default_rng(7)):
+    x = np.array(x, float); bs = [x[rng.integers(0, len(x), len(x))].mean() for _ in range(B)]; return float(x.mean()), float(np.quantile(bs, .025)), float(np.quantile(bs, .975))
+def roc(null_vals, att_vals):
+    null_vals, att_vals = np.array(null_vals), np.array(att_vals)
+    auc = float(np.mean(att_vals[:, None] > null_vals[None, :]) + 0.5 * np.mean(att_vals[:, None] == null_vals[None, :]))
+    return dict(auc=auc, tpr1=float(np.mean(att_vals > np.quantile(null_vals, 0.99))), tpr5=float(np.mean(att_vals > np.quantile(null_vals, 0.95))))
+
+
+# %%
+# ===== Cell 8: selection on C, R and common-mode-removed Rc (matrix-free top eigenvector) =====
+from scipy.sparse.linalg import LinearOperator, eigsh
+def top_group(v):
+    v2 = v ** 2 / (v ** 2).sum(); o = np.argsort(-v2); m = int(np.clip(np.searchsorted(np.cumsum(v2[o]), 0.5) + 1, 3, 100)); return o[:m]
+def hollow_top(Y):
+    A_, r_ = Y.shape; d = np.maximum((Y ** 2).sum(1) / r_, 1e-12); s_ = 1 / np.sqrt(d)
+    if A_ <= 600:
+        G = Y @ Y.T / r_; R = (G - np.diag(d)) * np.outer(s_, s_); ev, V = np.linalg.eigh(R); return float(ev[-1]), V[:, -1]
+    def mv(x): x = np.ravel(x); u = s_ * x; return s_ * (Y @ (Y.T @ u) / r_ - d * u)
+    op = LinearOperator((A_, A_), matvec=mv, dtype=np.float64); ev, V = eigsh(op, k=1, which="LA", tol=1e-4, maxiter=3000); return float(ev[0]), V[:, 0]
+def ts_of(Yc, Yf, cnt, g): return float(np.log(union_S(Yc, cnt, g)) - np.log(union_S(Yf, cnt, g)))
+def stats23(pts, labs, cnt, Bc, Bf, oracle=None):
+    Yc = whitened(pts, labs, cnt, Bc); Yf = whitened(pts, labs, cnt, Bf); r_ = Yc.shape[1]
+    ev, V = np.linalg.eigh(Yc.T @ Yc / r_); gC = top_group(Yc @ V[:, -1])
+    lR, vR = hollow_top(Yc); gR = top_group(vR); lRc, vRc = hollow_top(Yc - Yc.mean(0, keepdims=True)); gRc = top_group(vRc)
+    s = dict(tsC=ts_of(Yc, Yf, cnt, gC), tsR=ts_of(Yc, Yf, cnt, gR), tsRc=ts_of(Yc, Yf, cnt, gRc), lamR=lR, lamRc=lRc, gRc=gRc)
+    if oracle is not None: s["orc"] = ts_of(Yc, Yf, cnt, oracle)
+    return s
+DET23 = ["tsC", "tsR", "tsRc"]
+
+# %% [markdown]
+# ## Weekly: calibration, mimicry, evaluation sweeps
+
+# %%
+# ===== Cell 9: weekly populations; rolling and conformal calibration; mimicry and evaluation sweeps =====
+t0 = time.time(); blk = WEEK.astype(np.int32); n_b = int(blk.max()) + 1
+order = np.lexsort((ACCT, blk)); keys = blk[order].astype(np.int64) * n_acct + ACCT[order]; GA = {b: [] for b in range(n_b)}
+for g in np.split(order, np.flatnonzero(np.diff(keys)) + 1):
+    if not is_pool[int(ACCT[g[0]])] and len(g) >= MIN_PER_ACCT: GA[int(blk[g[0]])].append(g[:VOL_CAP])
+ok = [b for b in range(WK["CAL_N"], n_b) if len(GA[b]) >= 40 and all(len(GA[v]) >= 20 for v in range(b - WK["CAL_N"], b))]
+TB = [int(ok[i]) for i in np.linspace(0, len(ok) - 1, min(WK["N_TEST"], len(ok))).astype(int)]
+def sub_window(b, r):
+    k = max(20, int(SUB_FRAC * len(GA[b]))); pick = r.choice(len(GA[b]), k, replace=False); parts = [GA[b][i] for i in pick]
+    vols = np.array([len(p) for p in parts]); return np.concatenate(parts), np.repeat(np.arange(len(parts)), vols), vols
+WEEKS = [v for v in range(n_b) if len(GA[v]) >= 20]; BANK, NULLW = {}, {}
+for b in WEEKS:
+    prev = [np.concatenate(GA[v]) for v in range(max(0, b - WK["LAGB"]), b) if GA[v]]
+    ref = np.concatenate(prev) if prev else np.concatenate(GA[b]); ref = np.random.default_rng(b).choice(ref, min(100000, len(ref)), replace=False)
+    BANK[b] = (make_bank_aug(Z[ref], H_COARSE, SEED + 7), make_bank_aug(Z[ref], H_FINE, SEED + 8))
+    NULLW[b] = []
+    for t in range(WK["NULL_PER"]):
+        idx, lab, vols = sub_window(b, np.random.default_rng(SEED + 100 * b + t)); NULLW[b].append(stats23(Z[idx], lab, np.bincount(lab), *BANK[b]))
+print(f"[weekly] banks and null windows for {len(WEEKS)} weeks ({time.time()-t0:.0f}s)")
+TH = {}
+for b in TB:
+    roll = [r for v in range(b - WK["CAL_N"], b) for r in NULLW.get(v, [])]; allp = [r for v in WEEKS if v < b for r in NULLW[v]]
+    TH[b] = {("roll", d): float(np.quantile([r[d] for r in roll], 1 - ALPHA)) for d in DET23}
+    TH[b].update({("conf", d): float(np.quantile([r[d] for r in allp], 1 - ALPHA)) for d in DET23})
+CALS = [(c, d) for c in ["roll", "conf"] for d in DET23]
+fires = lambda s, b: {k: s[k[1]] > TH[b][k] for k in CALS}
+# [PAPER] §5 'Padding, and a fix that looks at directions', App. D.4, App. Table 9 caption, App. P (Step 23): conformal (conf/tsRc, conf/tsC) no false alarm in 960 windows (0/960; week-level bound 12%)
+FPR = {k: boot_ci([np.mean([fires(r, b)[k] for r in NULLW[b]]) for b in TB]) for k in CALS}
+print("[weekly] held-out FPR: " + " ".join(f"{c}/{d}={FPR[(c, d)][0]:.3f}" for c, d in CALS))
+lr, ls = [], []
+for b in TB:
+    for t in range(3):
+        r = np.random.default_rng(SEED + 300 * b + t); idx, lab, vols = sub_window(b, r); lr.append(NULLW[b][t]["lamRc"])
+        ls.append(stats23(Z[idx[r.permutation(len(idx))]], lab, np.bincount(lab), *BANK[b])["lamRc"])
+# [PAPER] §5 'Padding, and a fix that looks at directions', App. D.4, App. P (Step 23): top eigenvalue of Rc real/shuffled 1.14
+RATIO = float(np.median(lr) / np.median(ls)); print(f"[C1] lambda_max(Rc) real/shuffled = {RATIO:.2f}")
+RES = []
+CONFIGS = [(s_, None, None) for s_ in ["metamath_unique", "metamath_mixed", "metamath_followup", "random"]] + [(s_, k_, n_) for s_, k_, n_ in S23["EVALS"]]
+for src, kk, nf in CONFIGS:
+    name = src if kk is None else f"{src}({kk}x{nf})"; K_ = kk or S23["K"]
+    pw = {k: [] for k in CALS}; nv, av = {d: [] for d in DET23}, {d: [] for d in DET23}
+    for b in TB:
+        acc = {k: [] for k in CALS}
+        for rep in range(S23["REPS"]):
+            r = np.random.default_rng(SEED + 9_000_000 + 1000 * b + 10 * rep + K_); idx, lab, vols = sub_window(b, r); A_ = int(lab.max()) + 1
+            if K_ >= A_ // 2: continue
+            cv = np.full(K_, nf) if nf else r.choice(np.array([len(g) for g in GA[b]]), K_, replace=True)
+            Zc, Ec, Tc = campaign_points(src, int(cv.sum()), np.random.default_rng(SEED + 17 * b + rep + K_)); n = len(Zc); labc = np.repeat(np.arange(K_), cv)[:n]; keep = lab >= K_
+            _, inv = np.unique(np.concatenate([labc, lab[keep]]), return_inverse=True)
+            sa = stats23(np.vstack([Zc, Z[idx[keep]]]), inv, np.bincount(inv), *BANK[b]); sb = NULLW[b][rep]; fa, fb = fires(sa, b), fires(sb, b)
+            for k in CALS: acc[k].append(float(fa[k] and not fb[k]))
+            for d in DET23: nv[d].append(sb[d]); av[d].append(sa[d])
+        for k in CALS:
+            if acc[k]: pw[k].append(np.mean(acc[k]))
+    # [PAPER] App. Table 9 (top): conf/tsC 0.82, 0.00, 0.02, 0.00, 0.80, 0.82 and conf/tsRc 1.00, 0.48, 0.46, 0.00, 0.42, 0.97
+    # [PAPER] §5, App. D.4, Table 3 caption: hollowed padded 0.46–0.48 vs 0.00–0.02 on C; sweeps 0.97 (10 accts) / 0.42 (3 accts); Table 2 dev hollowed 1.00 / 0.44–0.48 (combined with another run, see header)
+    row = dict(source=name, **{f"{c}/{d}": boot_ci(pw[(c, d)]) for c, d in CALS if pw[(c, d)]}, **{d + "_roc": roc(nv[d], av[d]) for d in DET23}); RES.append(row)
+    print(f"[W] {name:>22} | " + " ".join(f"{c}/{d}={row[f'{c}/{d}'][0]:.2f}" for c, d in CALS) + " | oracle " + " ".join(f"{d}={row[d+'_roc']['tpr1']:.2f}(auc {row[d+'_roc']['auc']:.2f})" for d in DET23) + f"  ({time.time()-t0:.0f}s)")
+
+# %% [markdown]
+# ## The selection gap at scale
+
+# %%
+# ===== Cell 10: the selection gap at scale (pooled account-weeks, oracle thresholds) =====
+t0 = time.time()
+order5 = np.lexsort((ACCT, WEEK)); keys5 = WEEK[order5].astype(np.int64) * n_acct + ACCT[order5]
+POOL5 = [g[:VOL_CAP] for g in np.split(order5, np.flatnonzero(np.diff(keys5)) + 1) if not is_pool[int(ACCT[g[0]])] and len(g) >= 5]
+refL = np.random.default_rng(12).choice(np.concatenate(POOL5), min(100000, sum(len(g) for g in POOL5)), replace=False)
+BL = (make_bank_aug(Z[refL], H_COARSE, SEED + 7), make_bank_aug(Z[refL], H_FINE, SEED + 8))
+def big_window(A_, r):
+    pick = r.choice(len(POOL5), min(A_, len(POOL5)), replace=False); parts = [POOL5[i] for i in pick]
+    vols = np.array([len(p) for p in parts]); return np.concatenate(parts), np.repeat(np.arange(len(parts)), vols), vols
+SCALE = []
+for A_ in S23["AS"]:
+    if A_ > 0.9 * len(POOL5): continue
+    nul = [stats23(Z[i], l, v, *BL) for i, l, v in (big_window(A_, np.random.default_rng(SEED + 31 * A_ + t)) for t in range(S23["NUL"][A_]))]
+    for src in ["metamath_unique", "metamath_mixed"]:
+        att = []
+        for t in range(S23["ATT"]):
+            r = np.random.default_rng(SEED + 37 * A_ + t + len(src)); idx, lab, vols = big_window(A_, r)
+            cv = r.choice(vols, S23["KP"], replace=True).astype(float); cv = np.maximum(1, np.round(cv * S23["NP"] / cv.sum())).astype(int)
+            Zc, _, _ = campaign_points(src, int(cv.sum()), r); n = len(Zc); labc = np.repeat(np.arange(S23["KP"]), cv)[:n]; keep = lab >= S23["KP"]
+            _, inv = np.unique(np.concatenate([labc, lab[keep]]), return_inverse=True)
+            att.append(stats23(np.vstack([Zc, Z[idx[keep]]]), inv, np.bincount(inv), *BL, oracle=np.arange(S23["KP"])))
+        # [PAPER] App. Table 9 (bottom, A = 250..10,000): C unpadded 0.97 0.75 0.28 0.12 0.05; Rc unpadded 1.00 1.00 0.00 0.00 0.03; Rc mixed 1.00 0.10 0.00 0.00 0.03
+        row = dict(A=A_, share=S23["KP"] / A_, source=src)
+        for d in DET23:
+            thr = np.quantile([x[d] for x in nul], 0.99); row[d] = float(np.mean([x[d] > thr for x in att]))
+        row["orc"] = float(np.mean([x["orc"] > np.quantile([x["tsC"] for x in nul], 0.99) for x in att]))
+        # [PAPER] App. Table 9 (bottom, row "Colluders in Rc's group"): 1.00 1.00 0.00 0.00 0.00; App. P (Step 23): 0.00 at 1% colluders, group has no colluders
+        row["recall_Rc"] = float(np.mean([np.mean(x["gRc"] < S23["KP"]) for x in att]))
+        SCALE.append(row)
+        print(f"[S] A={A_:6d} ({100*row['share']:.1f}%) {src:>16}: oracle TPR@1% C {row['tsC']:.2f} | R {row['tsR']:.2f} | Rc {row['tsRc']:.2f} | true colluder set {row['orc']:.2f} | Rc group precision {row['recall_Rc']:.2f}  ({time.time()-t0:.0f}s)")
+
+# %% [markdown]
+# ## Predictions, figure, VERDICT REPORT — copy into the chat
+
+# %%
+# ===== Cell 11: predictions, figure, verdict =====
+G = lambda name, key: next((r[key][0] for r in RES if r["source"] == name and key in r), None)
+# [PAPER] App. P (Step 23 rows): 1.14; 0/960 windows; 0.48; 0.00; 0.42 and 0.97
+print(f"P23.1 lambda_max(Rc) real/shuffled {RATIO:.2f} (pass if >= 1)")
+print(f"P23.2 held-out FPR conf/tsRc {FPR[('conf','tsRc')][0]:.3f} [{FPR[('conf','tsRc')][1]:.3f},{FPR[('conf','tsRc')][2]:.3f}]; roll/tsRc {FPR[('roll','tsRc')][0]:.3f} (pass if conf <= 0.02)")
+print(f"P23.3 mixed padding deployed: conf/tsRc {G('metamath_mixed','conf/tsRc'):.2f}, roll/tsRc {G('metamath_mixed','roll/tsRc'):.2f}, conf/tsC {G('metamath_mixed','conf/tsC'):.2f} (pass if conf/tsRc >= 0.6)")
+r5 = next((r for r in SCALE if r["A"] == max(a for a in S23["AS"] if a <= 5000) and r["source"] == "metamath_unique"), None)
+if r5: print(f"P23.4 A={r5['A']}: Rc {r5['tsRc']:.2f}, R {r5['tsR']:.2f}, C {r5['tsC']:.2f} (pass if Rc >= 0.5)")
+ev = [r["source"] for r in RES if r["source"].startswith("eval")]
+print("P23.5 evaluation sweeps (conf/tsRc): " + ", ".join(f"{e}: {G(e,'conf/tsRc'):.2f}" for e in ev) + " (pass if 3-account <= 0.4 and 10-account >= 0.5)")
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(1, 2, figsize=(14, 4.4))
+srcs = [r["source"] for r in RES]; xs = np.arange(len(srcs)); w = 0.13
+for j, (c, d) in enumerate(CALS): ax[0].bar(xs + (j - 2.5) * w, [G(s_, f"{c}/{d}") or 0 for s_ in srcs], w, label=f"{c}/{d} (FPR {FPR[(c, d)][0]:.3f})")
+ax[0].set_xticks(xs); ax[0].set_xticklabels(srcs, rotation=25, fontsize=7); ax[0].set_ylim(0, 1.02); ax[0].legend(fontsize=6); ax[0].set_title("weekly, deployed")
+for d, c_ in [("tsC", "tab:blue"), ("tsR", "tab:orange"), ("tsRc", "tab:green"), ("orc", "k")]:
+    for src, ls_ in [("metamath_unique", "-"), ("metamath_mixed", "--")]:
+        rr = [r for r in SCALE if r["source"] == src]; ax[1].plot([r["A"] for r in rr], [r[d] for r in rr], ls_, marker="o", color=c_, label=f"{d} {src.split('_')[1]}")
+ax[1].set_xscale("log"); ax[1].set_xlabel("accounts A (campaign fixed)"); ax[1].set_ylabel("oracle TPR at 1%"); ax[1].legend(fontsize=6); ax[1].set_title("selection gap at scale")
+plt.tight_layout(); plt.savefig(f"{OUTDIR}/step23_figure.png", dpi=130); plt.show()
+print("=" * 90); print("STEP 23 VERDICT REPORT"); print("=" * 90)
+print(f"[C1] ratio {RATIO:.3f}"); print("[FPR] " + " ".join(f"{c}/{d}={FPR[(c,d)][0]:.4f}[{FPR[(c,d)][1]:.4f},{FPR[(c,d)][2]:.4f}]" for c, d in CALS))
+for r in RES: print(f"[W] {r['source']:>22} " + " ".join(f"{k}={r[k][0]:.2f}" for k in r if "/" in k) + " | " + " ".join(f"{d}:auc={r[d+'_roc']['auc']:.2f},tpr1={r[d+'_roc']['tpr1']:.2f}" for d in DET23))
+for r in SCALE: print("[S]", json.dumps({k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items()}))
+print("=" * 90)
+with open(f"{OUTDIR}/step23_results.json", "w") as fh: json.dump(dict(RATIO=RATIO, FPR={str(k): v for k, v in FPR.items()}, RES=RES, SCALE=SCALE), fh, indent=1, default=lambda o: o.tolist() if hasattr(o, "tolist") else float(o))

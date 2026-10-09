@@ -1,0 +1,12 @@
+\section{Guidance for providers}
+\label{sec:guidance}
+
+Each item is backed by a measurement in this paper; Appendix~\ref{sec:guidance-full} gives the caveats and Appendix Table~\ref{tab:regime-full} what worked where.
+\begin{enumerate}[leftmargin=1.5em,itemsep=1pt,topsep=2pt]
+\item \textbf{Measure your benign coordination first:} per week, the real-to-shuffled ratio of the top eigenvalue of $R_c$, the number of outlier eigenvectors, and the share of accounts of each valuable type. These decide what any query-only monitor can see, and they doubled between two periods of the same public log. A script that computes them is in the supplementary material.
+\item \textbf{Calibrate on whole past weeks against a lagged reference,} never by shuffling accounts or queries; budget for about twice the nominal false-alarm rate.
+\item \textbf{Protect the reference and calibration history.} A slow ramp defeated every detector; keep frozen copies beside the rolling ones and audit threshold drift.
+\item \textbf{Monitor whole populations and select on the hollowed matrix;} run multi-outlier selection beside it, not instead of it.
+\item \textbf{Accumulate evidence over weeks} with a conformal test martingale: while the gap to benign traffic is positive, mimicry slows detection rather than preventing it.
+\item \textbf{Combine with linkage in both directions,} and treat an alarm as a high-precision pointer for human review: the monitor detects coordinated topic shift, so evaluation pipelines will appear in the alarms.
+\end{enumerate}

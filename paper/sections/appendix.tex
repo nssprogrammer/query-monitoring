@@ -1,0 +1,322 @@
+\section{Proofs}
+\label{app:proofs}
+
+\paragraph{Proposition~\ref{prop:law}.} By assumptions (i) and (ii), an attacked week has the law of a benign week conditioned on the matching group $G$ appearing. Hence for any test $\phi$, $\Pr_{\rm attack}(\phi=1)=\Pr_0(\phi=1\mid G)\le \Pr_0(\phi=1)/\pi\le\alpha/\pi$.
+
+\paragraph{Proposition~\ref{prop:max}.} With a Poisson($\nu$) number of i.i.d.\ benign group scores, the benign maximum is at most $\tau$ with probability $\E[(1-\bar F(\tau))^n]=\exp(-\nu\bar F(\tau))$; setting this to $1-\alpha$ gives $\bar F(\tau)=-\ln(1-\alpha)/\nu$. The week fires with the campaign but not without it exactly when $\psi_c>\tau$ and the benign maximum is at most $\tau$, so the paired detection probability is $(1-\alpha)\,\mathbf 1\{\bar F(\psi_c)<-\ln(1-\alpha)/\nu\}$. If benign group scores above a level $u$ follow a generalised Pareto tail with shape $\xi$, scale $\sigma$ and exceedance probability $p_u$, and $\nu=\kappa A$, substituting $\bar F(\tau)=p_u(1+\xi(\tau-u)/\sigma)^{-1/\xi}$ gives $B_\alpha(A)=u+\frac{\sigma}{\xi}\bigl[(p_u\kappa A/(-\ln(1-\alpha)))^{\xi}-1\bigr]$ \citep{pickands1975statistical,coles2001introduction}: logarithmic growth in $A$ for light tails and polynomial growth for heavy ones. Our data did not support this model for the two-scale score (its threshold stayed flat), so we use it only qualitatively.
+
+\paragraph{Proposition~\ref{prop:seq}.} This is Wald's approximation to the expected sample size of the sequential probability ratio test, $\E_1[N]\approx[(1-\beta)\ln\frac{1-\beta}{\alpha}+\beta\ln\frac{\beta}{1-\alpha}]/D(P_1\|P_0)$, which ignores overshoot \citep{wald1945sequential}; optimality among tests with the same error rates is the Wald--Wolfowitz theorem \citep{wald1948optimum}. If the benign law may be any member of a family $\mathcal P_0$, the denominator becomes $\inf_{P\in\mathcal P_0}D(P_1\|P)$. A deployable version replaces the likelihood ratio by the running product of calibrated weekly e-values; with $n$ calibration windows the smallest conformal $p$-value is $1/(n+1)$, so one week contributes at most $\ln e(1/(n+1))$ to the log-martingale (about 2.25 nats with $n=320$ and the mixture calibrator $e(p)=(1-p+p\ln p)/(p\ln^2 p)$), which is why even strong campaigns take about three weeks at $\alpha=1\%$.
+
+\paragraph{Proposition~\ref{prop:lfc}.} Let $u=\mathbf 1_S$, $\Lambda(\theta)=\ln\E_0[e^{\theta u}]$ and $Q_\theta$ the exponential tilt with parameter $\theta$. For any $Q$ with $\E_Q[u]\ge c$ and any $\theta\ge0$, $D(Q\|P_0)=D(Q\|Q_\theta)+\theta\E_Q[u]-\Lambda(\theta)\ge\theta c-\Lambda(\theta)$. Since $\Lambda'$ increases continuously from $p$ to 1, some $\theta^*$ has $\Lambda'(\theta^*)=c$, and the bound is attained at $Q_{\theta^*}$ only \citep{csiszar1975idivergence}. For an indicator, $Q_{\theta^*}=c\,P_0(\cdot\mid S)+(1-c)P_0(\cdot\mid S^c)$ and $\Lambda^*(c)=d(c\|p)$. An attacked week and the benign week in which the same accounts send draws from $P_0$ differ only in the law of $N_w$ independent queries, so their relative entropy is $N_w d(c\|p)$, and no feature of the queries carries more (data processing); Wald's lower bound then applies. For $c$ near $p$, $d(c\|p)\approx(c-p)^2/(2p(1-p))$, so keeping the cumulative divergence of $n$ queries below $\ln(1/\alpha)$ allows at most $m^*\approx\sqrt{2p(1-p)\,n\ln(1/\alpha)}$ excess on-task queries. For Markov sessions, $\Lambda$ is replaced by the log of the dominant eigenvalue of the tilted transition kernel \citep{chetrite2015nonequilibrium}.
+
+\paragraph{Corollary~\ref{cor:types}.} Given types, the posing accounts' queries have exactly the benign law of their type, so only the count of on-task accounts carries information. It is Binomial$(A,q)$ without the campaign and shifted by $K(1-q)$ with it; the Gaussian approximation gives a divergence of about $K^2(1-q)/(2Aq)$ per week, and Wald's bound over $w$ weeks gives $K^*$.
+
+\paragraph{Proposition~\ref{prop:rand}.} Under the sharp null, $B$'s traffic is the same under every assignment, so $V(Z,Y_B)$ is one draw from the distribution of $V(Z',Y_B)$ over the design \citep{fisher1935design,imbens2015causal}.
+
+\input{sections/app_theory}
+\input{sections/full/s3_monitor}
+\input{sections/full/s5_results}
+
+\section{The controlled study and the spectral calculus}
+\label{app:controlled}
+
+\paragraph{Spectral detection condition.} Split a campaign with structure factor $\Sb$ at random across $K$ accounts. Each account has $S\approx1-(1-\Sb)/K$, nearly ordinary, and each colluder pair has cross-correlation $-(1-\Sb)/K$, invisible to pairwise tests once $K$ is large; summed over all pairs these exactly cancel the self-terms, so the union keeps $\Sb$. In the cross-account matrix this is a rank-one spike of strength $\ell=\Sb-1$, producing an outlier at $(1+\ell)(1+\gamma/\ell)$ when $|\ell|>\sqrt\gamma$, with $\gamma=A/m$ \citep{baik2005phase,benaych2011eigenvalues}. A spectral test therefore needs $|\Sb-1|\sqrt m\gtrsim\sqrt A$, while a test told which accounts collude needs only $|\Sb-1|\sqrt m\gtrsim1$; an exhaustive scan over subsets pays about $\sqrt{2K\ln(eA/K)}$, which is the statistical--computational gap of sparse PCA and planted submatrices \citep{berthet2013optimal,ma2015computational}. Campaigns that cover space \emph{more evenly} than independent sampling ($\Sb<1$) produce an outlier \emph{below} the bulk, a signal pairwise similarity cannot see by construction; on a 2-D torus the measured lower outlier matched the BBP prediction to four decimals, and over 20{,}000 null worlds analytic Tracy--Widom thresholds \citep{tracy1994level,bornemann2010numerical} matched false-alarm rates from $10^{-1}$ to $10^{-4}$. No real extraction strategy we tested triggered the lower edge, so it plays no role in the main text.
+
+\paragraph{CIFAR-10 regime map.} Against a ResNet-18 victim \citep{he2016resnet} on CIFAR-10 \citep{krizhevsky2009cifar}, every active extraction strategy concentrated in the victim's embedding and was detected at the upper edge. The spectral test dominated when many colluders sent few queries each and $K\lesssim2.3\sqrt A$; per-account tests and Higher Criticism sufficed with few heavy colluders; the global stream won with many colluders.
+
+\paragraph{The dose--response study.} Benign users with lognormal volumes, topic clusters of 10 accounts sending half their queries to one narrow region, and a weekly trend followed by a fifth of accounts were added with strength $s$ (Table~\ref{tabA:dose}). Only resampling whole historical windows calibrated the suite (0.6\% false alarms at $s=1$; independent-account resampling left the spectral test at 31\% and the global test at 100\%). One tight benign cluster per window erased geometric power: benign ten-account clusters had union $\Sb$ of 83--159, against 26--30 for the attacks. A task-aware suite on the victim's low-margin queries tolerated one cluster at 100 accounts and a few at 1{,}000, then failed.
+
+\begin{table}[h]
+\centering
+\caption{Power against 10{,}000-query campaigns as benign structure strength $s$ grows (24 windows per cell, window-resampled calibration). Geometry suite: spectral, Higher Criticism and global tests on the victim embedding. Task-aware suite: the same aggregations applied to each account's share of low-margin queries.}
+\label{tabA:dose}
+\small
+\begin{tabular}{lllcccccc}
+\toprule
+$A$, $K$ & Strategy & Suite & $s=0$ & 0.05 & 0.1 & 0.25 & 0.5 & 1 \\
+\midrule
+100, 20 & entropy & geometry & 1.00 & 1.00 & 1.00 & 0.00 & 0.00 & 0.00 \\
+100, 20 & entropy & task-aware & 1.00 & 1.00 & 1.00 & 1.00 & 0.12 & 0.17 \\
+100, 20 & $k$-center & geometry & 1.00 & 1.00 & 1.00 & 0.00 & 0.00 & 0.00 \\
+100, 20 & $k$-center & task-aware & 1.00 & 1.00 & 1.00 & 0.79 & 0.04 & 0.08 \\
+1000, 100 & entropy & geometry & 1.00 & 0.67 & 0.04 & 0.00 & 0.04 & 0.04 \\
+1000, 100 & entropy & task-aware & 1.00 & 0.96 & 0.67 & 0.33 & 0.04 & 0.04 \\
+1000, 100 & $k$-center & geometry & 1.00 & 0.38 & 0.04 & 0.00 & 0.04 & 0.04 \\
+1000, 100 & $k$-center & task-aware & 1.00 & 0.21 & 0.25 & 0.08 & 0.04 & 0.04 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Additional real-traffic results}
+\label{app:extra}
+
+\paragraph{Small monitored populations.} Table~\ref{tabA:smallpop} reports the first real-traffic protocol, with equal-volume colluders forming 46--94\% of the window. A narrow capability campaign of 5{,}000 prompts was caught 94\% of the time in 100-account windows; broad campaigns only when they formed almost all of the traffic. Keeping more of the embedding helped weaker signals (broad 5{,}000-prompt campaigns from 0.18 to 0.35, padded 20{,}000-prompt campaigns from 0.36 to 0.60, from 32 to 384 dimensions).
+
+\begin{table}[h]
+\centering
+\caption{Paired detection in small monitored populations (8 held-out weeks, 3 campaigns $\times$ 3 windows per week; $\alpha=5\%$). Share is the campaign's fraction of window traffic.}
+\label{tabA:smallpop}
+\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrccc}
+\toprule
+$A$, $K$ & Campaign & $N$ & Share & Fixed & Rolling & Rolling + lag \\
+\midrule
+100, 20 & random natural & 20{,}000 & 0.94 & 0.00 & 0.00 & 0.00 \\
+100, 20 & broad capability (1 of 10) & 5{,}000 & 0.81 & 0.03 & 0.04 & 0.21 \\
+100, 20 & broad capability & 20{,}000 & 0.94 & 0.82 & 0.90 & 0.93 \\
+100, 20 & narrow capability (1 of 30) & 1{,}000 & 0.46 & 0.00 & 0.00 & 0.03 \\
+100, 20 & narrow capability & 5{,}000 & 0.81 & 0.78 & 0.93 & \textbf{0.94} \\
+100, 20 & broad, 50\% natural padding & 20{,}000 & 0.94 & 0.25 & 0.04 & 0.38 \\
+500, 100 & broad capability & 5{,}000 & 0.46 & 0.10 & 0.07 & 0.29 \\
+500, 100 & narrow capability & 5{,}000 & 0.46 & 0.44 & 0.78 & 0.71 \\
+\midrule
+\multicolumn{4}{l}{Held-out false alarms at $A=100$ / 500} & 18.8\% / 56.2\% & 5.0\% / 24.7\% & 3.4\% / 28.7\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Oracle comparison of statistics.} Table~\ref{tabA:oracle} compares detectors at matched realised false-alarm rates. With 96 null windows the 1\% threshold is set by about one null window, so these values are fragile.
+
+\begin{table}[h]
+\centering
+\caption{Primary comparison: detection at oracle-matched realised false-alarm rates (thresholds from the pooled held-out null windows, which a deployed system cannot set), with AUC. Weekly populations, $K=50$ volume-matched colluders, about 1{,}640 queries, 24 test weeks. QC is the repaired query-cluster detector (per-cell lagged scoring with shrinkage; Appendix~\ref{app:extra}). With 96 null windows, the 1\% threshold is set by about one null window, so TPR at 1\% is fragile.}
+\label{tabA:oracle}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{4}{c}{AUC / TPR at 1\% / TPR at 5\%} \\
+\cmidrule(lr){2-5}
+Campaign & Two-scale & Global stream & MMD (Liu et al.) & QC \\
+\midrule
+MetaMathQA (generated) & 0.88 / \textbf{0.80} / 0.81 & \textbf{0.97} / 0.70 / 0.74 & 0.94 / 0.58 / 0.62 & 0.94 / 0.64 / --- \\
+Human GSM8K questions & 0.96 / \textbf{0.95} / 0.95 & \textbf{0.99} / 0.88 / 0.94 & 0.97 / 0.73 / 0.80 & \textbf{1.00} / 0.93 / --- \\
+Half natural, mixed into every account & 0.68 / \textbf{0.24} / 0.39 & 0.75 / 0.05 / 0.11 & 0.71 / 0.07 / 0.14 & \textbf{0.86} / \textbf{0.31} / --- \\
+Real follow-up after every prompt & 0.68 / \textbf{0.24} / 0.40 & 0.75 / 0.06 / 0.11 & 0.72 / 0.11 / 0.20 & \textbf{0.85} / \textbf{0.27} / --- \\
+Random natural prompts & 0.48 / 0.00 / 0.07 & 0.39 / 0.00 / 0.04 & 0.39 / 0.02 / 0.02 & 0.52 / 0.10 / --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Mechanism probes.} Table~\ref{tabA:mech}: rephrased variants barely weaken the two-scale test and deduplicating natural prompts does not create a signal. A manipulation check showed that rephrasings lie a median 0.67 apart in the reduced embedding, so only 35\% fall within the fine bandwidth; removing benign follow-up turns moved benign clumping away from that of colluders. Both designed mechanisms were rejected.
+
+\begin{table}[h]
+\centering
+\caption{Mechanism probes (weekly populations, $K=50$, volume-matched). Rephrased variants barely weaken the test, and deduplicating natural prompts does not create a signal.}
+\label{tabA:mech}
+\small
+\begin{tabular}{lccc}
+\toprule
+Campaign & Two-scale & Global & MMD \\
+\midrule
+MetaMathQA, one prompt per source problem & 0.88 & 0.68 & 0.57 \\
+MetaMathQA, four variants per source problem & 0.80 & 0.71 & 0.60 \\
+WildChat broad cluster, random prompts & 0.01 & 0.01 & 0.07 \\
+WildChat broad cluster, farthest-point deduplicated & 0.04 & 0.02 & 0.07 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Query-level pooling.} A detector that scores each topic cell's two-scale statistic pooled across all accounts ranks padded campaigns best (AUC 0.82--0.86 against at most 0.75 for account-level detectors under mimicry), but it never reached a usable false-alarm rate at useful power: robust per-cell calibration fired on 28\% of null weeks; per-cell lagged scoring with shrinkage on 15\%; gating behind the two-scale test on 12\%; a factor model of cell drift on 23\%, because two factors carried only 31\% of the variance. A full-history conformal threshold reached calibration, at which point it caught padded campaigns 0.20 of the time---no better than the two-scale test. A trivial per-cell volume scan fired on 12.8\% of null weeks at a nominal 1\% on the development weeks and caught MetaMathQA campaigns 0.36 of the time.
+
+\paragraph{Hollowing.} Table~\ref{tabA:hollow} shows that selection on the (uncentred) hollowed matrix ranks padded campaigns almost perfectly at oracle thresholds but was not calibrated (8.4\% false alarms), because the week's common drift dominated it; centring fixed this. Table~\ref{tabA:hollow2} gives the centred version with conformal thresholds and in pooled populations.
+
+\begin{table}[h]
+\centering
+\caption{Selection on the hollowed matrix $R$ versus $C$, both scored with the two-scale statistic. Oracle TPR at a matched 1\% false-alarm rate (AUC in parentheses); weekly populations, $K=50$ volume-matched colluders. Deployed false alarms: 0.8\% for $C$, 8.4\% for $R$, 7.6\% for the core variant.}
+\label{tabA:hollow}
+\small
+\begin{tabular}{lccc}
+\toprule
+Campaign & Selection on $C$ & Selection on $R$ & $R$ on topic cores \\
+\midrule
+MetaMathQA & 0.86 (0.92) & \textbf{1.00} (1.00) & 1.00 (1.00) \\
+Half natural, mixed & 0.21 (0.66) & \textbf{0.94} (1.00) & 0.95 (1.00) \\
+Real follow-up after every prompt & 0.23 (0.66) & \textbf{0.93} (1.00) & 0.93 (1.00) \\
+Human GSM8K questions & 0.93 (0.97) & 1.00 (1.00) & 1.00 (1.00) \\
+Random natural prompts & 0.02 (0.52) & 0.00 (0.51) & 0.00 (0.48) \\
+GSM8K evaluation sweep, 3 accounts & 0.75 (0.87) & 0.34 (0.61) & 0.02 (0.54) \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[h]
+\centering
+\caption{Selection on the centred hollowed matrix $R_c$ against $C$. Top: weekly populations, conformal thresholds over all prior weeks (no false alarm in 960 held-out windows from 24 weeks for either; week-level 95\% upper bound about 12\%). Bottom: pooled populations with the campaign fixed at 1{,}640 queries over 50 colluders, oracle TPR at 1\%, and the share of colluders in the group $R_c$ selects. The $C$ row repeats cells of Table~\ref{tabA:scale10k} from a separate run (0.28 against 0.42 at $A=2{,}500$), a difference within run-to-run variation.}
+\label{tabA:hollow2}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\multicolumn{7}{l}{\emph{Weekly, deployed (conformal)}} \\
+& MetaMathQA & Mixed & Follow-up & Random & Sweep, 3 accts & Sweep, 10 accts \\
+Selection on $C$ & 0.82 & 0.00 & 0.02 & 0.00 & 0.80 & 0.82 \\
+Selection on $R_c$ & 1.00 & 0.48 & 0.46 & 0.00 & 0.42 & 0.97 \\
+\midrule
+\multicolumn{7}{l}{\emph{Pooled, oracle TPR at 1\%}} \\
+& $A=250$ & 1{,}000 & 2{,}500 & 5{,}000 & 10{,}000 & \\
+$C$, unpadded & 0.97 & 0.75 & 0.28 & 0.12 & 0.05 & \\
+$R_c$, unpadded & 1.00 & 1.00 & 0.00 & 0.00 & 0.03 & \\
+$R_c$, mixed padding & 1.00 & 0.10 & 0.00 & 0.00 & 0.03 & \\
+Colluders in $R_c$'s group & 1.00 & 1.00 & 0.00 & 0.00 & 0.00 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Scale.} Table~\ref{tabA:scale10k} gives the pooled populations with the campaign fixed, and Table~\ref{tabA:multi} multi-outlier selection with its diagnostics. The colluders' eigenvector was always far above the random-matrix bulk (pairwise cosine 0.49--0.61 against a requirement of at most 0.082), but at rank 1--8 rather than first: benign coordinated groups out-ranked it. Raising the number of whitened components from 600 to 1{,}500 at 2{,}500 accounts lifted top-eigenvector selection from 0.00 to 0.57 by changing the ranking. The number of retained outliers reached the cap of 20 from 1{,}000 accounts upward. Sparse scans (truncated power iteration with up to 100 iterations and 20 restarts, and a greedy forward scan) caught 0--4\% of campaigns at every colluder fraction from 1\% to 28\%, while an oracle told the colluders caught all of them.
+
+\begin{table}[h]
+\centering
+\caption{Scale with the campaign fixed (1{,}640 MetaMathQA queries over $K=50$ colluders) in pooled populations of benign account-weeks, oracle thresholds. ``True colluder set'' scores the campaign's own accounts with the two-scale statistic against the same null threshold.}
+\label{tabA:scale10k}
+\small
+\begin{tabular}{rccccc}
+\toprule
+$A$ & Colluder share & Null median & Null 99\% & Detector TPR at 1\% & True colluder set above threshold \\
+\midrule
+250 & 20\% & 1.27 & 3.28 & 1.00 & 1.00 \\
+1{,}000 & 5\% & 1.21 & 3.16 & 0.80 & 1.00 \\
+2{,}500 & 2\% & 1.05 & 4.35 & 0.42 & 1.00 \\
+5{,}000 & 1\% & 0.94 & 3.18 & 0.15 & 1.00 \\
+10{,}000 & 0.5\% & 0.61 & 2.95 & 0.00 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[h]
+\centering
+\caption{Multi-outlier selection at scale: oracle TPR at a matched 1\% false-alarm rate in pooled populations, campaign fixed at 1{,}640 queries over 50 colluders. Diagnostics: rank of the eigenvector of $R_c$ most aligned with the colluders, and their mean pairwise cosine $\rho$ against the BBP requirement $\sqrt{A/r}/K$.}
+\label{tabA:multi}
+\small
+\begin{tabular}{rccccccc}
+\toprule
+& & \multicolumn{2}{c}{Top eigenvector} & \multicolumn{2}{c}{$T_{\max}$} & & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+$A$ & Colluders & unpadded & padded & unpadded & padded & Colluder rank (unp./pad.) & $\rho$ vs needed \\
+\midrule
+250 & 20\% & 1.00 & 1.00 & 1.00 & 1.00 & 0 / 0 & 0.49 vs 0.013 \\
+1{,}000 & 5\% & 1.00 & 0.07 & 1.00 & 1.00 & 0 / 1 & 0.58 vs 0.026 \\
+2{,}500 & 2\% & 0.00 & 0.00 & 1.00 & 0.83 & 1 / 2 & 0.58 vs 0.041 \\
+5{,}000 & 1\% & 0.00 & 0.00 & 0.93 & 0.77 & 2 / 3 & 0.60 vs 0.058 \\
+10{,}000 & 0.5\% & 0.03 & 0.03 & 1.00 & 0.17 & 3 / 8 & 0.61 vs 0.082 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Statistics that failed.} A structure-factor profile over six bandwidths scored against benign groups of equal coarse concentration detected nothing under padding; a core-plus-halo statistic was at chance (AUC 0.48); a behavioural prefilter on the predictability of each account's topic sequence kept none of the colluders, because a campaign confined to a few topics is \emph{more} predictable than a human; its two-sided version kept 13\% of colluders and every benign evaluation account. A dual-reference test that tracks the growing gap between scores against a frozen and a lagged reference \citep{scheffer2009early} detected ramps 0.03 of the time. Mixing a fraction $f$ of natural prompts into every colluder account moved oracle two-scale detection from 0.81 ($f=0$) to 0.00 ($f=0.75$), crossing 0.5 at a campaign-to-reference MMD$^2$ of about 0.035, while the most distinctive benign groups were much farther from the reference (median 0.145) and were not flagged: distance from the reference is not the gap that matters.
+
+\input{sections/full/s6_frontier}
+
+\section{Distillation details}
+\label{app:distill}
+
+Table~\ref{tabA:stealth} gives the first distillation measurement (Qwen2.5-0.5B, LoRA; \citealp{hu2022lora}), Table~\ref{tabA:stealth2} the elicitation regime with three seeds, and Table~\ref{tabA:extract} the extraction regime. The least-detectable (tilted) campaign at 10{,}000 queries is confounded: the attacker's pool held only 2{,}933 on-task prompts, so that campaign was 29\% on task and reused prompts. Defining the task region by value to the target (a GSM8K-versus-chat classifier) left only 972 on-task prompts, and a tilted campaign built from them gained 1.1 points at 3{,}000 queries. A persona campaign, in which each colluder took over a real on-task pool user's week with its on-task queries replaced by rewrites, evaded every query-level detector and gained 3.5 points from 1{,}891 queries; a detector tracking the share of majority-on-task accounts caught it 0.58 of the time.
+
+\begin{table}[h]
+\centering
+\caption{Detection against what the campaign extracts. Detection: paired power at 1\% (weekly populations, $K=50$, 1{,}641 queries). Distillation: Qwen2.5-0.5B (base) fine-tuned with LoRA on the campaign's (prompt, answer) pairs, GSM8K accuracy on the first 500 test problems (one seed; standard error about 2.2 points). Base model: 34.4\%.}
+\label{tabA:stealth}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
+\toprule
+& \multicolumn{3}{c}{Detection at 1{,}641 queries} & \multicolumn{2}{c}{GSM8K gain (points)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+Campaign & Two-scale & Global & MMD & 1{,}641 queries & 7{,}550 queries \\
+\midrule
+MetaMathQA, one prompt per source problem & 0.85 [0.74, 0.94] & 0.65 & 0.56 & +11.4 & +12.6 \\
+Half natural prompts mixed into every account & 0.21 [0.10, 0.37] & 0.12 & 0.08 & +12.0 & +11.0 \\
+Each prompt followed by a real follow-up turn & 0.24 [0.11, 0.38] & 0.12 & 0.08 & +13.4 & --- \\
+Natural WildChat cluster & 0.01 & 0.01 & 0.07 & --- & +6.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[h]
+\centering
+\caption{GSM8K gain over the base model (points; mean $\pm$ standard deviation over three seeds) for campaigns of equal query budget. All models are evaluated on the same 400 problems.}
+\label{tabA:stealth2}
+\small
+\begin{tabular}{lccc}
+\toprule
+Queries & All math & Half natural, mixed & Camouflaged (natural-looking math) \\
+\midrule
+100 & $+9.8\pm2.1$ & $+9.8\pm1.8$ & $+9.3\pm0.7$ \\
+300 & $+7.5\pm0.5$ & $+10.2\pm2.1$ & $+8.7\pm2.3$ \\
+900 & $+8.6\pm1.2$ & $+10.1\pm1.0$ & $+11.2\pm1.9$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[h]
+\centering
+\caption{The extraction regime: gain over the base model (points) for campaigns of equal query budget. SmolLM2-360M (base 3.5\% on GSM8K, 400 problems), full fine-tuning, mean $\pm$ standard deviation over two seeds; Qwen2.5-1.5B with LoRA on MATH-500 (base 22.8\%), one seed. Tilted rows: half on-task WildChat prompts and half off-task (Proposition~\ref{prop:lfc}); the cost is against the all-math campaign of the same size.}
+\label{tabA:extract}
+\small
+\begin{tabular}{lcccc}
+\toprule
+& Queries & All math & Half natural, mixed & Paired cost \\
+\midrule
+SmolLM2-360M, GSM8K & 1{,}000 & $+7.5\pm0.0$ & $+3.9\pm0.6$ & $-3.6$ \\
+ & 3{,}000 & $+10.4\pm0.1$ & $+7.6\pm0.6$ & $-2.8$ \\
+ & 10{,}000 & $+15.9\pm0.9$ & $+12.1\pm1.1$ & $-3.8$ \\
+\midrule
+SmolLM2-360M, tilted (least detectable) & 3{,}000 & --- & $+2.2\pm0.2$ & $-8.2$ \\
+ & 10{,}000 & --- & $+1.5\pm0.2$ & $-14.4$ \\
+\midrule
+Qwen2.5-1.5B, MATH-500 & 1{,}000 & $+12.0$ & $+11.4$ & $-0.6$ \\
+ & 4{,}000 & $+11.6$ & $+9.6$ & $-2.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\input{sections/full/s7_holdout}
+\input{sections/full/s8_limits_world}
+
+\section{Randomised interventions}
+\label{app:randomized}
+
+In pooled WildChat populations of 250, 2{,}500 and 10{,}000 account-weeks, each with its own recorded traffic in the 12 following weeks, a 50-account MetaMathQA campaign was injected, and the group chosen by multi-outlier selection was throttled in each of 12 weekly blocks independently with probability one half (conditioned on at least one throttled and one unthrottled block; 4{,}094 admissible schedules). The response was the on-task volume of the 50 accounts most correlated with the flagged group in the hollowed matrix, and the statistic, fixed before randomising, was the larger of the throttled-minus-unthrottled differences at lags 0 and 1. The null held on real, drifting traffic (one rejection at 1\% in 120 null runs). Where the flagged group held about half the colluders, a campaign that reassigned throttled work within the block or one block later was detected in every run; one that dropped the work lost 40\% of its throughput. At 10{,}000 accounts the flagged group already held all 50 colluders, leaving no one to fail over to. A benign team of 20 accounts with failover, half of it flagged, fired the test in 82--98\% of runs. At the deployed precision measured at 5{,}000--7{,}552 account-weeks (0.73 and 0.54), about 16--42 legitimate accounts would be throttled per detection. In a toy simulation of randomised answer marks, a campaign that drew later queries from suggestions shown to its other accounts was detected within four weeks 0.62 of the time at 10\% uptake, a fixed-prompt campaign never, and a benign team that shares answers exactly as often as the campaign: the confound is structural.
+
+\input{sections/full/s9_guidance}
+\input{sections/full/s10_related}
+\input{sections/full/s11_limitations}
+
+\section{Implementation details}
+\label{app:impl}
+
+\begin{table}[h]
+\centering
+\caption{Main settings.}
+\small
+\begin{tabular}{p{0.32\textwidth}p{0.6\textwidth}}
+\toprule
+Embedding & CIFAR-10: victim penultimate layer, PCA-32. WildChat: all-MiniLM-L6-v2, PCA to $d\in\{32,64,128,384\}$, rescaled to total variance 4. \\
+Fourier modes & $m=400$ complex modes (CIFAR-10 and the small-population WildChat protocol); $m=300$ modes with augmented real whitening (realistic protocol). Bandwidths $h\in\{2,4,8\}$ with Bonferroni correction (CIFAR-10), $h=4$ (WildChat), and $h=4$ coarse with $h=0.5$ fine for the two-scale test. \\
+Whitening floor & eigenvalues below $10^{-4}$ of the maximum discarded. \\
+Reference & CIFAR: 300{,}000 benign queries. WildChat: up to 100{,}000 benign turns from the four preceding weeks (lagged). \\
+Calibration & CIFAR: 1{,}000 null worlds per configuration, Bonferroni over bandwidths. WildChat: 40 null windows per week, thresholds from the 8 preceding weeks (realistic protocol) or 250 windows from the 4 preceding weeks (small populations). \\
+MMD baseline & unbiased MMD$^2$ on normalised MiniLM embeddings, Gaussian kernel with median-heuristic bandwidth, window sample of 2{,}000 queries against 20 reference batches of 500. \\
+Fraudar baseline & account $\times$ topic count matrix (100 $k$-means topics), column weights $1/\log(\text{degree}+5)$, greedy peeling. \\
+Distillation & Qwen2.5-0.5B (base), LoRA $r=16$, $\alpha=32$, dropout 0.05 on all attention and MLP projections; one epoch, batch 8, learning rate $2\times10^{-4}$, maximum length 512; GSM8K test problems 1--500, greedy decoding, last-number match. \\
+Elicitation students & Qwen2.5-0.5B as above on 100--900 queries, three seeds, GSM8K problems 1--400. Qwen2.5-1.5B (base) on MATH-500: fp16 base with fp32 LoRA ($r=16$), micro-batch 2 with 4 accumulation steps, learning rate $2\times10^{-4}$, maximum length 512, up to 512 new tokens, boxed-answer match after normalisation. \\
+Extraction student & SmolLM2-360M (base), full fine-tuning in fp16 autocast, AdamW, learning rate $5\times10^{-5}$, no weight decay, linear schedule with warm-up over the first 1/30 of steps, effective batch 16 (micro-batch 4), one pass, maximum length 512; prompt format ``Question: \ldots\ Answer:'', loss on answer tokens only; GSM8K problems 1--400, greedy decoding, up to 320 new tokens, last-number match; two seeds. \\
+Rewriter & Qwen2.5-1.5B-Instruct, sampling at temperature 0.8 (0.9 in regeneration rounds), top-$p$ 0.95, up to 110 new tokens; shown three real on-task user messages as style examples; 5{,}000 MetaMathQA GSM-type problems; two regeneration rounds for rewrites the discriminator caught. \\
+Classifiers & Logistic regression on MiniLM embeddings, balanced class weights. Task region: MetaMathQA (or human GSM8K training questions, for the value-defined region) against four times as many benign WildChat turns from the first 8 weeks; region = posterior $\ge0.5$. Discriminator: two-fold cross-fitted, rewrites against real on-task prompts; a rewrite passes if its held-out posterior is below 0.5. \\
+Compute & Kaggle notebooks with one T4 or P100 GPU; each experiment runs in 0.5--2 hours. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Prediction log and corrections}
+\label{app:log}
+
+Experiments ran as numbered steps, each in its own notebook. Every prediction below was written into the header of its notebook before the run; 40 concern the controlled studies (Steps 1--8) and 13 the frozen evaluation on untouched weeks (Step 35). The predictions carry no external timestamp, so we call them locked rather than pre-registered. Of 184, 75 passed, 30 passed partially, 74 failed and 5 could not be tested.
+
+{\small
+\setlength{\tabcolsep}{4pt}
+\input{sections/prediction_log}
+}
+
+\paragraph{Corrections made during the study.}
+\input{sections/corrections_body}
+
+\section{Reproducibility}
+\label{app:repro}
+
+Every number comes from Kaggle notebooks run with fixed seeds on one T4 or P100 GPU, numbered by the steps of the prediction log. WildChat-1M, WildChat-4.8M, MetaMathQA, Magicoder-OSS-Instruct, Alpaca, GSM8K and MMLU are public; the WildChat notebooks require a Hugging Face token with access to the datasets. The supplementary material contains the benign-coordination census script. The detectors, the calibration protocol and the notebooks will be released with the final version; the campaign constructions will be shared with researchers and providers on request.

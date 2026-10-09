@@ -1,0 +1,16 @@
+\section{Limitations in full}
+\label{sec:limitations-full}
+
+We have tried to state each limit where its result appears. Collected here, they fall into five groups.
+
+\paragraph{Data.} WildChat is consumer chat through one provider, not API traffic, and hashed IPs only approximate accounts: shared addresses merge users and VPNs split them, which may itself manufacture some of the templated ``bulk users'' that act as benign confounders. Our activity thresholds exclude low-volume accounts, which is where a patient attacker would hide. Weekly populations hold a few hundred accounts, with colluders at 14--50\% of a window; production shares are orders of magnitude lower. Real API logs, which only providers hold, are the decisive next measurement.
+
+\paragraph{Representation.} Every real-traffic result is detectability in one family of sentence embeddings: MiniLM, and E5-small-v2, which is initialised from MiniLM. Attacker and defender therefore share a representation. Lexical, perplexity, style, near-duplicate and timing features, and the victim model's own hidden states, are untested here. Our own discriminator separated LLM-written prompts from real ones with AUC 0.98, but we did not use it as a detector.
+
+\paragraph{Statistics.} Week-level conclusions rest on 17--24 test weeks; run-to-run variation exceeds the intervals of single runs; low-false-alarm results rest on few null exceedances; and our development-week results were obtained after adaptive reuse of the same test weeks, which the single frozen evaluation only partly corrects. Predictions were locked in notebooks before each run but carry no external timestamp, so they are not pre-registrations in the formal sense.
+
+\paragraph{Campaign construction.} Natural, tilted and written colluder accounts were assembled from draws across the attacker's pool rather than from whole real user-weeks, so they are less topical than real users; random real prompts assembled this way ranked above benign windows under hollowed selection (AUC 0.88). This confounds the natural and covert results in an unknown direction. We did not simulate relays.
+
+\paragraph{Capability.} The frontier rests on one 360M student, one benchmark, answers taken from datasets and logs rather than a live victim, and two seeds; at the covert end, differences are 4--18 problems out of 400. The writer that tried to imitate users was a 1.5B model; a frontier model might write far better. Larger students fell into the elicitation regime, where stealth is free.
+
+\paragraph{Open tests.} The experiments that would most change our conclusions are: an anytime-valid sequential test on the hollowed score against padded and covert campaigns; covert and natural colluders built from whole real user-weeks; a relay simulation with and without session interleaving and selection; a defence against slow calibration poisoning; distillation with a live teacher, more seeds, the full test set and a second student and task; and, above all, the benign-coordination census on a real provider's logs.

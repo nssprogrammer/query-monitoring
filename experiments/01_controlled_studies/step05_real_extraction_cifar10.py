@@ -1,0 +1,496 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.6
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# ## Paper numbers reproduced by this script
+# Paper: "The Limits of Query Monitoring for Distributed Model Extraction".
+# Run on Kaggle (see "Kaggle:" line below for hardware/time). Seeds are fixed in the configuration cell;
+# re-runs vary by a few points (the paper reports run-to-run spread up to ~0.07-0.14 for weekly detection).
+#
+# | Paper location | Quantity | Value in paper | Where computed here |
+# |---|---|---|---|
+# | App. P (Step 5), row "Victim ≥ 85%; random looks null" (P5.0) | victim test accuracy; random campaigns look null | Pass (88.5–89.1%) | Cell 2 print "victim test acc" / VERDICT "victim test acc"; Part 5 print "P5.0 random-campaign false alarms" |
+# | App. P (Step 5), row "Active strategies beat random by ≥ 1 point" (P5.1) | fidelity gain of entropy / k-center over random | Partial (k-center yes, entropy no) | Cell 4 print "mean fidelity" (Δ pt column) |
+# | App. P (Step 5), row "No x > 1; concentration caught by λmax" (P5.2) | x and λ_max power per (strategy, N, A) | Pass | Part 4 detection print (`x=`, `max=`) / VERDICT `[det]` lines |
+# | App. P (Step 5), row "Fidelity gain tracks concentration" (P5.3) | Spearman(Δfidelity, concentration) | Fail (ρ = −0.15) | Part 5 print "P5.3 Spearman" |
+# | App. P (Step 5), row "Herding undetected because S̄ ≈ 1" (P5.5) | herding union S̄ in the defender embedding | Partial (S̄ 1.1–1.5) | Part 4 detection print `S=` for `herding` rows |
+# | App. P (Step 5), row "Spectral ≥ per-account, gap grows with A" (P5.6) | mean power spectral λ_max vs per-account max, by A | Pass on mean power; not cell by cell | Part 5 print "P5.6 A=..." |
+# | App. P (Step 5), row "Law holds on real attacks" (P5.4) | Step-4 law on real attacks (MAE, x range) | Pass, uninformative (all x < 0.25) | Part 5 print "P5.4 law on real attacks"; `x=` in Part 4 print |
+# | App. E 'CIFAR-10 regime map' | every active strategy concentrated in the victim's embedding and was detected at the upper edge | qualitative (no number) | Part 4 detection print (`S=` > 1, `max=`) |
+# | Table 16 (App. P, "Main settings"), CIFAR-10 rows | embedding / modes / bandwidths / whitening floor / reference / calibration | victim penultimate layer, PCA-32; m = 400; h ∈ {2, 4, 8}; 10−4; 300,000 benign queries; 1,000 null worlds per configuration | Cell 1 configuration (`D_DEF`, `M_MODES`, `HS`, `FLOOR`, `N_REF`, `N_NULL`); Bonferroni over bandwidths is added in Step 6 |
+#
+# Not reported in the paper: the `class_balanced` strategy, per-budget fidelity values and their spread, the FRONTIER
+# query-multiplier table, linkage AUCs (spectral / per-account / pairwise), oracle-low/high detectors, missing-mode power
+# per cell, null thresholds, the PCA-32 explained variance and the figure `step5_figure.png`.
+
+# %% [markdown]
+# # Step 5 — Real extraction attacks on a real model (CIFAR-10)
+# **Kaggle:** GPU + **Internet ON** → **Run All** (≈45–70 min; reuses the cached victim/embeddings if `step5_cache_full.npz` is still in /kaggle/working). Run once with `QUICK=True` (≈5 min) first.
+#
+# **Setup.** Victim = ResNet-18 trained on CIFAR-10 train[0:25k]. The *natural distribution* (benign users, attacker pool, defender reference) is train[25k:50k] under random-crop+flip augmentation; fidelity is measured on the test set (never queried). The defender embeds every query with the **victim's penultimate layer** → PCA-32 → random Fourier modes, whitened against a 300k-query historical reference; thresholds are calibrated from simulated null worlds. The attacker uses an **ImageNet-pretrained ResNet-18** as its own encoder and a logistic-regression substitute trained on the victim's top-1 labels.
+#
+# **Strategies:** `random` (control) · `entropy` (uncertainty sampling) · `kcenter` (ActiveThief: farthest-first in the substitute's softmax space) · `class_balanced` (equal per substitute-predicted class) · `herding` (MMD coreset in the attacker's encoder space). Budgets 2k / 5k / 10k, 3 trials each. Monitored populations A = 25 / 100 / 400 (20% colluders → 500 down to 25 queries per colluder).
+#
+# **Detection rules (fixed before this run).** Missing mode ⇔ exactly one eigenvalue below the λ_min threshold of the *row-normalised* matrix **and** no λ_max outlier. Positive side: λ_max of the **un-normalised** whitened matrix (row normalisation hides per-colluder variance excess — found in Step 4 and in the QUICK run); all thresholds are null-calibrated. **Baseline:** per-account monitoring = max over accounts of each account's own whitened discrepancy, null-calibrated.
+#
+# | ID | Locked prediction |
+# |---|---|
+# | **P5.0** | Victim test accuracy ≥ 85%; `random` campaigns look null (S̄ ≈ 1, missing-mode power ≈ α) |
+# | **P5.1** | `entropy` and `kcenter` beat `random` fidelity by ≥ 1 point at some budget |
+# | **P5.2** | No strategy reaches x > 1 at A = 100. `kcenter`/`entropy` have S̄ > 1 and are caught by λ_max at A = 25 for N ≥ 5k |
+# | **P5.3** | Fidelity gain over random tracks **concentration** (S̄−1 > 0) more than **discrepancy reduction** (1−S̄) |
+# | **P5.4** | Observed missing-mode power matches the Step-4 law, logistic$(x;\,1.052,\,0.13)$, with MAE ≤ 0.15 |
+# | **P5.6** | Spectral λ_max power ≥ per-account baseline power, with the gap larger at A = 100 (fewer queries per colluder) than at A = 25 |
+# | **P5.5** | `herding` in the attacker's own encoder: S̄ ≈ 1 in the defender's embedding (representation mismatch) → undetected |
+#
+# Copy the **VERDICT REPORT** and the figure back into the chat.
+
+# %%
+# ===== Cell 1: configuration =====
+import math, json, time, os
+import numpy as np
+from scipy.stats import rankdata, spearmanr
+QUICK = False
+SEED = 5051
+OUTDIR = "/kaggle/working" if os.path.isdir("/kaggle/working") else "."
+try:
+    import torch
+    HAS_TORCH = True; DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+except Exception:
+    HAS_TORCH, DEV = False, None
+USE_GPU = HAS_TORCH and DEV.type == "cuda"
+ALLOW_CPU = False   # set True only for a CPU smoke test
+if not USE_GPU and not ALLOW_CPU:
+    raise RuntimeError("No GPU visible to PyTorch. Kaggle: Settings -> Accelerator -> GPU T4 x2, then restart the session.")
+CHUNK = 65536 if USE_GPU else 8192
+# [PAPER] Table 16 (CIFAR-10 rows): PCA-32, m = 400 modes, h ∈ {2, 4, 8}, floor 10−4; 300,000-query reference and 1,000 null worlds set below (N_REF, N_NULL)
+D_DEF, HS, M_MODES, ALPHA, FLOOR = 32, [2.0, 4.0, 8.0], 400, 0.01, 1e-4
+STRATS = ["random", "entropy", "kcenter", "class_balanced", "herding"]
+if QUICK:
+    EPOCHS, N_REF, N_NULLB, POOL, N_FIT = 2, 40000, 30000, 12000, 10000
+    SEED_N, TARGETS, CHECKS, TRIALS, AS, N_NULL, W = 300, [600, 1000], [600, 1000], 1, [25], 40, 2
+else:
+    EPOCHS, N_REF, N_NULLB, POOL, N_FIT = 15, 300000, 200000, 60000, 50000
+    SEED_N, TARGETS, CHECKS, TRIALS, AS, N_NULL, W = 1000, [2000, 3500, 5000, 7500, 10000], [2000, 5000, 10000], 3, [25, 100, 400], 1000, 8
+CACHE = f"{OUTDIR}/step5_cache_{'quick' if QUICK else 'full'}.npz"
+print(f"backend: {'GPU ' + torch.cuda.get_device_name(0) if USE_GPU else 'CPU'} | QUICK={QUICK} | cache={CACHE}")
+
+# %% [markdown]
+# ## Part 0 — victim training and query embeddings (PyTorch; cached after first run)
+
+# %%
+# ===== Cell 2: data, victim, attacker encoder, embeddings =====
+if os.path.exists(CACHE):
+    _c = np.load(CACHE); globals().update({k: _c[k] for k in _c.files}); VICTIM_ACC = float(VICTIM_ACC)
+    print(f"loaded cache: victim acc {VICTIM_ACC:.4f}, Z_ref {Z_ref.shape}, Z_pool {Z_pool.shape}")
+else:
+    import torch.nn as nn, torch.nn.functional as F, torchvision
+    from torchvision.models import resnet18, ResNet18_Weights
+    torch.backends.cudnn.benchmark = True
+    t0 = time.time(); DATA = os.path.join(OUTDIR, "data")
+    tr = torchvision.datasets.CIFAR10(DATA, train=True, download=True); te = torchvision.datasets.CIFAR10(DATA, train=False, download=True)
+    X_tr = torch.tensor(tr.data).permute(0, 3, 1, 2).contiguous().to(DEV); y_tr = torch.tensor(tr.targets, device=DEV)
+    X_te = torch.tensor(te.data).permute(0, 3, 1, 2).contiguous().to(DEV); y_te = np.array(te.targets)
+    VICTIM_IDX, BASES = np.arange(25000), np.arange(25000, 50000)
+    MEAN = torch.tensor([0.4914, 0.4822, 0.4465], device=DEV).view(1, 3, 1, 1); STD = torch.tensor([0.2470, 0.2435, 0.2616], device=DEV).view(1, 3, 1, 1)
+    IMEAN = torch.tensor([0.485, 0.456, 0.406], device=DEV).view(1, 3, 1, 1); ISTD = torch.tensor([0.229, 0.224, 0.225], device=DEV).view(1, 3, 1, 1)
+    AR = torch.arange(32, device=DEV)
+
+    def make_batch(X, base, ox, oy, flip):     # reflect-pad 4, crop 32x32 at (oy, ox), optional h-flip -> float in [0,1]
+        xb = X[torch.as_tensor(base, device=DEV, dtype=torch.long)].float()
+        pad = F.pad(xb, (4, 4, 4, 4), mode="reflect"); B = xb.shape[0]
+        rows = torch.as_tensor(oy, device=DEV, dtype=torch.long)[:, None] + AR[None, :]
+        cols = torch.as_tensor(ox, device=DEV, dtype=torch.long)[:, None] + AR[None, :]
+        bi = torch.arange(B, device=DEV)[:, None, None, None]; ci = torch.arange(3, device=DEV)[None, :, None, None]
+        out = pad[bi, ci, rows[:, None, :, None], cols[:, None, None, :]]
+        f = torch.as_tensor(np.asarray(flip), device=DEV, dtype=torch.bool)
+        return torch.where(f[:, None, None, None], out.flip(-1), out) / 255.0
+    def draw(n, rng, bases):
+        return dict(base=rng.choice(bases, n), ox=rng.integers(0, 9, n), oy=rng.integers(0, 9, n), flip=rng.random(n) < 0.5)
+    def victim_net():
+        m = resnet18(num_classes=10); m.conv1 = nn.Conv2d(3, 64, 3, 1, 1, bias=False); m.maxpool = nn.Identity(); return m
+    def victim_feats(m, x):
+        x = m.relu(m.bn1(m.conv1(x))); x = m.maxpool(x)
+        x = m.layer4(m.layer3(m.layer2(m.layer1(x)))); return torch.flatten(m.avgpool(x), 1)
+
+    # sanity: un-augmented crop reproduces the original image
+    chk = make_batch(X_te, np.arange(4), np.full(4, 4), np.full(4, 4), np.zeros(4, bool))
+    assert torch.allclose(chk * 255.0, X_te[:4].float()), "augmentation crop check failed"
+
+    # ---- train victim
+    rng = np.random.default_rng(SEED)
+    victim = victim_net().to(DEV).to(memory_format=torch.channels_last)
+    BS = 256; spe = len(VICTIM_IDX) // BS
+    opt = torch.optim.SGD(victim.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
+    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=0.2, total_steps=EPOCHS * spe, pct_start=0.25)
+    try: scaler = torch.amp.GradScaler("cuda", enabled=USE_GPU)
+    except Exception: scaler = torch.cuda.amp.GradScaler(enabled=USE_GPU)
+    @torch.no_grad()
+    def test_acc():
+        victim.eval(); pr = []
+        for s in range(0, 10000, 1000):
+            x = make_batch(X_te, np.arange(s, s + 1000), np.full(1000, 4), np.full(1000, 4), np.zeros(1000, bool))
+            with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=USE_GPU):
+                pr.append(victim(((x - MEAN) / STD).contiguous(memory_format=torch.channels_last)).argmax(1).cpu().numpy())
+        return float((np.concatenate(pr) == y_te).mean())
+    for ep in range(EPOCHS):
+        victim.train(); perm = rng.permutation(VICTIM_IDX)
+        for s in range(spe):
+            idx = perm[s * BS:(s + 1) * BS]
+            xb = ((make_batch(X_tr, idx, rng.integers(0, 9, BS), rng.integers(0, 9, BS), rng.random(BS) < 0.5) - MEAN) / STD).contiguous(memory_format=torch.channels_last)
+            with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=USE_GPU):
+                loss = F.cross_entropy(victim(xb), y_tr[torch.as_tensor(idx, device=DEV)], label_smoothing=0.1)
+            opt.zero_grad(set_to_none=True); scaler.scale(loss).backward(); scaler.step(opt); scaler.update(); sched.step()
+        if ep == EPOCHS - 1 or ep % 5 == 0: print(f"epoch {ep+1}/{EPOCHS} loss {loss.item():.3f} test acc {test_acc():.4f} ({time.time()-t0:.0f}s)")
+    VICTIM_ACC = test_acc(); victim.eval()
+
+    # ---- attacker's own encoder (ImageNet ResNet-18)
+    enc = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1); enc.fc = nn.Identity(); enc = enc.to(DEV).eval()
+    PCA_MU = PCA_W = None
+    @torch.no_grad()
+    def extract(X, q, want_def=True, want_att=False, bs=1024):
+        n = len(q["base"]); D, Lb, At = [], [], []
+        for s in range(0, n, bs):
+            sl = slice(s, s + bs); x01 = make_batch(X, q["base"][sl], q["ox"][sl], q["oy"][sl], q["flip"][sl])
+            with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=USE_GPU):
+                if want_def:
+                    f = victim_feats(victim, ((x01 - MEAN) / STD).contiguous(memory_format=torch.channels_last))
+                    Lb.append(victim.fc(f).argmax(1).cpu().numpy())
+                if want_att:
+                    xi = (F.interpolate(x01, size=64, mode="bilinear", align_corners=False) - IMEAN) / ISTD
+                    At.append(enc(xi).float().cpu().numpy())
+            if want_def:                                   # projection in full fp32, outside autocast
+                f = f.float(); D.append(((f - PCA_MU) @ PCA_W).cpu().numpy() if PCA_W is not None else f.cpu().numpy())
+        cat = lambda L: np.concatenate(L) if L else None
+        return cat(D), cat(Lb), cat(At)
+
+    # ---- defender PCA (victim penultimate -> 32 dims, total variance 4)
+    Ffit, _, _ = extract(X_tr, draw(N_FIT, rng, BASES))
+    mu = Ffit.mean(0); ew, U = np.linalg.eigh(np.cov(Ffit - mu, rowvar=False)); Wp = U[:, ::-1][:, :D_DEF]
+    Zf = (Ffit - mu) @ Wp; Wp = Wp / math.sqrt(Zf.var(0).sum() / 4.0)
+    PCA_MU = torch.as_tensor(mu, device=DEV, dtype=torch.float32); PCA_W = torch.as_tensor(Wp.copy(), device=DEV, dtype=torch.float32)
+    print(f"PCA-32 explains {ew[::-1][:D_DEF].sum()/ew.sum():.3f} of victim-feature variance")
+
+    Z_ref, _, _ = extract(X_tr, draw(N_REF, rng, BASES))
+    Z_null, _, _ = extract(X_tr, draw(N_NULLB, rng, BASES))
+    Z_pool, vlab_pool, A_pool_raw = extract(X_tr, draw(POOL, rng, BASES), want_att=True)
+    qt = dict(base=np.arange(10000), ox=np.full(10000, 4), oy=np.full(10000, 4), flip=np.zeros(10000, bool))
+    _, vlab_test, A_test_raw = extract(X_te, qt, want_def=True, want_att=True)
+    ytest_true = y_te
+    # attacker-side PCA-128 + standardisation (fit on the attacker's own pool)
+    am = A_pool_raw.mean(0); aew, aU = np.linalg.eigh(np.cov(A_pool_raw - am, rowvar=False)); aW = aU[:, ::-1][:, :128]
+    A_pool = (A_pool_raw - am) @ aW; asd = A_pool.std(0); A_pool = A_pool / asd; A_test = ((A_test_raw - am) @ aW) / asd
+    np.savez_compressed(CACHE, Z_ref=Z_ref, Z_null=Z_null, Z_pool=Z_pool, vlab_pool=vlab_pool, A_pool=A_pool, A_test=A_test,
+                        vlab_test=vlab_test, ytest_true=ytest_true, VICTIM_ACC=VICTIM_ACC)
+    print(f"victim test acc {VICTIM_ACC:.4f} | embeddings done in {time.time()-t0:.0f}s, cached to {CACHE}")
+print(f"victim-vs-truth agreement on test: {(vlab_test == ytest_true).mean():.4f} | pool label histogram: {np.bincount(vlab_pool, minlength=10)}")
+
+
+# %% [markdown]
+# ## Part 1 — defender machinery (whitening against an estimated reference; verified code from Steps 2–4)
+
+# %%
+# ===== Cell 3: Fourier, reference whitening, evaluation =====
+def _fourier_numpy(pts, labels, nacc, modes):
+    import scipy.sparse as sp
+    F_ = np.zeros((nacc, len(modes)), dtype=np.complex128)
+    for s in range(0, len(pts), CHUNK):
+        P, lab = pts[s:s + CHUNK], labels[s:s + CHUNK]
+        E = np.exp(-2j * np.pi * (P @ modes.T))
+        F_ += sp.csr_matrix((np.ones(len(P)), (lab, np.arange(len(P)))), shape=(nacc, len(P))) @ E
+    return F_
+def _fourier_torch(pts, labels, nacc, modes):
+    Mt = torch.as_tensor(modes, dtype=torch.float64, device=DEV)
+    Fr = torch.zeros((nacc, len(modes)), dtype=torch.float64, device=DEV); Fi = torch.zeros_like(Fr)
+    for s in range(0, len(pts), CHUNK):
+        P = torch.as_tensor(pts[s:s + CHUNK], dtype=torch.float64, device=DEV)
+        idx = torch.as_tensor(labels[s:s + CHUNK], dtype=torch.long, device=DEV)
+        th = (2.0 * math.pi) * (P @ Mt.T)
+        Fr.index_add_(0, idx, torch.cos(th)); Fi.index_add_(0, idx, -torch.sin(th))
+    return Fr.cpu().numpy() + 1j * Fi.cpu().numpy()
+def fourier_accounts(pts, labels, nacc, modes):
+    return _fourier_torch(pts, labels, nacc, modes) if USE_GPU else _fourier_numpy(pts, labels, nacc, modes)
+
+def make_bank(Zref, h, seed):
+    # random Fourier modes in the defender's PCA space; mu and Sigma estimated from the historical reference
+    r = np.random.default_rng(seed); modes = r.standard_normal((M_MODES, Zref.shape[1])) / h / (2 * np.pi); m = M_MODES
+    if USE_GPU:
+        Mt = torch.as_tensor(modes, dtype=torch.float64, device=DEV)
+        Gt = torch.zeros((m, m), dtype=torch.complex128, device=DEV); mut = torch.zeros(m, dtype=torch.complex128, device=DEV)
+        for s0 in range(0, len(Zref), 16384):
+            th = (2 * math.pi) * (torch.as_tensor(Zref[s0:s0 + 16384], dtype=torch.float64, device=DEV) @ Mt.T)
+            E = torch.complex(torch.cos(th), -torch.sin(th)); Gt += E.T @ E.conj(); mut += E.sum(0)
+        G, mu = Gt.cpu().numpy(), mut.cpu().numpy()
+    else:
+        G = np.zeros((m, m), dtype=np.complex128); mu = np.zeros(m, dtype=np.complex128)
+        for s0 in range(0, len(Zref), 4096):
+            E = np.exp(-2j * np.pi * (Zref[s0:s0 + 4096] @ modes.T)); G += E.T @ E.conj(); mu += E.sum(0)
+    G /= len(Zref); mu /= len(Zref)
+    Sig = G - np.outer(mu, mu.conj()); Sig = (Sig + Sig.conj().T) / 2
+    ew, U = np.linalg.eigh(Sig); keep = ew > FLOOR * ew.max()
+    return dict(h=h, modes=modes, mu=mu, Wk=U[:, keep].conj() / np.sqrt(ew[keep]), meff=int(keep.sum()))
+
+def _auc(pos, neg):
+    r = rankdata(np.concatenate([pos, neg])); n1 = len(pos); return (r[:n1].sum() - n1 * (n1 + 1) / 2) / (n1 * len(neg))
+
+def evaluate(pts, lab, cnt, banks, Kc, thr=None):
+    A_ = len(cnt); iu = np.triu_indices(A_, 1); pc = (iu[0] < Kc) & (iu[1] < Kc)
+    Fall = fourier_accounts(pts, lab, A_, np.vstack([b["modes"] for b in banks])); sq = np.sqrt(cnt); Ncol = cnt[:Kc].sum(); out = []
+    for j, b in enumerate(banks):
+        Fr = Fall[:, j * M_MODES:(j + 1) * M_MODES]
+        Fw = ((Fr - cnt[:, None] * b["mu"][None, :]) / sq[:, None]) @ b["Wk"]
+        S_un = float((np.abs((Fw[:Kc] * sq[:Kc, None]).sum(0)) ** 2).mean() / Ncol)
+        rms2 = (np.abs(Fw) ** 2).mean(1)                       # per-account whitened discrepancy (~1 under null)
+        ev_raw, V_raw = np.linalg.eigh(Fw @ Fw.conj().T / b["meff"])        # positive side: NO row normalisation
+        Fn = Fw / np.sqrt(rms2)[:, None]
+        ev, V = np.linalg.eigh(Fn @ Fn.conj().T / b["meff"])                 # missing mode: row-normalised
+        r = dict(lam_min=ev[0], lam_max_raw=ev_raw[-1], acct_max=float(rms2.max()), S_union=S_un, z_oracle=(1 - S_un) * math.sqrt(b["meff"]))
+        if thr is not None:
+            t = thr[j]; nb_ = int((ev < t["tmin"]).sum()); na_ = int((ev_raw > t["tmax_raw"]).sum())
+            r.update(mm=float(nb_ == 1 and na_ == 0), max=float(na_ >= 1), acct=float(rms2.max() > t["tacct"]),
+                     oracle_low=float(S_un < t["olow"]), oracle_high=float(S_un > t["ohigh"]))
+            v = V_raw[:, -1] if (na_ >= 1 and nb_ == 0) else V[:, 0]
+            r["auc_spectral"] = _auc(np.abs(v[:Kc]) ** 2, np.abs(v[Kc:]) ** 2)
+            r["auc_acct"] = _auc(rms2[:Kc], rms2[Kc:])            # per-account ranking baseline
+            mu_a = Fr / cnt[:, None]; G = mu_a @ mu_a.conj().T; nrm = np.real(np.diag(G))
+            D2 = (nrm[:, None] + nrm[None, :] - 2 * np.real(G))[iu]; r["auc_pairwise"] = _auc(-D2[pc], -D2[~pc])
+        out.append(r)
+    return out
+
+def world(campZ, A_, rng):
+    Kc = A_ // 5; camp = campZ[rng.permutation(len(campZ))]; lab_c = rng.integers(0, Kc, len(camp)); n_per = len(camp) // Kc
+    ben = Z_ref[rng.integers(0, len(Z_ref), (A_ - Kc) * n_per)]; lab_b = Kc + np.repeat(np.arange(A_ - Kc), n_per)
+    pts = np.vstack([camp, ben]); lab = np.concatenate([lab_c, lab_b]); return pts, lab, np.bincount(lab, minlength=A_), Kc
+
+t0 = time.time(); BANKS = [make_bank(Z_ref, h, 777 + int(10 * h)) for h in HS]
+print("banks: " + ", ".join(f"h={b['h']}: m_eff={b['meff']}" for b in BANKS) + f"  ({time.time()-t0:.0f}s)")
+RESULTS = {"config": dict(QUICK=QUICK, SEED=SEED, EPOCHS=EPOCHS, N_REF=N_REF, POOL=POOL, CHECKS=CHECKS, TRIALS=TRIALS, AS=AS,
+                          N_NULL=N_NULL, W=W, HS=HS, backend="gpu" if USE_GPU else "cpu"),
+           "victim_acc": float(VICTIM_ACC), "banks": [dict(h=b["h"], meff=b["meff"]) for b in BANKS]}
+
+# %% [markdown]
+# ## Part 2 — extraction campaigns (attacker side: ImageNet encoder + logistic-regression substitute)
+
+# %%
+# ===== Cell 4: attacker strategies =====
+from sklearn.linear_model import LogisticRegression
+import warnings; warnings.filterwarnings("ignore")
+def fit_sub(idx):
+    clf = LogisticRegression(max_iter=300, C=1.0); clf.fit(A_pool[idx], vlab_pool[idx]); return clf
+def fidelity(clf): return float((clf.predict(A_test) == vlab_test).mean())
+def proba(clf, X):
+    P = np.zeros((len(X), 10)); P[:, clf.classes_] = clf.predict_proba(X); return P
+def kcenter_pick(X, sel, k):
+    dmin = np.full(len(X), np.inf); S = X[sel]; xn = (X ** 2).sum(1)
+    for s0 in range(0, len(X), 4096):
+        Xi = X[s0:s0 + 4096]; d2 = xn[s0:s0 + 4096, None] + (S ** 2).sum(1)[None, :] - 2 * Xi @ S.T; dmin[s0:s0 + 4096] = d2.min(1)
+    dmin[sel] = -1; pick = []
+    for _ in range(k):
+        i = int(np.argmax(dmin)); pick.append(i); dmin = np.minimum(dmin, ((X - X[i]) ** 2).sum(1)); dmin[i] = -1
+    return np.array(pick)
+def _herd_numpy(Phi, N):
+    base = Phi @ Phi.mean(0); Ps = np.zeros(len(Phi)); taken = np.zeros(len(Phi), bool); sel = np.empty(N, int)
+    for t in range(N):
+        sc = base - Ps / (t + 1); sc[taken] = -np.inf; i = int(np.argmax(sc)); sel[t] = i; taken[i] = True; Ps += Phi @ Phi[i]
+    return sel
+def _herd_torch(Phi, N):
+    P = torch.as_tensor(Phi, dtype=torch.float32, device=DEV); base = P @ P.mean(0)
+    Ps = torch.zeros(P.shape[0], dtype=torch.float32, device=DEV); taken = torch.zeros(P.shape[0], dtype=torch.bool, device=DEV)
+    sel = torch.empty(N, dtype=torch.long, device=DEV)
+    for t in range(N):
+        sc = (base - Ps / (t + 1)).masked_fill(taken, float("-inf")); i = torch.argmax(sc); sel[t] = i; taken[i] = True; Ps += P @ P[i]
+    return sel.cpu().numpy()
+def herd_order(X, N, rng, D=256):
+    sub = X[rng.choice(len(X), 2000, replace=False)]; d = np.sqrt(((sub[:1000] - sub[1000:]) ** 2).sum(1)); h = np.median(d)
+    W_ = rng.standard_normal((X.shape[1], D)) / h; b = rng.uniform(0, 2 * np.pi, D); Phi = np.sqrt(2.0 / D) * np.cos(X @ W_ + b)
+    return _herd_torch(Phi, N) if USE_GPU else _herd_numpy(Phi, N)
+
+def run_strategy(name, trial):
+    rng = np.random.default_rng(SEED + 1000 * trial + STRATS.index(name)); P = len(A_pool); Nmax = max(TARGETS); fid = {}
+    if name in ("random", "herding"):
+        order = rng.permutation(P)[:Nmax] if name == "random" else herd_order(A_pool, Nmax, rng)
+        for N in CHECKS: fid[N] = fidelity(fit_sub(order[:N]))
+        return order, fid
+    sel = list(rng.choice(P, SEED_N, replace=False)); taken = np.zeros(P, bool); taken[sel] = True; clf = fit_sub(np.array(sel))
+    for tgt in TARGETS:
+        k = tgt - len(sel); cand = np.where(~taken)[0]
+        if name == "entropy":
+            pr = proba(clf, A_pool[cand]); ent = -(pr * np.log(pr + 1e-12)).sum(1); pick = cand[np.argsort(-ent)[:k]]
+        elif name == "kcenter":
+            pick = kcenter_pick(proba(clf, A_pool), np.array(sel), k)
+        else:  # class_balanced
+            pred = clf.predict(A_pool[cand]); pick = []
+            for c in range(10):
+                pool_c = cand[pred == c]; pick += list(rng.choice(pool_c, min(len(pool_c), k // 10), replace=False))
+            rest = np.setdiff1d(cand, pick); pick = np.array(pick + list(rng.choice(rest, k - len(pick), replace=False)))
+        sel += list(pick); taken[pick] = True; clf = fit_sub(np.array(sel))
+        if tgt in CHECKS: fid[tgt] = fidelity(clf)
+    return np.array(sel), fid
+
+t0 = time.time(); CAMPAIGNS = {}
+for name in STRATS:
+    for tr_ in range(TRIALS):
+        order, fid = run_strategy(name, tr_); CAMPAIGNS[(name, tr_)] = (order, fid)
+        print(f"{name:>15} trial {tr_}: fidelity " + " ".join(f"N={N}:{fid[N]:.4f}" for N in CHECKS) + f"  ({time.time()-t0:.0f}s)")
+FID = {(n, N): (float(np.mean([CAMPAIGNS[(n, t)][1][N] for t in range(TRIALS)])), float(np.std([CAMPAIGNS[(n, t)][1][N] for t in range(TRIALS)])))
+       for n in STRATS for N in CHECKS}
+print("\nmean fidelity (agreement with victim on test):")
+# [PAPER] App. P (Step 5, "Active strategies beat random by ≥ 1 point"): Partial (k-center yes, entropy no)
+for n in STRATS: print(f"{n:>15}: " + "  ".join(f"N={N}: {FID[(n, N)][0]:.4f}±{FID[(n, N)][1]:.4f} (Δ {100*(FID[(n, N)][0]-FID[('random', N)][0]):+.2f} pt)" for N in CHECKS))
+RESULTS["fidelity"] = {f"{n}|{N}": FID[(n, N)] for n in STRATS for N in CHECKS}
+
+# %% [markdown]
+# ## Part 3 — null calibration per (A, N)
+
+# %%
+t0 = time.time(); THR = {}
+for A_ in AS:
+    for N in CHECKS:
+        L = [dict(mn=[], mx=[], ac=[], S=[]) for _ in BANKS]
+        for t in range(N_NULL):
+            rng = np.random.default_rng(SEED + 7_000_000 + 10_000 * A_ + N + 100_000 * t)
+            pts, lab, cnt, Kc = world(Z_null[rng.choice(len(Z_null), N, replace=False)], A_, rng)
+            for j, r in enumerate(evaluate(pts, lab, cnt, BANKS, Kc)):
+                L[j]["mn"].append(r["lam_min"]); L[j]["mx"].append(r["lam_max_raw"]); L[j]["ac"].append(r["acct_max"]); L[j]["S"].append(r["S_union"])
+        THR[(A_, N)] = [dict(tmin=float(np.quantile(l["mn"], ALPHA)), tmax_raw=float(np.quantile(l["mx"], 1 - ALPHA)), tacct=float(np.quantile(l["ac"], 1 - ALPHA)),
+                             olow=float(np.quantile(l["S"], ALPHA)), ohigh=float(np.quantile(l["S"], 1 - ALPHA)), S_null=float(np.mean(l["S"]))) for l in L]
+        print(f"A={A_:3d} N={N:5d}: " + " | ".join(f"h={b['h']}: thr {t['tmin']:.3f}/{t['tmax_raw']:.3f} S_null {t['S_null']:.3f}" for b, t in zip(BANKS, THR[(A_, N)]))
+              + f"  ({time.time()-t0:.0f}s)")
+RESULTS["null"] = {f"{a}|{n}": v for (a, n), v in THR.items()}
+
+# %% [markdown]
+# ## Part 4 — detection of the real campaigns
+
+# %%
+t0 = time.time(); rowsD = []
+for name in STRATS:
+    for N in CHECKS:
+        for A_ in AS:
+            acc = [[] for _ in BANKS]
+            for tr_ in range(TRIALS):
+                campZ = Z_pool[CAMPAIGNS[(name, tr_)][0][:N]]
+                for w in range(W):
+                    rng = np.random.default_rng(SEED + 9_000_000 + 1000 * tr_ + w + 7 * N + 13 * A_)
+                    pts, lab, cnt, Kc = world(campZ, A_, rng)
+                    for j, r in enumerate(evaluate(pts, lab, cnt, BANKS, Kc, THR[(A_, N)])): acc[j].append(r)
+            for j, b in enumerate(BANKS):
+                m_ = lambda k: float(np.mean([r[k] for r in acc[j]]))
+                row = dict(strategy=name, N=N, A=A_, h=b["h"], meff=b["meff"], S_union=m_("S_union"), z_oracle=m_("z_oracle"),
+                           x=m_("z_oracle") / math.sqrt(A_), mm=m_("mm"), max=m_("max"), acct=m_("acct"), auc_acct=m_("auc_acct"), oracle_low=m_("oracle_low"),
+                           oracle_high=m_("oracle_high"), auc_spectral=m_("auc_spectral"), auc_pairwise=m_("auc_pairwise"), n=len(acc[j]))
+                rowsD.append(row)
+            # [PAPER] App. P (Step 5): "No x > 1; concentration caught by λmax" Pass; herding S̄ 1.1–1.5 (Partial); App. E regime map (upper-edge detection)
+            print(f"{name:>15} N={N:5d} A={A_:3d}: " + " | ".join(f"h={r['h']}: S={r['S_union']:.3f} x={r['x']:+.2f} mm={r['mm']:.2f} max={r['max']:.2f} acct={r['acct']:.2f}"
+                  for r in rowsD[-len(BANKS):]) + f"  ({time.time()-t0:.0f}s)")
+RESULTS["detection"] = rowsD
+
+# %% [markdown]
+# ## Part 5 — the law on real attacks, and what drives extraction efficiency
+
+# %%
+X50, WID = 1.052, 0.130   # fitted in Step 4, frozen
+pred = lambda x: 1 / (1 + np.exp(-(x - X50) / WID))
+mae = float(np.mean([abs(pred(r["x"]) - r["mm"]) for r in rowsD]))
+agree = float(np.mean([(r["x"] > X50) == (r["mm"] > 0.5) for r in rowsD]))
+# [PAPER] App. P (Step 5, "Law holds on real attacks"): Pass, uninformative (all x < 0.25)
+print(f"P5.4 law on real attacks: MAE(predicted vs observed missing-mode power) = {mae:.3f} over {len(rowsD)} configs; rule agreement {agree:.3f}")
+eff = []
+for n in STRATS:
+    if n == "random": continue
+    for N in CHECKS:
+        rs = [r for r in rowsD if r["strategy"] == n and r["N"] == N and r["A"] == AS[0]]
+        dfid = FID[(n, N)][0] - FID[("random", N)][0]
+        delta = max(1 - r["S_union"] for r in rs); conc = max(r["S_union"] - 1 for r in rs)
+        eff.append(dict(strategy=n, N=N, dfid=dfid, delta=delta, conc=conc))
+        print(f"{n:>15} N={N:5d}: Δfidelity {100*dfid:+.2f} pt | best discrepancy-reduction δ=1-S {delta:+.3f} | concentration S-1 {conc:+.3f}")
+if len(eff) >= 4:
+    r1 = spearmanr([e["dfid"] for e in eff], [e["delta"] for e in eff]).correlation
+    r2 = spearmanr([e["dfid"] for e in eff], [e["conc"] for e in eff]).correlation
+    # [PAPER] App. P (Step 5, "Fidelity gain tracks concentration"): Fail (ρ = −0.15)
+    print(f"P5.3 Spearman(Δfidelity, δ) = {r1:+.3f} | Spearman(Δfidelity, concentration) = {r2:+.3f}  (n={len(eff)})")
+else: r1 = r2 = float("nan")
+pos = [r for r in rowsD if r["strategy"] != "random"]
+# [PAPER] App. P (Step 5, "Spectral ≥ per-account, gap grows with A"): Pass on mean power; not cell by cell
+for A_ in AS:
+    rs = [r for r in pos if r["A"] == A_]
+    print(f"P5.6 A={A_:3d}: mean power  spectral λ_max(raw) {np.mean([r['max'] for r in rs]):.3f} | per-account max {np.mean([r['acct'] for r in rs]):.3f} "
+          f"| oracle-high {np.mean([r['oracle_high'] for r in rs]):.3f} | linkage AUC spectral {np.mean([r['auc_spectral'] for r in rs if r['max'] > 0.5] or [float('nan')]):.3f} "
+          f"vs per-account {np.mean([r['auc_acct'] for r in rs if r['max'] > 0.5] or [float('nan')]):.3f}")
+nullrand = [r for r in rowsD if r["strategy"] == "random"]
+# [PAPER] App. P (Step 5, "Victim ≥ 85%; random looks null"): random campaigns look null (Pass)
+print(f"P5.0 random-campaign false alarms: mm {np.mean([r['mm'] for r in nullrand]):.3f} max {np.mean([r['max'] for r in nullrand]):.3f} acct {np.mean([r['acct'] for r in nullrand]):.3f} (nominal {ALPHA})")
+RESULTS["law"] = dict(mae=mae, agree=agree, spearman_delta=float(r1), spearman_conc=float(r2), eff=eff)
+# ---- practical frontier: query savings vs detection, per strategy and budget
+rN = np.array(CHECKS, float); rF = np.array([FID[("random", N)][0] for N in CHECKS])
+def n_equiv(f):    # random-sampling budget giving fidelity f (log-linear interpolation; extrapolates from the nearest segment)
+    lx = np.log(rN); i = int(np.clip(np.searchsorted(rF, f) - 1, 0, len(rN) - 2))
+    sl = (rF[i + 1] - rF[i]) / (lx[i + 1] - lx[i]); return float(np.exp(lx[i] + (f - rF[i]) / max(sl, 1e-9)))
+print("\nFRONTIER  (multiplier = random-sampling queries needed to match this strategy's fidelity / N; >1 means the strategy saves queries)")
+print(f"{'strategy':>15} {'N':>6} {'Δfid':>6} {'mult':>5} | " + " | ".join(f"A={A_}: spec/acct/mm" for A_ in AS))
+front = []
+for n in STRATS:
+    for N in CHECKS:
+        mult = n_equiv(FID[(n, N)][0]) / N; cells = []
+        for A_ in AS:
+            rs = [r for r in rowsD if r["strategy"] == n and r["N"] == N and r["A"] == A_]
+            cells.append((max(r["max"] for r in rs), max(r["acct"] for r in rs), max(r["mm"] for r in rs)))
+        front.append(dict(strategy=n, N=N, dfid=FID[(n, N)][0] - FID[("random", N)][0], mult=mult,
+                          det={str(A_): dict(spec=c[0], acct=c[1], mm=c[2]) for A_, c in zip(AS, cells)}))
+        print(f"{n:>15} {N:6d} {100*front[-1]['dfid']:+6.2f} {mult:5.2f} | " + " | ".join(f"{c[0]:.2f}/{c[1]:.2f}/{c[2]:.2f}      " for c in cells))
+RESULTS["frontier"] = front
+
+# %% [markdown]
+# ## Figures
+
+# %%
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(1, 4, figsize=(22, 5)); cols = dict(zip(STRATS, plt.rcParams["axes.prop_cycle"].by_key()["color"]))
+for n in STRATS:
+    ax[0].errorbar(CHECKS, [FID[(n, N)][0] for N in CHECKS], yerr=[FID[(n, N)][1] for N in CHECKS], marker="o", color=cols[n], label=n)
+ax[0].set_xscale("log"); ax[0].set_xlabel("queries N"); ax[0].set_ylabel("fidelity (agreement)"); ax[0].set_title("Extraction efficiency"); ax[0].legend(fontsize=8)
+for n in STRATS:
+    for A_ in AS[:1]:
+        for j, b in enumerate(BANKS):
+            rs = [r for r in rowsD if r["strategy"] == n and r["A"] == A_ and r["h"] == b["h"]]
+            ax[1].plot([r["N"] for r in rs], [r["S_union"] for r in rs], marker="os^"[j], color=cols[n], ls=["-", "--", ":"][j], label=f"{n} h={b['h']}" if A_ == AS[0] else None)
+ax[1].axhline(1, color="k", lw=.8); ax[1].set_xscale("log"); ax[1].set_yscale("log"); ax[1].set_xlabel("queries N"); ax[1].set_ylabel("whitened union S̄ (defender embedding)")
+ax[1].set_title("Spread (S̄<1) vs concentration (S̄>1)"); ax[1].legend(fontsize=6, ncol=2)
+xx = np.linspace(-3, 3, 400); ax[2].plot(xx, pred(xx), "k-", label="Step-4 law (frozen)")
+for n in STRATS: ax[2].scatter([r["x"] for r in rowsD if r["strategy"] == n], [r["mm"] for r in rowsD if r["strategy"] == n], color=cols[n], s=18, label=n)
+ax[2].set_xlabel("x = z_oracle/√A"); ax[2].set_ylabel("missing-mode power"); ax[2].set_title(f"P5.4: law on real attacks (MAE {mae:.3f})"); ax[2].legend(fontsize=7)
+for e in eff:
+    ax[3].scatter(e["delta"], 100 * e["dfid"], color=cols[e["strategy"]], marker="o", s=30)
+    ax[3].scatter(e["conc"], 100 * e["dfid"], color=cols[e["strategy"]], marker="x", s=30)
+ax[3].axhline(0, color="k", lw=.8); ax[3].axvline(0, color="k", lw=.8)
+ax[3].set_xlabel("o: δ = 1−S̄ (spread)   x: S̄−1 (concentration)"); ax[3].set_ylabel("Δ fidelity vs random (pt)"); ax[3].set_title("P5.3: what buys efficiency?")
+plt.tight_layout(); plt.savefig(f"{OUTDIR}/step5_figure.png", dpi=130); plt.show()
+
+# %% [markdown]
+# ## VERDICT REPORT — copy this cell's output into the chat
+
+# %%
+R = RESULTS
+print("=" * 82); print("STEP 5 VERDICT REPORT"); print("=" * 82)
+# [PAPER] App. P (Step 5, "Victim ≥ 85%; random looks null"): victim test accuracy Pass (88.5–89.1%)
+print("config:", json.dumps(R["config"])); print(f"victim test acc: {R['victim_acc']:.4f} | banks: {R['banks']}")
+for k, v in R["null"].items(): print(f"[null] A|N={k}: " + " ".join(f"thr min/maxraw/acct {t['tmin']:.3f}/{t['tmax_raw']:.3f}/{t['tacct']:.3f} S0={t['S_null']:.3f}" for t in v))
+for n in STRATS: print(f"[fid] {n:>15}: " + " ".join(f"N={N}:{FID[(n, N)][0]:.4f}±{FID[(n, N)][1]:.4f}" for N in CHECKS))
+for r in R["detection"]:
+    print(f"[det] {r['strategy']:>15} N={r['N']:5d} A={r['A']:3d} h={r['h']}: S={r['S_union']:.3f} z={r['z_oracle']:+.2f} x={r['x']:+.2f} "
+          f"mm={r['mm']:.2f} max={r['max']:.2f} acct={r['acct']:.2f} oL={r['oracle_low']:.2f} oH={r['oracle_high']:.2f} AUC spec/acct/pair={r['auc_spectral']:.2f}/{r['auc_acct']:.2f}/{r['auc_pairwise']:.2f}")
+for f_ in R["frontier"]: print(f"[front] {f_['strategy']:>15} N={f_['N']:5d} Δfid={100*f_['dfid']:+.2f}pt mult={f_['mult']:.2f} " + " ".join(f"A{a}:spec {v['spec']:.2f} acct {v['acct']:.2f} mm {v['mm']:.2f}" for a, v in f_['det'].items()))
+L_ = R["law"]; print(f"[law] MAE={L_['mae']:.3f} agree={L_['agree']:.3f} | Spearman Δfid~δ={L_['spearman_delta']:+.3f} Δfid~conc={L_['spearman_conc']:+.3f}")
+print("=" * 82)
+with open(f"{OUTDIR}/step5_results.json", "w") as fh: json.dump(R, fh, indent=1, default=float)
+print(f"saved {OUTDIR}/step5_results.json and step5_figure.png")

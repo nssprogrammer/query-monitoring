@@ -1,0 +1,191 @@
+\begin{longtable}{p{0.04\textwidth}p{0.4\textwidth}p{0.27\textwidth}p{0.21\textwidth}}
+\toprule
+Step & Prediction & Outcome & Consequence \\
+\midrule
+\endhead
+1 & Union $S(k)$ matches jittered-grid theory & Pass ($\le$ 2\% error) & --- \\
+1 & Colluder pair correlation $-(1-\Sb)/K$ & Pass ($-0.0451$ vs $-0.0451$) & --- \\
+1 & BBP outlier below the bulk & Pass (0.0702 vs 0.0701) & --- \\
+1 & Padding threshold $f^*=0.445$ & Partial (0.408) & TW finite-size correction \\
+1 & Outlier independent of $K$ & Pass (spread 0.0017) & Core claim \\
+2 & Tracy--Widom calibration to $10^{-3}$ & Pass (to $10^{-4}$) & Analytic thresholds \\
+2 & Raw fails, whitened calibrated under non-uniform traffic & Pass (100\% vs 0.53\%) & Whitening adopted \\
+2 & TW-corrected $f_{50}$ at unseen sizes & Pass ($\le$ 0.033) & --- \\
+2 & Optimal window peak & Pass (37 vs 36) & --- \\
+2 & $N^*\propto A$ & Pass (slope 0.95) & --- \\
+2 & Same-marginal stratified attacker detectable & Pass (1.00) & --- \\
+3 & High-dimensional analytic calibration & Fail, then fixed & Row normalisation \\
+3 & Herding detectable in every dimension & Fail ($\Sb$ 0.70--0.89) & Led to the law \\
+3 & Mismatched herding detectable & Fail ($\Sb\approx 1$) & --- \\
+3 & $k$-means++ shows $\lmax$ & Fail (looks i.i.d.) & --- \\
+4 & One curve, $x_{50}\in[1.0,1.35]$ & Pass (1.052; 47/48) & Lower-edge law \\
+4 & Herding $\Sb$ falls with $N$ & Fail (rises) & Pool floor \\
+4 & Aligned herding detected almost everywhere & Partial (exactly where $x>1$) & --- \\
+4 & Spectral linkage AUC $\ge$ 0.9 & Pass (0.986 vs 0.481) & --- \\
+4 & Oracle-only band exists & Pass (0.75 vs 0.03) & Appendix A.1 \\
+5 & Victim $\ge$ 85\%; random looks null & Pass (88.5--89.1\%) & --- \\
+5 & Active strategies beat random by $\ge$ 1 point & Partial ($k$-center yes, entropy no) & --- \\
+5 & No $x>1$; concentration caught by $\lmax$ & Pass & --- \\
+5 & Fidelity gain tracks concentration & Fail ($\rho=-0.15$) & --- \\
+5 & Herding undetected because $\Sb\approx 1$ & Partial ($\Sb$ 1.1--1.5) & --- \\
+5 & Spectral $\ge$ per-account, gap grows with $A$ & Pass on mean power; not cell by cell & --- \\
+5 & Law holds on real attacks & Pass, uninformative (all $x<0.25$) & --- \\
+6 & Spectral vs global crossover at $K\approx 2.3\sqrt A$ & Pass (7 of 8 cells; 2/2) & Regime map \\
+6 & HC $\ge$ per-account; spectral $\ge$ HC at $N=2{,}000$ & Pass (29/30; 8/10) & --- \\
+6 & Random campaigns $\le$ 2\%; linkage AUC $\approx$ 0.5 & Pass (1.9\%; 0.49--0.51) & --- \\
+6 & No real strategy triggers the lower edge & Pass (0.002) & --- \\
+7 & Only whole-window resampling calibrates & Pass (suite 0.0--0.6\%) & Calibration protocol \\
+7 & Evading the suite needs padding $f\ge 0.75$ & Fail (no detection even unpadded) & Benign structure \\
+7 & Heterogeneous volumes cost $\le$ 0.2 power & Untestable (power 0) & --- \\
+7 & Time-splitting evades; aggregation restores & Untestable (power 0) & --- \\
+7 & Upper-edge rule predicts power at $A\le 10^4$ & Fail (10/24 cells) & No closed-form upper edge \\
+8 & Geometry breaks at $s\in[0.05,0.5]$ & Partial (0.175 at $A=100$; $\le$ 0.06 at 1{,}000) & One cluster suffices \\
+8 & Task-aware suite $\ge$ 0.8 at $s=1$ & Fail ($\le$ 0.17) & Tolerance, not immunity \\
+8 & Calibration $\le$ 1.5$\times$ nominal & Partial (mean 1.1\%, worst 3.3\%) & More windows needed \\
+8 & Clusters out-shine attacks in geometry, not margin & Partial (geometry yes, margin no) & Benign-coordination limit \\
+9 & Fixed calibration transfers to later weeks & Fail (12\%) & Drift-aware calibration \\
+9 & Real users structured: $\lmax$ real/shuffled $\ge$ 2 & Pass (4.3--5.1) & Read as topicality \\
+9 & Capability campaigns detected at 5{,}000 and 20{,}000 & Partial (20{,}000 via global only) & Detection needs dominance \\
+9 & Random campaigns $\le$ 2$\times$ nominal & Fail (8--21\% floor) & --- \\
+9 & Padding costs $\ge$ 0.3 power at 5{,}000 & Fail as specified; 0.79 at 20{,}000 & --- \\
+10 & Rolling $\le$ 10\%; lagged $\le$ 7.5\% & Partial ($A=100$ yes; $A=500$ no) & Small populations \\
+10 & Broad at 5{,}000 $\le$ 0.2 under all schemes & Partial (lagged 0.21, 0.29) & Failure is not drift \\
+10 & Narrow at 5{,}000, lagged $\ge$ 0.5 & Pass (0.94; 0.71) & Granularity matters \\
+10 & $\ge$ 0.5 needs $\ge$ 50\% share, except narrow & Pass & --- \\
+10 & Padding drops $\ge$ 0.5 at 20{,}000, all schemes & Partial ($A=100$ yes) & --- \\
+11 & Lagged calibration nominal at 100, not 500, every $d$ & Pass (3.4--4.4\%; 22--39\%) & Not a projection artefact \\
+11 & Narrow at 5{,}000 $\ge$ 0.8 at every $d$ & Pass (0.94--0.96) & --- \\
+11 & Broad at 5{,}000 $\le$ 0.35 at every $d$ and $A$ & Partial (up to 0.44 at $A=500$) & More dimensions help \\
+11 & Random $\le$ 0.05 & Pass ($\le$ 0.01) & --- \\
+11 & Padding drops $\ge$ 0.4 at every $d$ & Partial (0.32 at $d=384$) & --- \\
+12 & Volume-share test $\le$ 0.1 & Pass ($\le$ 0.02) & Volume matching works \\
+12 & Natural campaigns $\le$ 0.2 on every detector & Fail (MMD 0.27) & --- \\
+12 & Generated sets at $K=200$: MMD or global $\ge$ 0.5 & Partial ($K=200$ infeasible) & --- \\
+12 & Two-scale beats spectral on a generated set & Pass (0.93 vs 0.19) & Headline detector \\
+12 & Partial linkage raises per-account or HC by $\ge$ 0.1 & Untestable (base $\approx$ 0) & --- \\
+12 & Sharding: spectral $\le$ 0.1 & Untestable (1--5 shards; unpaired) & Redone in Step 13 \\
+12 & Every detector's false alarms $\le$ 2\% & Fail (only two-scale) & --- \\
+13 & Unique $\ge$ rephrased + 0.3 & Fail (0.88 vs 0.80) & Not deduplication \\
+13 & Deduplicated natural $\ge$ raw natural + 0.2 & Fail (0.04 vs 0.01) & --- \\
+13 & Two-scale false alarms $\le$ 2\%, weekly and 4-week & Partial (0.6\%; 9.8\%) & Needs long history \\
+13 & Two-scale group precision $\ge$ 0.5 & Pass (1.00; recall 0.17) & Manual review \\
+13 & 4-week, $K=200$: $\ge$ 0.8; random $\le$ 0.05 & Pass (0.86; 0.00) & --- \\
+13 & Sharding: per-shard two-scale $\le$ 0.2 & Pass (0.00 for all) & Do not shard \\
+14 & Removing follow-ups closes $\ge$ 50\% of the clumping gap & Fail (moved the wrong way) & Mechanism open \\
+14 & Follow-up mimicry cuts two-scale power by $\ge$ 0.3 & Pass (0.85 to 0.24) & Mimicry evades \\
+14 & Unique at 7{,}550 gains $\ge$ 5 points; natural $\le$ 1 & Partial (+12.6; natural +6.0) & Gains partly generic \\
+14 & Evading variants gain $\le$ 60\% of unique & Fail (105\% and 118\%) & No price of stealth \\
+15 & Query-cluster power on padded campaigns $\ge$ 0.6 & Fail (detector miscalibrated, 64\% false alarms; AUC 0.89--0.90) & Recalibrate \\
+15 & Rephrasings lie farther apart than $h=0.5$ & Pass (median 0.67) & Earlier ablation uninformative \\
+15 & Exact repeats cut two-scale power by $\ge$ 0.3 & Fail (0.79 to 0.73) & Not deduplication \\
+15 & Human GSM8K questions detected $\ge$ 0.7$\times$ MetaMathQA & Pass (0.94 vs 0.79) & Source-shift detector \\
+15 & Matched 1\%: two-scale $\ge$ MMD + 0.15; group MMD $\ge$ MMD & Partial (0.80 vs 0.58; group MMD fails) & --- \\
+15 & Camouflage cuts two-scale and QC power by $\ge$ 0.3 & Fail (two-scale rose to 0.94) & Camouflage does not help \\
+15 & Realistic share: best calibrated detector $\ge$ 0.5 at 1\% & Fail (0.00 at $A=1{,}000$) & Scale problem \\
+15 & Mixed padding caught in 12 weeks, $\le$ 15\% false alarms & Partial (two-scale alone: 0.96, 9.6\%) & ---\\
+16 & All-math gains grow $\ge$ 3 points from 100 to 900 queries & Fail ($+9.8$ to $+8.6$) & Saturated by 100 \\
+16 & Mixed gains $\le$ all-math $-$ 2 at 300 and 900 & Fail ($+2.7$, $+1.5$) & No price of stealth \\
+16 & Camouflage gains $\le$ 80\% of all-math at 900 & Fail (130\%) & --- \\
+16 & MATH-500, 1.5B student: price of stealth & Untestable (not run) & Open \\
+17 & Robustly calibrated query-cluster FPR $\le$ 2\% & Fail (28\%) & Not operable \\
+17 & Query-cluster power under mimicry $\ge$ 0.5, within 0.25 of unpadded & Fail (0.38--0.40; AUC 0.80--0.82) & Best ranker only \\
+17 & Query-cluster: random $\le$ 0.05; human GSM8K $\ge$ 0.5 & Partial (0.11; 0.58) & --- \\
+17 & Rolling populations: two-scale and QC calibrated; QC $\ge$ two-scale + 0.2 at 2.5\% & Fail (24\%, 69\%) & Scale problem \\
+17 & Rolling populations: every detector $\le$ 0.3 at 1\% & Pass ($\le$ 0.08) & --- \\
+18 & Lagged or conformal QC reaches FPR $\le$ 2\% & Pass (conformal 0.0\%; lagged 15\%) & Conservative only \\
+18 & Calibrated QC on mixed padding $\ge$ two-scale + 0.15 & Fail (0.20 vs 0.21; AUC 0.86) & Ranking, not detection \\
+18 & Gated QC: FPR $\le$ 1.5\%, mixed $\ge$ 0.3 & Fail (12\%; 0.24) & --- \\
+18 & Fixed N: oracle $\ge$ 0.6 at 20\%, $\le$ 0.3 at 5\% & Partial (0.84; 0.35) & Smooth decay with share \\
+18 & At $A=1{,}000$, deployed $\le$ oracle $-$ 0.2 & Pass (0.05 vs 0.35) & Calibration bottleneck \\
+18 & GSM8K evaluation sweep flagged in $\ge$ 50\% of weeks & Pass (79--80\%; MMLU 2--7\%) & Benign false alarms \\
+19 & SmolLM2-360M lacks the skill: base GSM8K $\le$ 10\% & Pass (3.5\%) & --- \\
+19 & Extraction regime: all-math gains rise $\ge$ 5 points, 1k to 10k & Pass (+7.5 to +15.9) & Not saturated \\
+19 & Price of stealth: mixed $\le$ all-math $-$ 2 at 3k and 10k & Pass ($-2.8$, $-3.8$) & Cost is real \\
+19 & MATH-500 (1.5B): all-math $\ge$ +3, mixed $\le$ 70\% of it & Fail (+11.6; 83\%) & Elicitation again \\
+20 & A simple baseline matches two-scale (oracle 1\%, within 0.05) & Fail (0.00 vs 0.81, 0.95) & Normalisation matters \\
+20 & Only two-scale has deployed FPR $\le$ 2\% & Pass (0.8\%; others 2.5--12\%) & --- \\
+20 & Per-account classifier beats two-scale under padding & Fail (0.00 vs 0.24) & --- \\
+20 & Adaptive attacker: two-scale $\le$ 0.3; classifier $\ge$ 0.5 & Fail (0.31; 0.00) & Optimisation helps attacker \\
+20 & Null median grows with $\ln A$ at the Gumbel rate & Fail (slope $-0.17$ vs $+0.62$) & Not a max statistic \\
+20 & Predicted breaking point within a factor of 2 & Fail (502 vs 2{,}081) & --- \\
+20 & Heavy benign tail ($\xi>0$) & Fail ($\xi=-0.16$) & Light tail \\
+20 & GEV fit predicts larger-$A$ thresholds & Fail (1 of 4 inside band) & Threshold flat \\
+20 & True colluder set recovers $\ge$ half the lost power & Pass (all of it) & Selection fails \\
+21 & Sparse scan $\ge$ spectral + 0.2 at $K/A\le 5\%$ & Fail (0.03 vs 0.03) & Self-terms capture scans \\
+21 & Oracle told the colluders detects at 1\% share & Pass (1.00; random-group null) & Gap is wide \\
+21 & Sparse scans add $\le$ 0.1 where spectral works & Pass (uninformative: both $\approx 0$) & --- \\
+21 & Boundary $\varepsilon^*$ within 2$\times$ of benign top-group $\varepsilon$ & Fail (0.035 vs 0.447) & Wrong distance \\
+21 & Sacrificial schedule: detection $\ge$ 0.6, other colluders $\le$ 10\% flagged & Pass (0.92; 0\%) & Attacker picks who is flagged \\
+21 & Temporal camouflage cuts detection by $\ge$ 0.3 & Pass (0.95 to 0.12) & Calibration poisoning \\
+21 & TPR at $10^{-3}$ $\ge$ 0.5 and $\ge$ global & Pass (0.88 vs 0.70) & Thin null tail \\
+22 & Hollowing: real/shuffled $\lmax(R)\le 2$ & Partial (0.35: common drift mode) & Not coordination \\
+22 & Hollowed selection halves bulk-user groups & Fail (0.08 to 0.06) & --- \\
+22 & Group MMD on hollowed groups AUC $\ge$ 0.6 & Fail (0.18) & --- \\
+22 & Hollowing keeps calibration ($\le$ 1.5\%) and power ($\ge$ 0.75) & Partial (8.4\%; 0.90) & Uncalibrated \\
+22 & Profile score $\ge$ two-scale + 0.1 under padding & Fail (0.00 vs 0.21) & --- \\
+22 & Profile score flags GSM8K sweeps $\ge$ 50\% & Fail (43\%) & --- \\
+22 & Weeks to detection within 2$\times$ of $\ln(1/\alpha)/D$ & Partial (15 vs 14.7, 16 vs 13.3; unpadded at the floor) & Proposition 3 holds \\
+22 & Martingale median $\le$ 6 weeks under padding, all-time FA $\le$ 1\% & Fail (15 weeks; FA 0/33) & Slow but valid \\
+22 & Core-plus-halo calibrated power $\ge$ 0.4 & Fail (halo 0.02; hollowed cores 0.90 at 7.6\%) & --- \\
+22 & Prefilter keeps $\ge$ 95\% of colluders at 10\% pass & Fail (0\%) & Wrong tail \\
+22 & Prefiltering restores power at 5\% share & Fail (0.00) & --- \\
+23 & Common-mode removal: real/shuffled $\lmax(R_c)\ge 1$ & Pass (1.14) & Benign coordination is weak \\
+23 & Conformal hollowed selection: false alarms $\le$ 2\% & Pass (0/960 windows; week-level bound 12\%) & Conservative \\
+23 & Calibrated hollowed selection $\ge$ 0.6 under padding & Fail (0.48) & Half, against none \\
+23 & Hollowed selection $\ge$ 0.5 at 1\% colluders & Fail (0.00; group has no colluders) & Barrier returns \\
+23 & Sweeps: 3 accounts $\le$ 0.4, 10 accounts $\ge$ 0.5 & Partial (0.42; 0.97) & --- \\
+27 & Campaign below the bulk edge at $A\ge 2{,}500$ & Pass by the letter (uninformative: compared with null $\lmax$; campaign far above the edge) & Out-ranked, not submerged \\
+27 & Null-selected groups not coordinated & Fail (cosine 0.43--0.57 vs 0.00; selection-biased) & --- \\
+27 & Colluder cosine 0.025--0.045; padded ratio 0.4--0.6 & Partial (0.57; 0.51) & --- \\
+27 & $r\ge 1{,}500$ lifts unpadded TPR at $A=2{,}500$ to $\ge$ 0.5 & Pass (0.00 to 0.57) & Rank depends on $r$ \\
+28 & $T_{\max}$ calibrated (conformal) & Pass (0/960 windows; week-level bound 12\%) & --- \\
+28 & Multi-outlier $\ge$ top eigenvector + 0.2 at $A=2{,}500$ & Pass (1.00 vs 0.00) & Selection gap closed \\
+28 & $k(10{,}000)\le 5\,k(1{,}000)$ & Pass (uninformative: cap of 20 reached) & --- \\
+28 & GEV predicts $T_{\max}$ threshold at $\ge$ 3 of 4 sizes & Fail (2 of 4) & Threshold rises \\
+29 & Task region rare: $p\le 5\%$ & Pass (1.48\%) & --- \\
+29 & Tilted campaign evades: two-scale $\le$ 0.10, hollowed $\le$ 0.25 & Pass (0.00; 0.01) & Evades every detector \\
+29 & Detectors realise $\le$ 1\% of $N_w d(c\|p)$ & Pass (0.03\%) & --- \\
+30 & Cell drift low-rank ($\ge$ 50\% in $q\le 5$) & Fail (31\%) & Per-cell drift \\
+30 & Factor adjustment calibrates ($\le$ 2\%) & Fail (23\%) & --- \\
+30 & Factor QC $\ge$ two-scale + 0.1 under padding & Partial (0.48 vs 0.01 at 23\% false alarms) & Miscalibrated \\
+30 & Factor model $\ge$ 5 points below forecast & Fail (23\% vs 14.5\%) & --- \\
+31 & Two-sided prefilter keeps $\ge$ 80\% of colluders & Fail (13\%) & --- \\
+31 & It keeps evaluation sweeps too & Pass (100\%) & Catches pipelines \\
+29 & Base-rate on-task prompts distil ($\ge$ 8 points at 10k) & Fail (+1.5) & Covert but useless \\
+32 & Value-defined task region rare ($p_v\le 5\%$) & Pass (0.53\%) & --- \\
+32 & Written prompts can be made user-like & Fail (AUC 0.98; 4.3\% pass) & Rewriter too weak \\
+32 & Written campaign evades & Pass (0.00; 0.10 all on task) & --- \\
+32 & Written campaign keeps capability ($\ge$ 6) & Fail (+2.2; 213 unique prompts) & Supply-limited \\
+32 & Value-defined tilted campaign $\ge$ 4 points & Fail (+1.1) & --- \\
+32 & Per-account topicality sees tilted campaigns & Fail (25\% false alarms) & Uncalibrated \\
+32 & Pooling artefact $\ge 2\times$ random & Partial (1.9--2.1$\times$) & Not the cause \\
+32 & Per-week centring keeps multi-outlier ($\ge$ 0.8 at $10^4$) & Pass (1.00) & --- \\
+32 & Multi-outlier deployable at 2{,}500 & Fail (30\% false alarms) & Oracle only \\
+32 & Iterative rewriting reaches AUC $\le$ 0.65 & Fail (0.98, 0.97, 0.97) & Writer too weak \\
+32 & Distribution-matched attacker evades and gains $\ge$ 6 & Fail (evades; +4.4, ESS 151) & Frontier holds \\
+32 & Personas evade query detectors, type count $\ge$ 0.9 & Fail (0.00; type count 0.58) & Weak personas \\
+32 & Majority-on-task accounts rare ($q\le 3\%$) & Pass (0.25\%) & --- \\
+32 & Multi-outlier deployable at $10^4$ & Fail (5\% false alarms at 7{,}552) & Improving with size \\
+32 & Linked 30\%: expansion $\ge$ 0.8, recall $\ge$ 0.5; metadata alone $\le$ 0.5 & Partial (1.00, 0.96; metadata 0.67) & Complements linkage \\
+32 & $\le$ 100 benign accounts flagged per week at $10^5$ & Pass (44--59 at $A\ge5{,}000$) & --- \\
+34 & Randomization p-values valid on real traffic ($\le$ 1.5\% at every $A$) & Partial (1/40 at 250; 0/40 at 2{,}500 and 10{,}000) & Exact by design \\
+34 & Throttles detect failover at $A=10{,}000$ ($\ge$ 0.5) & Fail (0.00: all 50 colluders already flagged; 1.00 at 250 and 2{,}500) & Selection complete \\
+34 & Delayed failover still visible ($\ge$ 0.2) & Pass (1.00 at 250 and 2{,}500) & --- \\
+34 & Benign failover teams fire the test ($\ge$ 0.5) & Pass (0.82--0.98) & Expected limit \\
+34 & Answer marks: adaptive $\ge$ 0.8 in 4 weeks; fixed $\le$ 0.02; teams as often & Fail (0.62; 0.00; identical) & Toy \\
+34 & Dual reference: ramp detection $\ge$ 0.5, false alarms $\le$ 10\% & Fail (slope 0.03; frozen alone 0.44 at 5.2\%) & Frozen reference helps \\
+35 & Frozen calibration on untouched weeks: two-scale, hollowed, $T_{\max}$ $\le$ 2\% & Pass (1.8\%, 1.9\%, 1.9\%; week-level upper 4--6\%) & About twice nominal \\
+35 & Dataset campaigns replicate ($\ge$ 0.9 hollowed/$T_{\max}$; $\ge$ 0.7 two-scale) & Pass (1.00, 0.97; 0.86) & --- \\
+35 & Mimicry replicates: hollowed and $T_{\max}$ 0.25--0.65; two-scale $\le$ 0.35 & Partial (hollowed 0.57; $T_{\max}$ 0.00; two-scale 0.00) & Only hollowed holds \\
+35 & Tilted campaign $\le$ 0.05 on every calibrated detector & Pass ($\le$ 0.04) & Ranked by hollowed (AUC 0.97) \\
+35 & Random natural $\le$ 0.05 & Pass (0.00) & --- \\
+35 & E5: $T_{\max}$ dataset $\ge$ 0.7, padded $\le$ 0.6, tilted $\le$ 0.1; census within $\pm$50\% & Pass (1.00, 0.00, 0.00; 3.06 vs 2.22) & Census ratio 2.22, not 1.14 \\
+35 & Volume scan (conformal) calibrated, dataset $\ge$ 0.5, trails $T_{\max}$ under padding & Fail (0.0\%; 0.03; both 0.00) & Rolling form competitive \\
+35 & Sacrificial schedule: $T_{\max}$ $\ge$ 0.8, non-sacrificial recall $\le$ 0.10 & Fail (1.00; recall 0.49) & Hollowing not steered \\
+35 & Ramp costs $T_{\max}$ $\le$ 0.3 & Fail (0.89 to 0.00) & Poisoning sets the quantile \\
+35 & Martingale: $T_{\max}$ padded $\le$ 6 weeks; first alarm $\le$ 3 for both & Fail (25\% of runs in 16 weeks; never) & --- \\
+35 & Whole weeks: $T_{\max}$ $\le$ 2\% and dataset $\ge$ 0.5 & Fail (2.5\%; 1.00); weeks of 260--469 accounts only & Scale untested \\
+35 & Run-to-run spread $\le$ 0.10 & Pass ($\le$ 0.07) & --- \\
+35 & Addition vs replacement changes random-campaign detection $\le$ 0.03 & Pass (0.00) & No injection artefact \\
+\bottomrule
+\end{longtable}

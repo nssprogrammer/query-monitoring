@@ -1,0 +1,40 @@
+\section{Why detection is hard: the benign-coordination barrier}
+\label{sec:theory}
+
+A monitor that looks for unusually coordinated groups will always find \emph{some} group, because ordinary users coordinate: a homework deadline sends hundreds of students to the same problems; a company's scripts send templated prompts from several accounts. A campaign is caught only if it is more distinctive than the most distinctive of these benign groups. The four results below make this precise. Each is a standard argument applied to this problem; their value is that they tell a provider what to measure. Proofs are in Appendix~\ref{app:proofs} and further discussion in Appendix~\ref{app:theory}.
+
+\begin{definition}[Benign-coordination barrier]\label{def:barrier}
+For a detector that scores groups of accounts by $\psi$ and fires when a week's highest score exceeds a threshold, the barrier is the $(1-\alpha)$ quantile of the most distinctive \emph{benign} group's score in a week of $A$ accounts, $B_\alpha(A)=\inf\{\tau:\Pr_0(\max_{G\ \text{benign}}\psi(G)\le\tau)\ge1-\alpha\}$. A campaign with score $\psi_c$ is detected exactly when $\psi_c>B_\alpha(A)$.
+\end{definition}
+
+For a max-type detector this nearly restates what a threshold is; its use is that $B_\alpha(A)$ is a property of benign traffic alone, measurable without any campaign.
+
+\begin{proposition}[Law matching]\label{prop:law}
+If a benign group of $K$ accounts appears in a week with probability $\pi>0$, and when it appears its accounts' queries have the same joint law as the colluders' and are independent of the rest of the week, then every test with false-alarm rate at most $\alpha$ has power at most $\alpha/\pi$.
+\end{proposition}
+
+If real users sometimes behave exactly like the campaign, catching the campaign means flagging them too. This is the indistinguishability argument of secure steganography \citep{hopper2002provably}; its message is a design principle: \emph{a lasting defence needs a feature in which campaigns and benign groups differ in law}. It is also why relays are the hard case (Section~\ref{sec:world}).
+
+\begin{proposition}[More benign groups raise the bar]\label{prop:max}
+If benign group scores are independent with survival function $\bar F$ and their number per week is Poisson with mean $\nu$, a level-$\alpha$ threshold satisfies $\bar F(\tau)\approx\alpha/\nu$: a campaign must out-rank all but a fraction $\alpha/\nu$ of benign groups.
+\end{proposition}
+
+Going from no tight benign cluster per week to one raises the bar abruptly, which is the collapse we see in a controlled study (Appendix~\ref{app:controlled}). Our real data refute the independent-groups model for the two-scale score, whose threshold stayed flat as populations grew, so we use this proposition only qualitatively.
+
+\begin{proposition}[A positive gap buys time]\label{prop:seq}
+If weekly scores are independent with law $P_0$ without a campaign and $P_1$ with a persistent one, the best sequential test with false-alarm rate $\alpha$ needs on average about $\ln(1/\alpha)/D(P_1\|P_0)$ weeks \citep{wald1945sequential,wald1948optimum}.
+\end{proposition}
+
+Mimicry that shrinks the gap $D$ therefore multiplies the time a defender must watch rather than making the campaign invisible. A conformal test martingale makes this deployable while keeping the probability of \emph{any} false alarm, ever, below $\alpha$ \citep{vovk2021testing,vovk2021retrain,ramdas2023gametheoretic}.
+
+\begin{proposition}[The hardest campaign to detect]\label{prop:lfc}
+Let $S$ be a region of useful queries with benign share $p$. Among query laws with at least a fraction $c>p$ in $S$, the closest to benign traffic in relative entropy is the exponential tilt $Q^*=c\,P_0(\cdot\mid S)+(1-c)\,P_0(\cdot\mid S^c)$, at $d(c\|p)=c\ln\frac{c}{p}+(1-c)\ln\frac{1-c}{1-p}$ per query \citep{csiszar1975idivergence}. No query-based test that knows which accounts to watch detects $N_w$ such queries per week in fewer than about $\ln(1/\alpha)/(N_w d(c\|p))$ weeks on average.
+\end{proposition}
+
+The least-detectable campaign is not ``dataset prompts that look natural'' but \emph{real benign prompts, re-weighted toward the useful region}. Expanding $d(c\|p)$ gives a square-root law \citep{ker2007capacity,bash2013limits}: over $n$ queries an attacker can add only about $\sqrt{2p(1-p)\,n\ln(1/\alpha)}$ useful queries beyond the $pn$ that benign users send anyway---about 51 over twelve weeks of 1{,}640 queries with the measured $p=1.48\%$. If the monitor does not know which accounts to watch, the attacker can instead hide among \emph{types} of users.
+
+\begin{corollary}[Account types]\label{cor:types}
+If a share $q$ of benign accounts are on-task users and each colluder poses as one, a monitor that sees every account's type but not which accounts collude needs more than about $K^*\approx\sqrt{2Aq\ln(1/\alpha)/(w(1-q))}$ posing accounts to detect the campaign over $w$ weeks.
+\end{corollary}
+
+Capacity is then counted in accounts and grows like $\sqrt A$; in WildChat on-task users are rare ($q=0.25\%$), so even at $A=10^5$ the bound allows only about 14 posing accounts a week.

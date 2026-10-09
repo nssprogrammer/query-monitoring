@@ -1,0 +1,15 @@
+# Versions used on Kaggle (2025-2026 Python 3.10/3.11 images); newer versions should work.
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.3
+pandas>=2.0
+matplotlib>=3.7
+torch>=2.1            # GPU strongly recommended (T4 / P100 used for the paper)
+torchvision>=0.16     # Steps 5-8 (CIFAR-10)
+sentence-transformers>=2.6
+transformers>=4.40
+peft>=0.10            # LoRA fine-tuning in the distillation steps
+datasets>=2.18
+huggingface_hub>=0.22
+pyarrow>=14
+jupytext>=1.16        # tools/sync_notebooks.py

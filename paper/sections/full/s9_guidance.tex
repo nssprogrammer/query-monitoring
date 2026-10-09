@@ -1,0 +1,39 @@
+\section{Guidance for providers in full}
+\label{sec:guidance-full}
+
+Table~\ref{tab:regime-full} summarises what worked where, and the list below turns the results into practice. Every item is backed by a measurement in this paper, and every item carries its caveat.
+
+\begin{table}[t]
+\caption{What works where: weekly detection of each campaign type by population and detector. Deployed thresholds in weekly populations; oracle thresholds in pooled ones, where no deployed threshold reached 1\% false alarms.}
+\label{tab:regime-full}
+\begin{center}
+\small
+\begin{tabular}{llccc}
+\toprule
+Population & Campaign & Two-scale & Hollowed & Multi-outlier \\
+\midrule
+Development weeks, 64--364 accounts & Dataset & 0.79--0.85 & 1.00 & 1.00 \\
+\quad (deployed) & Half padding & 0.21 & 0.44--0.48 & 0.36--0.42 \\
+ & Least detectable & 0.00 & 0.01 & 0.01 \\
+Untouched weeks, 64--252 accounts & Dataset & 0.86 & 1.00 & 0.97 \\
+\quad (deployed) & Half padding & 0.00 & 0.50--0.57 & 0.00 \\
+ & Least detectable & 0.00 & 0.04 & 0.00 \\
+Pooled, 1{,}000 accounts, 5\% colluders & Dataset & 0.75--0.80 & 1.00 & 1.00 \\
+\quad (oracle) & Half padding & 0.00 & 0.07 & 1.00 \\
+Pooled, 10{,}000 accounts, 0.5\% colluders & Dataset & 0.00 & 0.03 & 1.00 \\
+\quad (oracle) & Half padding & 0.00 & 0.03 & 0.17 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Measure your benign coordination first.} Compute, per week, the real-to-shuffled ratio of the top eigenvalue of the centred hollowed matrix, the number of outlier eigenvectors, and the share of accounts of each valuable type. These numbers decide what any query-only monitor can see, and they changed by a factor of two between two periods of the same public log. A short script that computes them from embeddings, account identifiers and week labels is in the supplementary material.
+\item \textbf{Calibrate on whole historical windows against a lagged reference.} Never build the null by shuffling accounts or queries. Expect realised false alarms of about twice the nominal rate.
+\item \textbf{Protect the reference and the calibration history.} A campaign that ramps up through the calibration weeks poisons both, and it defeated every detector we built. Keep a frozen reference and a frozen calibration set beside the rolling ones, and audit how thresholds drift.
+\item \textbf{Monitor whole populations, and select on the hollowed matrix.} Sharding defeats every detector. Hollowed selection was the most robust detector on untouched weeks; multi-outlier selection helps at scale but pays for multiplicity, so run both.
+\item \textbf{Accumulate evidence over weeks} with a conformal test martingale; mimicry slows detection rather than preventing it, as long as the gap to benign traffic is positive.
+\item \textbf{Combine with linkage in both directions.} A firing test is a high-precision pointer, not an enumeration of the campaign. From a partial metadata linkage, expanding along the hollowed matrix recovered nearly all remaining colluders.
+\item \textbf{Expect evaluation pipelines in the alarms.} The monitor detects coordinated topic shift, not extraction. Use it as a filter for human review.
+\item \textbf{Consider randomised enforcement.} Randomising when flagged groups are throttled turns every enforcement action into an exactly calibrated test of failover---once you know how often your benign customers fail over.
+\end{enumerate}

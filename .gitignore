@@ -1,0 +1,24 @@
+# caches and outputs written by the experiments (may contain WildChat user text: never commit)
+*.npz
+*.npy
+*.pkl
+*.pt
+*.safetensors
+*.parquet
+*_cache*/
+step*_full*/
+step*_quick*/
+outputs/
+census.json
+# python / notebooks
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+# figures regenerate from figures/make_figures.py
+figures/out/
+# LaTeX build files
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.blg
+paper/*.bbl

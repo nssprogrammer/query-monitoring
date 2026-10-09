@@ -1,0 +1,40 @@
+\section{The monitor in detail}
+\label{sec:monitor-full}
+
+The monitor answers one question each week: \emph{is there a group of accounts whose queries are jointly unusual, compared with how groups of ordinary users looked in past weeks?} Figure~\ref{fig:monitor} shows the pipeline; this section explains each step and why it is there.
+
+
+
+\paragraph{Step 1: a fingerprint for each account.} Every query $x$ is embedded with a sentence encoder $\varphi$ (MiniLM; \citealp{wang2020minilm,reimers2019sbert}). To summarise an account's queries we use random Fourier features \citep{rahimi2007random}: for $m$ random frequency vectors $\omega_j$ drawn at a bandwidth $h$, the account's \emph{amplitude} at frequency $j$ is
+\begin{equation}
+\rho_a(\omega_j)=\sum_{i=1}^{n_a} e^{-\mathrm{i}\,\omega_j\cdot\varphi(x_i)},
+\end{equation}
+where $n_a$ is the account's number of queries. Intuitively, each frequency is a ``probe'' of one direction and scale in embedding space; an account that keeps returning to the same region of topic space produces large, aligned amplitudes, and one that wanders produces amplitudes that cancel. A coarse bandwidth ($h=4$) sees broad topics; a fine one ($h=0.5$) sees near-duplicates and templates.
+
+\paragraph{Step 2: compare with normal traffic (whitening).} Benign traffic is far from uniform: some topics are always popular. We remove that by \emph{whitening} each account's amplitudes against the benign traffic of the four preceding weeks,
+\begin{equation}
+y_a=\Sigma^{-1/2}\,\frac{\rho_a-n_a\mu}{\sqrt{n_a}},
+\end{equation}
+where $\mu$ and $\Sigma$ are the mean and covariance of one benign query's amplitudes. After whitening, an account that sends independent draws from last month's traffic has a vector $y_a$ with identity covariance, whatever the popularity of the topics it visits. Using a \emph{lagged} reference matters: it absorbs slow drift in what people ask about.
+
+\paragraph{Step 3: look for accounts that move together.} Stack the whitened vectors into a matrix $Y$ (one row per account) and form the cross-account matrix $C=YY^\top/r$, where $r$ is the number of whitened components. If accounts were independent, $C$ would look like a random matrix with a predictable spread of eigenvalues \citep{marchenko1967distribution}. A campaign whose accounts jointly concentrate on a region adds a ``spike'': one eigenvalue rises above the rest, and its eigenvector points at the colluders \citep{baik2005phase}. The detector takes the fewest accounts that carry half of the top eigenvector's weight as its candidate group $G$.
+
+\paragraph{Step 4: score the group.} For a group $G$, the \emph{structure factor} $\Sb_h(G)$ measures how concentrated its pooled queries are at bandwidth $h$ relative to independent draws ($\Sb=1$ for independent queries, larger for concentrated ones). The \emph{two-scale score} compares coarse and fine concentration,
+\begin{equation}
+T_{\rm 2s}(G)=\log\Sb_{h=4}(G)-\log\Sb_{h=0.5}(G).
+\end{equation}
+A group that concentrates on a topic without the near-duplicate clumping typical of benign groups scores high. Because the score is a ratio within one group, weekly drift and changes in population size largely cancel, which is why it is the one statistic in our study that stayed calibrated under rolling calibration. (We designed it around deduplication; Section~\ref{sec:results} shows that this is not why it works.)
+
+\paragraph{Step 3$'$: hollowing.} The plain matrix $C$ has a weakness that turned out to matter. Its diagonal holds each account's own concentration $\|y_a\|^2$, so an individually topical benign user---someone who only ever asks about chemistry homework---can dominate its top eigenvector. Padding exploits the same weakness from the other side: mixing natural text into each colluder account shrinks the \emph{size} of each colluder's deviation. The fix is to look only at \emph{directions}. The \emph{centred, hollowed} matrix
+\begin{equation}
+R_c=\Delta^{-1/2}\bigl(\tilde Y\tilde Y^\top-\Delta\bigr)\Delta^{-1/2},\qquad \Delta=\mathrm{diag}\bigl(\|\tilde y_a\|^2\bigr),
+\end{equation}
+where $\tilde Y$ is $Y$ with its mean row removed, deletes each account's self-term, normalises every account to unit length and removes the week's common drift. Its top eigenvector picks accounts whose deviations point the same way, however large or small those deviations are. Fifty accounts that share a mathematical core form a correlated block in $R_c$ however much natural text surrounds it. Deleting the diagonal of a Gram matrix is an established device for heteroskedastic data \citep{cai2021subspace,zhang2022heteroskedastic}. We call selection on $R_c$ followed by the two-scale score \emph{hollowed selection}.
+
+\paragraph{Step 3$''$: more than one group.} In large populations several benign groups can out-rank a campaign on $R_c$. \emph{Multi-outlier selection} therefore scores a group from every eigenvector of $R_c$ that rises above the random-matrix bulk (estimated per window by matching the median eigenvalue to the Marchenko--Pastur law; up to 20 eigenvectors, each spread over at least 5 accounts) and keeps the largest score, $T_{\max}$.
+
+\paragraph{Step 5: calibration.} This is where most of the engineering lies. A threshold must reflect benign weeks as they really are: topical users, trends, bulk users, evaluation scripts. We therefore never simulate the null by shuffling accounts or queries. Each threshold is the $(1-\alpha)$ quantile of the same statistic over \emph{whole} historical windows---either the eight preceding weeks (\emph{rolling}) or all prior weeks (\emph{conformal}). Each historical window is whitened against its own lagged reference, exactly as a test window would be. Section~\ref{sec:calib-full} shows why every shortcut fails.
+
+\paragraph{Cost.} The eigenvalues of $C$ come from the $r\times r$ matrix $Y^\top Y$, so the cost of the spectral step does not grow with the number of accounts; forming $Y$ is linear in the number of queries. A weekly window of a few hundred accounts took about 0.2\,s on one T4 GPU and a 1{,}000-account window about 0.5\,s.
+
+\paragraph{Baselines.} We compare against a whole-window test of distribution shift (the \emph{global stream}, $\Sb$ of all accounts together), the MMD traffic-window test of \citet{liu2026embarrassingly}, a per-account test, Higher Criticism over per-account $p$-values \citep{donoho2004hc}, Fraudar on the account-by-topic matrix \citep{hooi2016fraudar}, a test on the busiest accounts' share of traffic, a dataset-versus-chat classifier and a topic-concentration statistic on the selected group, and a scan of topic-cell volumes against recent history. All share the same lagged references and calibration.
