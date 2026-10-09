@@ -10,11 +10,11 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 1), row "Union S(k) matches jittered-grid theory" (P1) | relative error of the colluders' union structure factor vs jittered-grid theory | Pass (≤ 2% error) | not isolated (Part A shell table: compare columns S_union and theory) |
-# | App. P (Step 1), row "Colluder pair correlation −(1 − S̄)/K" (P2) | mean colluder-pair C_ab, measured vs predicted | Pass (−0.0451 vs −0.0451) | Part B, print "colluder-pair mean C_ab ... pred" |
-# | App. P (Step 1), row "BBP outlier below the bulk" (P3); App. E "Spectral detection condition" ("on a 2-D torus the measured lower outlier matched the BBP prediction to four decimals") | attacked λ_min, measured vs BBP prediction | Pass (0.0702 vs 0.0701) | Part B, prints "lam_min  ATTACK  measured" and "lam_min  ATTACK  BBP prediction" |
-# | App. P (Step 1), row "Padding threshold f∗ = 0.445" (P4) | predicted padding threshold f* vs empirical f at power 0.5 | 0.445 predicted; Partial (0.408) | Part C, print "predicted threshold f*"; empirical value not isolated (read off the Part C power column; this script's padding grid is coarser and it does not interpolate) |
-# | App. P (Step 1), row "Outlier independent of K" (P5) | spread (max − min) of attacked λ_min over K ∈ {5, 10, 20, 40, 80} at f = 0.3 | Pass (spread 0.0017) | not isolated (Part D table, lam_min column) |
+# | Prediction log (Step 1), row "Union S(k) matches jittered-grid theory" (P1) | relative error of the colluders' union structure factor vs jittered-grid theory | Pass (≤ 2% error) | not isolated (Part A shell table: compare columns S_union and theory) |
+# | Prediction log (Step 1), row "Colluder pair correlation −(1 − S̄)/K" (P2) | mean colluder-pair C_ab, measured vs predicted | Pass (−0.0451 vs −0.0451) | Part B, print "colluder-pair mean C_ab ... pred" |
+# | Prediction log (Step 1), row "BBP outlier below the bulk" (P3); App. E "Spectral detection condition" ("on a 2-D torus the measured lower outlier matched the BBP prediction to four decimals") | attacked λ_min, measured vs BBP prediction | Pass (0.0702 vs 0.0701) | Part B, prints "lam_min  ATTACK  measured" and "lam_min  ATTACK  BBP prediction" |
+# | Prediction log (Step 1), row "Padding threshold f∗ = 0.445" (P4) | predicted padding threshold f* vs empirical f at power 0.5 | 0.445 predicted; Partial (0.408) | Part C, print "predicted threshold f*"; empirical value not isolated (read off the Part C power column; this script's padding grid is coarser and it does not interpolate) |
+# | Prediction log (Step 1), row "Outlier independent of K" (P5) | spread (max − min) of attacked λ_min over K ∈ {5, 10, 20, 40, 80} at f = 0.3 | Pass (spread 0.0017) | not isolated (Part D table, lam_min column) |
 #
 # Not reported in the paper: benign-union S(k), λ_max attack vs null, eigenvector overlap and IPR, single-pair
 # SNR, detection power at 1% FPR, per-f and per-K power/overlap tables, step1_figure.png, step1_results.json.
@@ -181,7 +181,7 @@ def main():
     print(f"  MP lower edge (1-sqrt g)^2        : {att['lo_edge'][0]:.4f}")
     print(f"  MP upper edge (1+sqrt g)^2        : {att['hi_edge'][0]:.4f}")
     print(f"  S_bar(union of campaign)          : {ms(att['S_bar_union'])}")
-    # [PAPER] App. P (Step 1, P3) and App. E: BBP outlier below the bulk, 0.0702 vs 0.0701 (measured vs predicted); plausibly from the notebook version (see header)
+    # [PAPER] Prediction log (Step 1, P3) and App. E: BBP outlier below the bulk, 0.0702 vs 0.0701 (measured vs predicted); plausibly from the notebook version (see header)
     print(f"  lam_min  ATTACK  measured         : {ms(att['lam_min'])}")
     print(f"  lam_min  ATTACK  BBP prediction   : {ms(att['lam_pred'])}")
     print(f"  lam_2    ATTACK (should sit at edge): {ms(att['lam_2'])}")
@@ -189,7 +189,7 @@ def main():
     print(f"  lam_max  ATTACK vs NULL           : {ms(att['lam_max'])}  vs  {ms(nul['lam_max'])}")
     print(f"  |<v_min, w_colluders>|^2          : {ms(att['overlap'])}   (null: {ms(nul['overlap'])})")
     print(f"  IPR(v_min)  (1/K = {1/a.K:.3f})        : {ms(att['ipr'])}")
-    # [PAPER] App. P (Step 1, P2): colluder-pair correlation, −0.0451 vs −0.0451; plausibly from the notebook version (see header)
+    # [PAPER] Prediction log (Step 1, P2): colluder-pair correlation, −0.0451 vs −0.0451; plausibly from the notebook version (see header)
     pred_pair = -(1 - att["S_bar_union"].mean()) / a.K
     snr = abs(att["col_pair_mean"].mean()) / att["ben_pair_sd"].mean()
     print(f"  colluder-pair mean C_ab           : {ms(att['col_pair_mean'])}   pred {pred_pair:+.4f}")
@@ -202,7 +202,7 @@ def main():
     print("\n[C] Padding sweep: attacker adds fraction f of random cover queries  (P4)")
     S_design = att["S_bar_union"].mean()
     g = a.A / m
-    # [PAPER] App. P (Step 1, P4): predicted padding threshold f* = 0.445 (empirical 0.408 in the notebook version)
+    # [PAPER] Prediction log (Step 1, P4): predicted padding threshold f* = 0.445 (empirical 0.408 in the notebook version)
     fstar = 1 - np.sqrt(g) / (1 - S_design)
     print(f"  predicted threshold f* = 1 - sqrt(g)/(1-S_design) = {fstar:.3f}")
     print(f"  {'f':>5} {'lam_min':>17} {'lam_pred':>9} {'null_1%':>8} {'power':>6} {'overlap':>8}")

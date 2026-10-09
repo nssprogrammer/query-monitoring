@@ -23,26 +23,26 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | Table 1, row "MetaMathQA (generated math)"; App. P (Step 12, "Two-scale beats spectral on a generated set") | weekly paired detection: Two-scale / Global / MMD / Spectral / Per-account, HC, Fraudar | 0.93 / 0.71 / 0.60 / 0.19 / ≤0.01; App. P: Pass (0.93 vs 0.19) | Cell 8 per-row print (`metamath`, K = 50); verdict "[B]" lines; Cell 10 print "P12.3/4" |
+# | Table 1, row "MetaMathQA (generated math)"; Prediction log (Step 12, "Two-scale beats spectral on a generated set") | weekly paired detection: Two-scale / Global / MMD / Spectral / Per-account, HC, Fraudar | 0.93 / 0.71 / 0.60 / 0.19 / ≤0.01; Prediction log: Pass (0.93 vs 0.19) | Cell 8 per-row print (`metamath`, K = 50); verdict "[B]" lines; Cell 10 print "P12.3/4" |
 # | Table 1, row "Magicoder (generated code)" | same columns | 0.62 / 0.46 / 0.32 / 0.00 / 0.00 | Cell 8 print (`magicoder`, K = 50); verdict "[B]" |
 # | Table 1, row "Alpaca (generated, broad)" | same columns | 0.01 / 0.00 / 0.01 / 0.00 / 0.00 | Cell 8 print (`alpaca`, K = 50); verdict "[B]" |
-# | Table 1, row "Narrow cluster of real prompts"; App. P (Step 12, "Natural campaigns ≤ 0.2 on every detector") | same columns | 0.12 / 0.04 / 0.27 / 0.00 / 0.00; App. P: Fail (MMD 0.27) | Cell 8 print (`wild_narrow`, K = 50); Cell 10 print "P12.2" |
+# | Table 1, row "Narrow cluster of real prompts"; Prediction log (Step 12, "Natural campaigns ≤ 0.2 on every detector") | same columns | 0.12 / 0.04 / 0.27 / 0.00 / 0.00; Prediction log: Fail (MMD 0.27) | Cell 8 print (`wild_narrow`, K = 50); Cell 10 print "P12.2" |
 # | Table 1, row "Random real prompts" | same columns | 0.01 / 0.00 / 0.01 / 0.00 / 0.00 | Cell 8 print (`random`, K = 50); verdict "[B]" |
-# | Table 1, last row "Realised false alarms"; Fig. 4b; §5 "Calibration breaks first"; App. D.1; App. P (Step 12, "Every detector's false alarms ≤ 2%") | held-out false alarms at nominal 1%, rolling calibration, week-clustered intervals | Two-scale 0.7%, Global 4.1%, MMD 11.6%, Spectral 7.8%, Per-account / HC / Fraudar 7.5 / 5.3 / 2.9%; volume test 14.2% (§5: "2.9–14.2%"; D.1: "4.1–7.8%"); App. P: Fail (only two-scale) | Cell 7 print "held-out FPR" (`FPR[d]` with `boot_ci`); verdict "[FPR]" lines; Cell 10 print "P12.7" |
-# | App. P (Step 12, "Volume-share test ≤ 0.1") | max paired detection of the volume test | Pass (≤ 0.02) | Cell 10 print "P12.1" (`vol` column of Cell 8) |
-# | App. P (Step 12, "Generated sets at K = 200: MMD or global ≥ 0.5") | — | Partial (K = 200 infeasible) | Cell 10 print "cells skipped" and "P12.3/4" (largest evaluated K) |
-# | App. P (Step 12, "Partial linkage raises per-account or HC by ≥ 0.1") | — | Untestable (base ≈ 0) | Cell 8 "linked(rho=0.3)" part of the print; Cell 10 print "P12.5" |
-# | App. P (Step 12, "Sharding: spectral ≤ 0.1"); App. P "Corrections made during the study" (Sharding) | — | Untestable (1–5 shards; unpaired) | Part 5 (Cell 9) print "sharded ..."; Cell 10 print "P12.6" |
+# | Table 1, last row "Realised false alarms"; Fig. 4b; §5 "Calibration breaks first"; App. D.1; Prediction log (Step 12, "Every detector's false alarms ≤ 2%") | held-out false alarms at nominal 1%, rolling calibration, week-clustered intervals | Two-scale 0.7%, Global 4.1%, MMD 11.6%, Spectral 7.8%, Per-account / HC / Fraudar 7.5 / 5.3 / 2.9%; volume test 14.2% (§5: "2.9–14.2%"; D.1: "4.1–7.8%"); Prediction log: Fail (only two-scale) | Cell 7 print "held-out FPR" (`FPR[d]` with `boot_ci`); verdict "[FPR]" lines; Cell 10 print "P12.7" |
+# | Prediction log (Step 12, "Volume-share test ≤ 0.1") | max paired detection of the volume test | Pass (≤ 0.02) | Cell 10 print "P12.1" (`vol` column of Cell 8) |
+# | Prediction log (Step 12, "Generated sets at K = 200: MMD or global ≥ 0.5") | — | Partial (K = 200 infeasible) | Cell 10 print "cells skipped" and "P12.3/4" (largest evaluated K) |
+# | Prediction log (Step 12, "Partial linkage raises per-account or HC by ≥ 0.1") | — | Untestable (base ≈ 0) | Cell 8 "linked(rho=0.3)" part of the print; Cell 10 print "P12.5" |
+# | Prediction log (Step 12, "Sharding: spectral ≤ 0.1"); Corrections (docs/corrections.md), "Corrections made during the study" (Sharding) | — | Untestable (1–5 shards; unpaired) | Part 5 (Cell 9) print "sharded ..."; Cell 10 print "P12.6" |
 # | Table 1 caption; §5; App. D | K = 50 volume-matched colluders, 24 development weeks; "about 1,640 queries a week" | as quoted | Cell 1 (`KS`, `N_TEST_W`); 1,640 plausibly the `N~` printed for K = 50 in Cell 8 (protocol value reused by later Steps); not isolated |
 # | §2 "Data" | monitored accounts have at least 10 queries in the week; windows hold 64–364 accounts | as quoted | Cell 1 `MIN_PER_ACCT`; window sizes plausibly the "accounts per test-week window" print in Cell 10 (not isolated) |
 # | App. Table 16 (Fourier modes, Reference, Calibration, MMD baseline, Fraudar baseline) | m = 300 modes with augmented real whitening; h = 4 coarse with h = 0.5 fine; up to 100,000 benign turns from the four preceding weeks; 40 null windows per week, thresholds from the 8 preceding weeks; MMD window sample of 2,000 against 20 reference batches of 500; 100 k-means topics, weights 1/ log(degree + 5) | as quoted | Cell 1 configuration; Cell 5 (`make_bank_aug`, `mmd2`, `fraudar`); Cell 6 (lagged reference) |
-# | App. P "Corrections made during the study" (Padding construction) | in Steps 12–13 the padded campaign assigned natural prompts to separate colluder accounts | (segregated construction; two-scale robustness 0.62 holds only for it) | Cell 8 `campaign_points` + `labc`: `metamath_pad50` here is the segregated construction; the 0.62 value is not isolated (may come from Step 13) |
+# | Corrections (docs/corrections.md), "Corrections made during the study" (Padding construction) | in Steps 12–13 the padded campaign assigned natural prompts to separate colluder accounts | (segregated construction; two-scale robustness 0.62 holds only for it) | Cell 8 `campaign_points` + `labc`: `metamath_pad50` here is the segregated construction; the 0.62 value is not isolated (may come from Step 13) |
 #
 # Not reported in the paper: K = 10 and K = 200 cells, `metamath_pad50` cells, `any_geo` (union), precision at K
 # of the top-r² accounts (the paper's group precision 0.94–1.00 refers to the two-scale flagged group, not computed
 # here), the ρ = 0.3 linkage values, the sharding numbers, and the figure.
 # Note: the description below motivates the two-scale test as detecting "topic-concentrated but deduplicated"
-# groups; that mechanism was later rejected (App. D.3; App. P "Corrections made during the study", Mechanism claims).
+# groups; that mechanism was later rejected (App. D.3; Corrections (docs/corrections.md), "Corrections made during the study", Mechanism claims).
 # "Innovation 2/3" are internal labels from an earlier draft.
 
 # %% [markdown]
@@ -356,7 +356,7 @@ for d in ALLD:
 
 # %%
 # ===== Cell 8: volume-matched campaigns, paired evaluation, partial linkage, precision at K =====
-# Note (App. P "Corrections made during the study", Padding construction): for `metamath_pad50` the generated
+# Note (Corrections (docs/corrections.md), "Corrections made during the study", Padding construction): for `metamath_pad50` the generated
 # half comes first and `labc = np.repeat(np.arange(K_), cv)` below assigns points to colluders in order, so the
 # natural padding lands on separate colluder accounts (segregated padding). Step 14 mixed padding into every account.
 def campaign_points(src, n, r):
@@ -428,7 +428,7 @@ for src in [s for s in ["metamath", "wild_narrow"] if s in SOURCES]:
                 cnt = np.bincount(inv); s = window_stats(idx[keep], inv[cv:], cnt, Bc, Bf, REFS_W[tw], extra=(Zc, inv[:cv]), en_extra=Ec, top_extra=Tc); f = fires(s, Ts)
                 for d in ALLD: fired[d] |= bool(f[d])
             for d in ALLD: hits[d].append(float(fired[d]))
-    # [PAPER] App. P (Step 12): sharding Untestable (1–5 shards; unpaired); "Corrections": identical numbers for natural and generated campaigns
+    # [PAPER] Prediction log (Step 12): sharding Untestable (1–5 shards; unpaired); "Corrections": identical numbers for natural and generated campaigns
     row = dict(source=src, colluders=SHARD_K, **{d: float(np.mean(v)) for d, v in hits.items()}); rowsS.append(row)
     print(f"sharded {src:>12}: " + " ".join(f"{d}={row[d]:.2f}" for d in ALLD) + f"  (weekly detection, colluders spread one per shard; {time.time()-t0:.0f}s)")
 
@@ -444,25 +444,25 @@ skipped = [(r["source"], r["K"]) for r in rowsB if not done(r["source"], r["K"])
 print("cells skipped (K >= half of a 70% weekly subsample):", skipped if skipped else "none")
 # [PAPER] §2 "Data": windows hold 64–364 accounts (plausibly from this print; not isolated)
 print("accounts per test-week window (70% subsample):", {tw: int(SUB_FRAC * len(WEEK_ACCTS[tw])) for tw in TW})
-# [PAPER] App. P (Step 12): P12.1 Pass (≤ 0.02)
+# [PAPER] Prediction log (Step 12): P12.1 Pass (≤ 0.02)
 print("P12.1 volume test max paired power:", fmt(max((g(s, k, "vol") or 0) for s in SOURCES for k in KS)))
-# [PAPER] App. P (Step 12): P12.2 Fail (MMD 0.27); Table 1 "Narrow cluster of real prompts", MMD 0.27
+# [PAPER] Prediction log (Step 12): P12.2 Fail (MMD 0.27); Table 1 "Narrow cluster of real prompts", MMD 0.27
 print("P12.2 natural campaigns, max geometry detector power:",
       {s: fmt(max((g(s, k, d) or 0) for d in ["spec", "hc", "acct", "glob", "mmd", "fraudar", "twoscale"] for k in KS)) for s in ["wild_narrow", "random"] if s in SOURCES})
 for s in ["metamath", "magicoder", "alpaca"]:
     if s not in SOURCES: continue
     ks = [k for k in KS if done(s, k)]
     if not ks: print(f"P12.3/4 {s}: no evaluated cells"); continue
-    # [PAPER] App. P (Step 12): P12.3 Partial (K = 200 infeasible); P12.4 Pass (0.93 vs 0.19) = Table 1 MetaMathQA two-scale vs spectral
+    # [PAPER] Prediction log (Step 12): P12.3 Partial (K = 200 infeasible); P12.4 Pass (0.93 vs 0.19) = Table 1 MetaMathQA two-scale vs spectral
     k = max(ks); print(f"P12.3/4 {s} K={k} (largest evaluated): mmd {fmt(g(s, k, 'mmd'))} glob {fmt(g(s, k, 'glob'))} spec {fmt(g(s, k, 'spec'))} twoscale {fmt(g(s, k, 'twoscale'))}")
-# [PAPER] App. P (Step 12): P12.5 Untestable (base ≈ 0)
+# [PAPER] Prediction log (Step 12): P12.5 Untestable (base ≈ 0)
 for r in rowsB:
     for d in ["acct", "hc"]:
         b, l = r.get(f"{d}|0.0"), r.get(f"{d}|{RHO}")
         if b is not None and 0.1 <= b <= 0.9: print(f"P12.5 {r['source']} K={r['K']} {d}: {fmt(b)} -> {fmt(l)} with linkage")
-# [PAPER] App. P (Step 12): P12.6 Untestable (1–5 shards; unpaired)
+# [PAPER] Prediction log (Step 12): P12.6 Untestable (1–5 shards; unpaired)
 for r in rowsS: print(f"P12.6 sharded {r['source']}: spectral {fmt(r['spec'])}, per-account {fmt(r['acct'])}, any {fmt(r['any_geo'])}")
-# [PAPER] App. P (Step 12): P12.7 Fail (only two-scale); values as in Table 1 last row
+# [PAPER] Prediction log (Step 12): P12.7 Fail (only two-scale); values as in Table 1 last row
 print("P12.7 FPR:", {d: fmt(FPR[d][0]) for d in ALLD})
 import matplotlib.pyplot as plt
 KS_PLOT = [k for k in KS if any(done(s, k) for s in SOURCES)]

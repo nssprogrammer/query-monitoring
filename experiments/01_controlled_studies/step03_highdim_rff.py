@@ -20,12 +20,12 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 3), row "High-dimensional analytic calibration" (P-A) | analytic TW false alarms in d = 2/8/32; fixed by self-normalised rows and simulation-calibrated thresholds | Fail, then fixed (consequence: row normalisation) | config cell `ROWNORM = True`; `evaluate(...)` row normalisation; Part A cell, print "analytic-TW FPR" and empirical thresholds `emp_tmin`/`emp_tmax` |
-# | App. P (Step 3), row "Herding detectable in every dimension" (P-B2) | whitened union S̄ of `herding` campaigns | Fail (S̄ 0.70–0.89) | Part B cell (S per bandwidth) and Part C summary, column S_union, design `herding`; VERDICT REPORT "[B]"/"[C]" lines |
-# | App. P (Step 3), row "Mismatched herding detectable" (P-B4) | whitened union S̄ of `herding_mismatched` | Fail (S̄ ≈ 1) | same cells, design `herding_mismatched` |
-# | App. P (Step 3), row "k-means++ shows λmax" (P-B3) | λ_max rate of `kmeanspp` | Fail (looks i.i.d.) | same cells, design `kmeanspp`, column max |
+# | Prediction log (Step 3), row "High-dimensional analytic calibration" (P-A) | analytic TW false alarms in d = 2/8/32; fixed by self-normalised rows and simulation-calibrated thresholds | Fail, then fixed (consequence: row normalisation) | config cell `ROWNORM = True`; `evaluate(...)` row normalisation; Part A cell, print "analytic-TW FPR" and empirical thresholds `emp_tmin`/`emp_tmax` |
+# | Prediction log (Step 3), row "Herding detectable in every dimension" (P-B2) | whitened union S̄ of `herding` campaigns | Fail (S̄ 0.70–0.89) | Part B cell (S per bandwidth) and Part C summary, column S_union, design `herding`; VERDICT REPORT "[B]"/"[C]" lines |
+# | Prediction log (Step 3), row "Mismatched herding detectable" (P-B4) | whitened union S̄ of `herding_mismatched` | Fail (S̄ ≈ 1) | same cells, design `herding_mismatched` |
+# | Prediction log (Step 3), row "k-means++ shows λmax" (P-B3) | λ_max rate of `kmeanspp` | Fail (looks i.i.d.) | same cells, design `kmeanspp`, column max |
 #
-# The herding failure led to the detectability law tested in Step 4 (App. P, Step 3 consequence "Led to the law").
+# The herding failure led to the detectability law tested in Step 4 (Prediction log, Step 3 consequence "Led to the law").
 #
 # Not reported in the paper: `iid`, `class_balanced` and `kcenter_FPS` rates, oracle (known-colluder) tests,
 # spectral vs pairwise linkage AUCs, the BBP-transfer check (P-B5), the whitening self-check, Gamma-oracle FPR,
@@ -79,7 +79,7 @@ elif USE_GPU:
     DIMS, HS, TR, N_NULL, N_CAMP = [2, 8, 32], [0.25, 0.5, 1.0, 2.0, 4.0, 8.0], 40, 2000, 1500
 else:
     DIMS, HS, TR, N_NULL, N_CAMP = [2, 8, 32], [0.25, 0.5, 1.0, 2.0, 4.0, 8.0], 12, 400, 1500
-# [PAPER] App. P (Step 3): "High-dimensional analytic calibration" Fail, then fixed by row normalisation (ROWNORM)
+# [PAPER] Prediction log (Step 3): "High-dimensional analytic calibration" Fail, then fixed by row normalisation (ROWNORM)
 POOL_MULT, ALPHA_SIDE, ROWNORM = 6, 0.005, True
 print(f"backend: {'GPU ' + torch.cuda.get_device_name(0) if USE_GPU else 'CPU/numpy'} | QUICK={QUICK}")
 print(f"DIMS={DIMS} HS={HS} TR={TR} N_NULL={N_NULL} N_CAMP={N_CAMP} A={A} K={K} m={M_MODES}")
@@ -272,7 +272,7 @@ for d in DIMS:
                    oracle_low_gamma=float(np.mean(Sn < gamma_dist.ppf(0.01, b["meff"]) / b["meff"])),
                    oracle_high_gamma=float(np.mean(Sn > gamma_dist.ppf(0.99, b["meff"]) / b["meff"])))
         rowsA.append(row)
-        # [PAPER] App. P (Step 3): analytic TW calibration in high dimension (Fail, then fixed); empirical thresholds above are used from here on
+        # [PAPER] Prediction log (Step 3): analytic TW calibration in high dimension (Fail, then fixed); empirical thresholds above are used from here on
         print(f"d={d:2d} h={b['h']:4.2f} m_eff={b['meff']:3d}: analytic-TW FPR min={row['fpr_min_TW']:.4f} max={row['fpr_max_TW']:.4f} (nom {ALPHA_SIDE}) "
               f"z={row['z_min']:+.2f}/{row['z_max']:+.2f} | thr TW/emp min {b['tmin']:.4f}/{b['emp_tmin']:.4f} max {b['tmax']:.4f}/{b['emp_tmax']:.4f} "
               f"| Gamma-oracle FPR {row['oracle_low_gamma']:.3f}/{row['oracle_high_gamma']:.3f}")
@@ -322,7 +322,7 @@ for d in DIMS:
         if not rs: continue
         best = max(rs, key=lambda r: (r["clean_min"], -r["S_union"]))   # defender's best bandwidth for the missing mode
         summary.append(best)
-        # [PAPER] App. P (Step 3): herding S̄ 0.70–0.89 (Fail); herding_mismatched S̄ ≈ 1 (Fail); kmeanspp λ_max "looks i.i.d." (Fail)
+        # [PAPER] Prediction log (Step 3): herding S̄ 0.70–0.89 (Fail); herding_mismatched S̄ ≈ 1 (Fail); kmeanspp λ_max "looks i.i.d." (Fail)
         print(f"{d:3d} {name:>19} {best['h']:4.1f} | {best['clean_min']:9.2f} {best['max']:5.2f} {best['multi_min']:5.2f} | "
               f"{best['oracle_low']:9.2f} {best['oracle_high']:10.2f} | {best['auc_spectral']:8.3f} {best['auc_pairwise']:8.3f} | "
               f"{best['lam_min']:7.4f} {best['lam_bbp']:7.4f}")

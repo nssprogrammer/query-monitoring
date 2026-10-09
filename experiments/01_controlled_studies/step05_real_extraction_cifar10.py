@@ -20,15 +20,15 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 5), row "Victim ≥ 85%; random looks null" (P5.0) | victim test accuracy; random campaigns look null | Pass (88.5–89.1%) | Cell 2 print "victim test acc" / VERDICT "victim test acc"; Part 5 print "P5.0 random-campaign false alarms" |
-# | App. P (Step 5), row "Active strategies beat random by ≥ 1 point" (P5.1) | fidelity gain of entropy / k-center over random | Partial (k-center yes, entropy no) | Cell 4 print "mean fidelity" (Δ pt column) |
-# | App. P (Step 5), row "No x > 1; concentration caught by λmax" (P5.2) | x and λ_max power per (strategy, N, A) | Pass | Part 4 detection print (`x=`, `max=`) / VERDICT `[det]` lines |
-# | App. P (Step 5), row "Fidelity gain tracks concentration" (P5.3) | Spearman(Δfidelity, concentration) | Fail (ρ = −0.15) | Part 5 print "P5.3 Spearman" |
-# | App. P (Step 5), row "Herding undetected because S̄ ≈ 1" (P5.5) | herding union S̄ in the defender embedding | Partial (S̄ 1.1–1.5) | Part 4 detection print `S=` for `herding` rows |
-# | App. P (Step 5), row "Spectral ≥ per-account, gap grows with A" (P5.6) | mean power spectral λ_max vs per-account max, by A | Pass on mean power; not cell by cell | Part 5 print "P5.6 A=..." |
-# | App. P (Step 5), row "Law holds on real attacks" (P5.4) | Step-4 law on real attacks (MAE, x range) | Pass, uninformative (all x < 0.25) | Part 5 print "P5.4 law on real attacks"; `x=` in Part 4 print |
+# | Prediction log (Step 5), row "Victim ≥ 85%; random looks null" (P5.0) | victim test accuracy; random campaigns look null | Pass (88.5–89.1%) | Cell 2 print "victim test acc" / VERDICT "victim test acc"; Part 5 print "P5.0 random-campaign false alarms" |
+# | Prediction log (Step 5), row "Active strategies beat random by ≥ 1 point" (P5.1) | fidelity gain of entropy / k-center over random | Partial (k-center yes, entropy no) | Cell 4 print "mean fidelity" (Δ pt column) |
+# | Prediction log (Step 5), row "No x > 1; concentration caught by λmax" (P5.2) | x and λ_max power per (strategy, N, A) | Pass | Part 4 detection print (`x=`, `max=`) / VERDICT `[det]` lines |
+# | Prediction log (Step 5), row "Fidelity gain tracks concentration" (P5.3) | Spearman(Δfidelity, concentration) | Fail (ρ = −0.15) | Part 5 print "P5.3 Spearman" |
+# | Prediction log (Step 5), row "Herding undetected because S̄ ≈ 1" (P5.5) | herding union S̄ in the defender embedding | Partial (S̄ 1.1–1.5) | Part 4 detection print `S=` for `herding` rows |
+# | Prediction log (Step 5), row "Spectral ≥ per-account, gap grows with A" (P5.6) | mean power spectral λ_max vs per-account max, by A | Pass on mean power; not cell by cell | Part 5 print "P5.6 A=..." |
+# | Prediction log (Step 5), row "Law holds on real attacks" (P5.4) | Step-4 law on real attacks (MAE, x range) | Pass, uninformative (all x < 0.25) | Part 5 print "P5.4 law on real attacks"; `x=` in Part 4 print |
 # | App. E 'CIFAR-10 regime map' | every active strategy concentrated in the victim's embedding and was detected at the upper edge | qualitative (no number) | Part 4 detection print (`S=` > 1, `max=`) |
-# | Table 16 (App. P, "Main settings"), CIFAR-10 rows | embedding / modes / bandwidths / whitening floor / reference / calibration | victim penultimate layer, PCA-32; m = 400; h ∈ {2, 4, 8}; 10−4; 300,000 benign queries; 1,000 null worlds per configuration | Cell 1 configuration (`D_DEF`, `M_MODES`, `HS`, `FLOOR`, `N_REF`, `N_NULL`); Bonferroni over bandwidths is added in Step 6 |
+# | Table 16 (App. O, "Main settings"), CIFAR-10 rows | embedding / modes / bandwidths / whitening floor / reference / calibration | victim penultimate layer, PCA-32; m = 400; h ∈ {2, 4, 8}; 10−4; 300,000 benign queries; 1,000 null worlds per configuration | Cell 1 configuration (`D_DEF`, `M_MODES`, `HS`, `FLOOR`, `N_REF`, `N_NULL`); Bonferroni over bandwidths is added in Step 6 |
 #
 # Not reported in the paper: the `class_balanced` strategy, per-budget fidelity values and their spread, the FRONTIER
 # query-multiplier table, linkage AUCs (spectral / per-account / pairwise), oracle-low/high detectors, missing-mode power
@@ -346,7 +346,7 @@ for name in STRATS:
 FID = {(n, N): (float(np.mean([CAMPAIGNS[(n, t)][1][N] for t in range(TRIALS)])), float(np.std([CAMPAIGNS[(n, t)][1][N] for t in range(TRIALS)])))
        for n in STRATS for N in CHECKS}
 print("\nmean fidelity (agreement with victim on test):")
-# [PAPER] App. P (Step 5, "Active strategies beat random by ≥ 1 point"): Partial (k-center yes, entropy no)
+# [PAPER] Prediction log (Step 5, "Active strategies beat random by ≥ 1 point"): Partial (k-center yes, entropy no)
 for n in STRATS: print(f"{n:>15}: " + "  ".join(f"N={N}: {FID[(n, N)][0]:.4f}±{FID[(n, N)][1]:.4f} (Δ {100*(FID[(n, N)][0]-FID[('random', N)][0]):+.2f} pt)" for N in CHECKS))
 RESULTS["fidelity"] = {f"{n}|{N}": FID[(n, N)] for n in STRATS for N in CHECKS}
 
@@ -390,7 +390,7 @@ for name in STRATS:
                            x=m_("z_oracle") / math.sqrt(A_), mm=m_("mm"), max=m_("max"), acct=m_("acct"), auc_acct=m_("auc_acct"), oracle_low=m_("oracle_low"),
                            oracle_high=m_("oracle_high"), auc_spectral=m_("auc_spectral"), auc_pairwise=m_("auc_pairwise"), n=len(acc[j]))
                 rowsD.append(row)
-            # [PAPER] App. P (Step 5): "No x > 1; concentration caught by λmax" Pass; herding S̄ 1.1–1.5 (Partial); App. E regime map (upper-edge detection)
+            # [PAPER] Prediction log (Step 5): "No x > 1; concentration caught by λmax" Pass; herding S̄ 1.1–1.5 (Partial); App. E regime map (upper-edge detection)
             print(f"{name:>15} N={N:5d} A={A_:3d}: " + " | ".join(f"h={r['h']}: S={r['S_union']:.3f} x={r['x']:+.2f} mm={r['mm']:.2f} max={r['max']:.2f} acct={r['acct']:.2f}"
                   for r in rowsD[-len(BANKS):]) + f"  ({time.time()-t0:.0f}s)")
 RESULTS["detection"] = rowsD
@@ -403,7 +403,7 @@ X50, WID = 1.052, 0.130   # fitted in Step 4, frozen
 pred = lambda x: 1 / (1 + np.exp(-(x - X50) / WID))
 mae = float(np.mean([abs(pred(r["x"]) - r["mm"]) for r in rowsD]))
 agree = float(np.mean([(r["x"] > X50) == (r["mm"] > 0.5) for r in rowsD]))
-# [PAPER] App. P (Step 5, "Law holds on real attacks"): Pass, uninformative (all x < 0.25)
+# [PAPER] Prediction log (Step 5, "Law holds on real attacks"): Pass, uninformative (all x < 0.25)
 print(f"P5.4 law on real attacks: MAE(predicted vs observed missing-mode power) = {mae:.3f} over {len(rowsD)} configs; rule agreement {agree:.3f}")
 eff = []
 for n in STRATS:
@@ -417,18 +417,18 @@ for n in STRATS:
 if len(eff) >= 4:
     r1 = spearmanr([e["dfid"] for e in eff], [e["delta"] for e in eff]).correlation
     r2 = spearmanr([e["dfid"] for e in eff], [e["conc"] for e in eff]).correlation
-    # [PAPER] App. P (Step 5, "Fidelity gain tracks concentration"): Fail (ρ = −0.15)
+    # [PAPER] Prediction log (Step 5, "Fidelity gain tracks concentration"): Fail (ρ = −0.15)
     print(f"P5.3 Spearman(Δfidelity, δ) = {r1:+.3f} | Spearman(Δfidelity, concentration) = {r2:+.3f}  (n={len(eff)})")
 else: r1 = r2 = float("nan")
 pos = [r for r in rowsD if r["strategy"] != "random"]
-# [PAPER] App. P (Step 5, "Spectral ≥ per-account, gap grows with A"): Pass on mean power; not cell by cell
+# [PAPER] Prediction log (Step 5, "Spectral ≥ per-account, gap grows with A"): Pass on mean power; not cell by cell
 for A_ in AS:
     rs = [r for r in pos if r["A"] == A_]
     print(f"P5.6 A={A_:3d}: mean power  spectral λ_max(raw) {np.mean([r['max'] for r in rs]):.3f} | per-account max {np.mean([r['acct'] for r in rs]):.3f} "
           f"| oracle-high {np.mean([r['oracle_high'] for r in rs]):.3f} | linkage AUC spectral {np.mean([r['auc_spectral'] for r in rs if r['max'] > 0.5] or [float('nan')]):.3f} "
           f"vs per-account {np.mean([r['auc_acct'] for r in rs if r['max'] > 0.5] or [float('nan')]):.3f}")
 nullrand = [r for r in rowsD if r["strategy"] == "random"]
-# [PAPER] App. P (Step 5, "Victim ≥ 85%; random looks null"): random campaigns look null (Pass)
+# [PAPER] Prediction log (Step 5, "Victim ≥ 85%; random looks null"): random campaigns look null (Pass)
 print(f"P5.0 random-campaign false alarms: mm {np.mean([r['mm'] for r in nullrand]):.3f} max {np.mean([r['max'] for r in nullrand]):.3f} acct {np.mean([r['acct'] for r in nullrand]):.3f} (nominal {ALPHA})")
 RESULTS["law"] = dict(mae=mae, agree=agree, spearman_delta=float(r1), spearman_conc=float(r2), eff=eff)
 # ---- practical frontier: query savings vs detection, per strategy and budget
@@ -482,7 +482,7 @@ plt.tight_layout(); plt.savefig(f"{OUTDIR}/step5_figure.png", dpi=130); plt.show
 # %%
 R = RESULTS
 print("=" * 82); print("STEP 5 VERDICT REPORT"); print("=" * 82)
-# [PAPER] App. P (Step 5, "Victim ≥ 85%; random looks null"): victim test accuracy Pass (88.5–89.1%)
+# [PAPER] Prediction log (Step 5, "Victim ≥ 85%; random looks null"): victim test accuracy Pass (88.5–89.1%)
 print("config:", json.dumps(R["config"])); print(f"victim test acc: {R['victim_acc']:.4f} | banks: {R['banks']}")
 for k, v in R["null"].items(): print(f"[null] A|N={k}: " + " ".join(f"thr min/maxraw/acct {t['tmin']:.3f}/{t['tmax_raw']:.3f}/{t['tacct']:.3f} S0={t['S_null']:.3f}" for t in v))
 for n in STRATS: print(f"[fid] {n:>15}: " + " ".join(f"N={N}:{FID[(n, N)][0]:.4f}±{FID[(n, N)][1]:.4f}" for N in CHECKS))

@@ -1,6 +1,6 @@
-# Prediction log (paper App. P)
+# Prediction log
 
-Every prediction below was written into the header of its notebook before the run. The predictions carry no external timestamp, so we call them *locked* rather than pre-registered. This is the same table as App. P of the paper, with each Step linked to the script that tests it; inside the script, the prediction IDs (e.g. `P35a`) appear in the header cell and in the final scorecard cell.
+Every prediction below was written into the header of its notebook before the run. The predictions carry no external timestamp, so we call them *locked* rather than pre-registered. This log accompanies the paper (its Reproducibility appendix gives the totals: 75 passed, 30 partially, 74 failed, 5 untestable); with each Step linked to the script that tests it; inside the script, the prediction IDs (e.g. `P35a`) appear in the header cell and in the final scorecard cell.
 
 | Step | Script | Prediction | Outcome | Consequence |
 |---|---|---|---|---|

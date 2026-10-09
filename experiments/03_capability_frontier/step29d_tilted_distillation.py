@@ -25,9 +25,9 @@
 # | §6 "The covert end"; App. G.2; Fig. 1a and Fig. 6a ("least detectable (tilted)") | gain at 3,000 queries, against 10.4; covertness cost | 2.2 points; 79% of the gain | Cell 7, tilted_c05 n = 3000; 79% = 1 − 2.2/10.4 with Step 19's reference (not computed here) |
 # | §6 and App. G.2 "The frontier, in one sentence" | upper end of the share of gain given up by campaigns that evaded every detector | 58–79% | upper end only (79%), as above; the 58% end comes from Step 32 |
 # | App. H (text) | on-task prompts in the attacker's pool; on-task share of the 10,000-query tilted campaign | 2,933; 29% on task | Cell 4, `len(ON_PAIRS)` in the "task region" print; the 29% follows from `tilted()` capping on-task draws at `len(ON_PAIRS)` |
-# | App. P (Step 29), "Base-rate on-task prompts distil (≥ 8 points at 10k)" | P29d | Fail (+1.5) | Cell 9 "P29d" print |
+# | Prediction log (Step 29), "Base-rate on-task prompts distil (≥ 8 points at 10k)" | P29d | Fail (+1.5) | Cell 9 "P29d" print |
 #
-# Not reported in the paper: the `tilted_c1` (all on-task) runs; the benign task-region share `P_TASK` (App. P Step 29 "Task region rare" reports 1.48% from the detection notebook, step27_31_bulk_edge_multioutlier_tilted.py, not from this script); the detection rates of the tilted campaign (from the Steps 27-31 and 35 notebooks); Part B (`RUN_B = False`; code carried over from Step 19, not run here).
+# Not reported in the paper: the `tilted_c1` (all on-task) runs; the benign task-region share `P_TASK` (Prediction log Step 29 "Task region rare" reports 1.48% from the detection notebook, step27_31_bulk_edge_multioutlier_tilted.py, not from this script); the detection rates of the tilted campaign (from the Steps 27-31 and 35 notebooks); Part B (`RUN_B = False`; code carried over from Step 19, not run here).
 
 # %% [markdown]
 # # Step 29d — Do base-rate on-task prompts distil? The least-favourable campaign in the extraction regime
@@ -39,7 +39,7 @@
 # * **tilted_c1** — all on-task natural prompts (up to the number available); two seeds.
 # * Student: SmolLM2-360M, full fine-tuning, GSM8K (first 400 problems) — exactly the extraction-regime setup of Step 19, whose MetaMathQA campaigns gained +15.9 (all math) and +12.1 (half padding) at 10,000 queries.
 #
-# | ID | Locked prediction (listed in App. P (prediction log), Step 29) |
+# | ID | Locked prediction (listed in the prediction log (docs/prediction_log.md), Step 29) |
 # |---|---|
 # | **P29d** | Base-rate prompts still distil: tilted_c05 gain at 10,000 queries ≥ 8 points |
 
@@ -378,7 +378,7 @@ if RUN_B:
 # ===== Cell 9: prediction and verdict =====
 GA_ = lambda v, n: float(np.mean([100 * (RA[(v, n, s)].mean() - BASE_A.mean()) for s in SEEDS_A if (v, n, s) in RA]))
 nmax = max(BUD_A)
-# [PAPER] App. P (Step 29, "Base-rate on-task prompts distil"): Fail (+1.5)
+# [PAPER] Prediction log (Step 29, "Base-rate on-task prompts distil"): Fail (+1.5)
 print(f"P29d tilted_c05 at {nmax} queries: gain {GA_('tilted_c05', nmax):+.1f} (pass if >= 8; Step 19 references: all-math +15.9, half padding +12.1)")
 print(f"[context] p = {P_TASK:.4f}; on-task pairs {len(ON_PAIRS)}; base GSM8K {BASE_A.mean():.4f}")
 print("=" * 90); print("STEP 29d VERDICT REPORT"); print("=" * 90)

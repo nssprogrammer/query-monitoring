@@ -24,21 +24,21 @@
 # | App. Table 8 (col "Selection on R", same rows) | oracle TPR at matched 1% (AUC) | 1.00 (1.00); 0.94 (1.00); 0.93 (1.00); 1.00 (1.00); 0.00 (0.51); 0.34 (0.61) | Cell 10, `row["tsR_roc"]` |
 # | App. Table 8 (col "R on topic cores", same rows) | oracle TPR at matched 1% (AUC) | 1.00 (1.00); 0.95 (1.00); 0.93 (1.00); 1.00 (1.00); 0.00 (0.48); 0.02 (0.54) | Cell 10, `row["coreR_roc"]` |
 # | App. Table 8 caption; App. F 'Hollowing' | deployed false alarms for C / R / core variant | 0.8% / 8.4% / 7.6% | Cell 9, `FPR["tsC"]`, `FPR["tsR"]`, `FPR["coreR"]` ("[weekly] held-out FPR" print) |
-# | App. P (Step 22, "Hollowing keeps calibration (≤ 1.5%) and power (≥ 0.75)") | hollowed (R) false alarms; MetaMathQA deployed power | Partial (8.4%; 0.90) | Cell 13 print "P22.4" (`FPR["tsR"]`, deployed `tsR` in `RES`) |
-# | App. P (Step 22, "Hollowing: real/shuffled λmax (R) ≤ 2") | real / shuffled λmax(R) | Partial (0.35: common drift mode) | Cell 9, `DIAG["ratioR"]` ("[C1]" print); print "P22.1" |
-# | App. P (Step 22, "Hollowed selection halves bulk-user groups") | templated bulk-user share of selected groups, C to R | Fail (0.08 to 0.06) | Cell 9, `DIAG["bulkC"]`, `DIAG["bulkR"]`; print "P22.2" |
-# | App. P (Step 22, "Group MMD on hollowed groups AUC ≥ 0.6") | group-MMD AUC on MetaMathQA, hollowed groups | Fail (0.18) | Cell 10, `row["gmmdR_roc"]["auc"]`; print "P22.3" |
-# | App. P (Step 22, "Profile score ≥ two-scale + 0.1 under padding"); App. F 'Statistics that failed' (profile "detected nothing under padding") | oracle TPR at 1% on mixed padding, profile vs two-scale | Fail (0.00 vs 0.21) | Cell 10, `profC_roc` / `tsC_roc` `tpr1` for metamath_mixed; print "P22.5" |
-# | App. P (Step 22, "Profile score flags GSM8K sweeps ≥ 50%") | deployed profile score on GSM8K sweep (3 x 300) | Fail (43%) | Cell 13 print "P22.6" (`RES` deployed `profC`) |
-# | App. P (Step 22, "Weeks to detection within 2× of ln(1/α)/D") | martingale median weeks vs ln(1/α)/D | Partial (15 vs 14.7, 16 vs 13.3; Proposition 3 holds unpadded at the floor) | Cell 11, `SEQ[src]["median_martingale"]` vs `SEQ[src]["predicted"]` ("[SEQ]" print; "P22.7/8") |
-# | App. P (Step 22, "Martingale median ≤ 6 weeks under padding, all-time FA ≤ 1%") | martingale weeks under padding; null-run all-time false alarms | Fail (15 weeks; FA 0/33) | Cell 11, `SEQ["metamath_mixed"]["median_martingale"]`; `FA_M` over `len(starts)` null runs |
+# | Prediction log (Step 22, "Hollowing keeps calibration (≤ 1.5%) and power (≥ 0.75)") | hollowed (R) false alarms; MetaMathQA deployed power | Partial (8.4%; 0.90) | Cell 13 print "P22.4" (`FPR["tsR"]`, deployed `tsR` in `RES`) |
+# | Prediction log (Step 22, "Hollowing: real/shuffled λmax (R) ≤ 2") | real / shuffled λmax(R) | Partial (0.35: common drift mode) | Cell 9, `DIAG["ratioR"]` ("[C1]" print); print "P22.1" |
+# | Prediction log (Step 22, "Hollowed selection halves bulk-user groups") | templated bulk-user share of selected groups, C to R | Fail (0.08 to 0.06) | Cell 9, `DIAG["bulkC"]`, `DIAG["bulkR"]`; print "P22.2" |
+# | Prediction log (Step 22, "Group MMD on hollowed groups AUC ≥ 0.6") | group-MMD AUC on MetaMathQA, hollowed groups | Fail (0.18) | Cell 10, `row["gmmdR_roc"]["auc"]`; print "P22.3" |
+# | Prediction log (Step 22, "Profile score ≥ two-scale + 0.1 under padding"); App. F 'Statistics that failed' (profile "detected nothing under padding") | oracle TPR at 1% on mixed padding, profile vs two-scale | Fail (0.00 vs 0.21) | Cell 10, `profC_roc` / `tsC_roc` `tpr1` for metamath_mixed; print "P22.5" |
+# | Prediction log (Step 22, "Profile score flags GSM8K sweeps ≥ 50%") | deployed profile score on GSM8K sweep (3 x 300) | Fail (43%) | Cell 13 print "P22.6" (`RES` deployed `profC`) |
+# | Prediction log (Step 22, "Weeks to detection within 2× of ln(1/α)/D") | martingale median weeks vs ln(1/α)/D | Partial (15 vs 14.7, 16 vs 13.3; Proposition 3 holds unpadded at the floor) | Cell 11, `SEQ[src]["median_martingale"]` vs `SEQ[src]["predicted"]` ("[SEQ]" print; "P22.7/8") |
+# | Prediction log (Step 22, "Martingale median ≤ 6 weeks under padding, all-time FA ≤ 1%") | martingale weeks under padding; null-run all-time false alarms | Fail (15 weeks; FA 0/33) | Cell 11, `SEQ["metamath_mixed"]["median_martingale"]`; `FA_M` over `len(starts)` null runs |
 # | Table 2 (row "Two-scale / Half padding", col "Anytime-valid", development weeks) | week of first anytime-valid alarm (GSM8K gain) | week 15 (15.5) | Cell 11 martingale median (metamath_mixed); the gain in parentheses combines this with the Step 19 gain curves (not computed here) |
-# | Table 2 (row "Two-scale / Dataset", col "Anytime-valid", development weeks); App. B 'Sequential detection in practice' ("about three weeks") | week of first anytime-valid alarm (GSM8K gain) | week 3 (12.7) | plausibly Cell 11 `SEQ["metamath_unique"]["median_martingale"]` (the conformal "floor" of App. P); gain from Step 19 |
-# | App. P, corrections ('Sequential prediction') | slow-down factor predicted by Proposition 3 | about 18 | not isolated (plausibly the ratio of `SEQ[...]["predicted"]` for padded vs unpadded sources) |
-# | App. P (Step 22, "Core-plus-halo calibrated power ≥ 0.4") | deployed power on mixed padding | Fail (halo 0.02; hollowed cores 0.90 at 7.6%) | Cell 13 print "P22.9" (`RES` `halo`, `coreR`; `FPR["coreR"]`) |
+# | Table 2 (row "Two-scale / Dataset", col "Anytime-valid", development weeks); App. B 'Sequential detection in practice' ("about three weeks") | week of first anytime-valid alarm (GSM8K gain) | week 3 (12.7) | plausibly Cell 11 `SEQ["metamath_unique"]["median_martingale"]` (the conformal "floor" of Prediction log); gain from Step 19 |
+# | Prediction log, corrections ('Sequential prediction') | slow-down factor predicted by Proposition 3 | about 18 | not isolated (plausibly the ratio of `SEQ[...]["predicted"]` for padded vs unpadded sources) |
+# | Prediction log (Step 22, "Core-plus-halo calibrated power ≥ 0.4") | deployed power on mixed padding | Fail (halo 0.02; hollowed cores 0.90 at 7.6%) | Cell 13 print "P22.9" (`RES` `halo`, `coreR`; `FPR["coreR"]`) |
 # | App. F 'Statistics that failed' | core-plus-halo statistic AUC | at chance (AUC 0.48) | Cell 10, `row["halo_roc"]["auc"]` ("[W] ... AUC ... halo=" print); campaign row not stated in the paper |
-# | App. P (Step 22, "Prefilter keeps ≥ 95% of colluders at 10% pass"); App. F 'Statistics that failed' ("kept none of the colluders") | colluder retention of the behavioural prefilter | Fail (0%) | Cell 12, `RETAIN` ("[PF]" print); print "P22.10" |
-# | App. P (Step 22, "Prefiltering restores power at 5% share") | filtered oracle TPR at 1% | Fail (0.00) | Cell 12, `PF["filtered"]["tpr"]`; print "P22.11" |
+# | Prediction log (Step 22, "Prefilter keeps ≥ 95% of colluders at 10% pass"); App. F 'Statistics that failed' ("kept none of the colluders") | colluder retention of the behavioural prefilter | Fail (0%) | Cell 12, `RETAIN` ("[PF]" print); print "P22.10" |
+# | Prediction log (Step 22, "Prefiltering restores power at 5% share") | filtered oracle TPR at 1% | Fail (0.00) | Cell 12, `PF["filtered"]["tpr"]`; print "P22.11" |
 #
 # Not reported in the paper: deployed power and FPR of `gmmdC`, `gmmdR`, `profR` and `glob`; the CUSUM detection times and false alarms; the KDE divergences `D`; the prefilter's test pass rate `q_test` and unfiltered TPR; the figure `step22_figure.png`.
 
@@ -46,14 +46,14 @@
 # # Step 22 — Hollowed group selection, structure-factor profiles, sequential detection, core-plus-halo, and a behavioural prefilter
 # **Kaggle:** GPU + Internet + `HF_TOKEN` → **Run All** (≈80–110 min; reuses earlier caches). `QUICK=True` first.
 #
-# Implements the locked analyses listed under Step 22 in the paper's App. P (prediction log) (Changes 1, 2, 3, 5 and 6 of the revision proposal), on the weekly WildChat protocol with whole-window, lagged calibration.
+# Implements the locked analyses listed under Step 22 in the paper's the prediction log (docs/prediction_log.md) (Changes 1, 2, 3, 5 and 6 of the revision proposal), on the weekly WildChat protocol with whole-window, lagged calibration.
 # * **Hollowed selection (Change 1).** R = D^{-1/2}(YYᵀ − D)D^{-1/2} with D = diag(‖y_a‖²): the top eigenvector picks accounts that move together, not the most clumped single accounts. Real versus shuffled λmax(R); share of selected groups that are templated bulk users (near-duplicate rate > 0.2); group-level MMD on hollowed groups.
 # * **Structure-factor profile (Change 2).** Φ(G) = (log S̄_h(G)) for h ∈ {0.25, 0.5, 1, 2, 4, 8}; profile score = robust distance from calibration-window groups of similar coarse concentration (|log S̄₄ − ·| ≤ 0.5).
 # * **Sequential detection (Change 3, Proposition 3).** Weekly conformal p-values of the window two-scale score over consecutive weeks; a test martingale with the Vovk–Wang mixture calibrator e(p) = (1 − p + p ln p)/(p ln² p), alarm at 1/α = 100; a CUSUM on ln e calibrated on null runs; D(P₁‖P₀) estimated by KDE from campaign and null scores, and ln(1/α)/D compared with the observed weeks to detection.
 # * **Core-plus-halo (Change 6).** Each account's densest topic cell is its core, the rest its halo; padding makes the halo look like independent draws from the population (S̄ ≈ 1). Window statistics: max over accounts of core share × exp(−|log S̄_halo|), and λmax of the hollowed matrix built from cores only.
 # * **Behavioural prefilter (Change 5).** Lempel–Ziv entropy rate of each account-week's topic sequence; the filter keeps the 10% least predictable benign account-weeks (threshold from the calibration period). Attacker model: campaign queries in random order (pool sampling). Colluder retention and oracle power on filtered populations of A = 1,000 at 5% colluder share.
 #
-# Predictions are those locked in the paper's App. P (prediction log), Step 22 rows.
+# Predictions are those locked in the paper's the prediction log (docs/prediction_log.md), Step 22 rows.
 
 # %%
 # ===== Cell 1: configuration =====
@@ -581,7 +581,7 @@ for b in TB:
         r = np.random.default_rng(SEED + 300 * b + t); idx, lab, vols = sub_window(b, r); s = NULLW[b][t]
         lamC_r.append(s["lamC"]); lamR_r.append(s["lamR"]); idx2 = idx[r.permutation(len(idx))]
         ss = window_stats22(idx2, lab, np.bincount(lab), B6[b], REFS[b]); lamC_s.append(ss["lamC"]); lamR_s.append(ss["lamR"])
-# [PAPER] App. P (Step 22): real/shuffled λmax(R) 0.35 (ratioR); bulk-user share of selected groups 0.08 to 0.06 (bulkC -> bulkR)
+# [PAPER] Prediction log (Step 22): real/shuffled λmax(R) 0.35 (ratioR); bulk-user share of selected groups 0.08 to 0.06 (bulkC -> bulkR)
 DIAG = dict(ratioC=float(np.median(lamC_r) / np.median(lamC_s)), ratioR=float(np.median(lamR_r) / np.median(lamR_s)),
             bulkC=float(np.mean([r["dupC"] > DUP_CUT for b in TB for r in NULLW[b]])), bulkR=float(np.mean([r["dupR"] > DUP_CUT for b in TB for r in NULLW[b]])))
 print(f"[C1] lambda_max real/shuffled: C {DIAG['ratioC']:.2f}, hollowed R {DIAG['ratioR']:.2f} | selected groups that are templated bulk users (dup>{DUP_CUT}): C {DIAG['bulkC']:.2f}, R {DIAG['bulkR']:.2f}")
@@ -614,7 +614,7 @@ for src in SRCS:
         for d in DET22:
             if acc[d]: pw[d].append(np.mean(acc[d]))
     # [PAPER] App. Table 8: oracle TPR at matched 1% (AUC) per source for selection on C (tsC_roc), R (tsR_roc), R on topic cores (coreR_roc)
-    # [PAPER] App. P (Step 22): group-MMD AUC 0.18 (gmmdR_roc); profile 0.00 vs two-scale 0.21 on mixed padding (tpr1); App. F: core-plus-halo AUC 0.48 (halo_roc)
+    # [PAPER] Prediction log (Step 22): group-MMD AUC 0.18 (gmmdR_roc); profile 0.00 vs two-scale 0.21 on mixed padding (tpr1); App. F: core-plus-halo AUC 0.48 (halo_roc)
     row = dict(source=name, **{d: boot_ci(pw[d]) for d in DET22 if pw[d]}, **{d + "_roc": roc(nv[d], av[d]) for d in DET22}); RES.append(row)
     print(f"[W] {name:>22} | deployed " + " ".join(f"{d}={row[d][0]:.2f}" for d in DET22) + " | AUC " + " ".join(f"{d}={row[d+'_roc']['auc']:.2f}" for d in ["tsC", "tsR", "profC", "gmmdR", "halo", "coreR"]) + f"  ({time.time()-t0:.0f}s)")
 
@@ -650,14 +650,14 @@ for s0 in starts:
     for w in [w for w in weeks if w >= s0][:S22["SEQ_H"]]: C = max(0.0, C + np.log(max(float(calib_e(P0[w])), 1e-12))); mx = max(mx, C)
     nullmax.append(mx)
 CUSUM_H = float(np.quantile(nullmax, 0.99)) + 1e-9
-# [PAPER] App. P (Step 22): all-time false alarms on null runs, FA 0/33
+# [PAPER] Prediction log (Step 22): all-time false alarms on null runs, FA 0/33
 FA_M = float(np.mean([run_time(P0, s0, S22["SEQ_H"])[0] is not None for s0 in starts])); FA_C = float(np.mean([run_time(P0, s0, S22["SEQ_H"])[1] is not None for s0 in starts]))
 from scipy.stats import gaussian_kde
 null_sc = np.array([r["tsC"] for w in SEQW for r in NULLW[w]]); SEQ = {}
 for src in P1:
     tm = [run_time(P1[src], s0, S22["SEQ_H"]) for s0 in starts]; m_ = [t[0] if t[0] else np.inf for t in tm]; c_ = [t[1] if t[1] else np.inf for t in tm]
     f1, f0 = gaussian_kde(SC1[src]), gaussian_kde(null_sc); x = np.array(SC1[src]); D = float(np.mean(np.log(np.maximum(f1(x), 1e-12) / np.maximum(f0(x), 1e-12))))
-    # [PAPER] App. P (Step 22): martingale median vs ln(1/alpha)/D, 15 vs 14.7 and 16 vs 13.3; 15 weeks under padding
+    # [PAPER] Prediction log (Step 22): martingale median vs ln(1/alpha)/D, 15 vs 14.7 and 16 vs 13.3; 15 weeks under padding
     # [PAPER] Table 2 (row "Two-scale / Half padding", col "Anytime-valid", dev weeks): week 15 (15.5); gain in parentheses from Step 19 (see header)
     SEQ[src] = dict(median_martingale=float(np.median(m_)), median_cusum=float(np.median(c_)), frac_detected=float(np.mean(np.isfinite(m_))), D=D, predicted=float(np.log(1 / ALPHA_SEQ) / max(D, 1e-9)))
     print(f"[SEQ] {src:>18}: martingale median {SEQ[src]['median_martingale']} weeks (detected {SEQ[src]['frac_detected']:.2f} within {S22['SEQ_H']}); CUSUM median {SEQ[src]['median_cusum']}; D={D:.3f} -> ln(1/alpha)/D = {SEQ[src]['predicted']:.1f} weeks")
@@ -691,7 +691,7 @@ ret = []
 for t in range(200 if not QUICK else 20):
     r = np.random.default_rng(SEED + 13_000 + t); n = int(r.choice([len(g) for g in test_pool])); Zc, Ec, Tc = campaign_points("metamath_unique", n, r)
     ret.append(lz_entropy(Tc[r.permutation(len(Tc))]) > H_THR)
-# [PAPER] App. P (Step 22): prefilter keeps 0% of colluders; App. F 'Statistics that failed': kept none of the colluders
+# [PAPER] Prediction log (Step 22): prefilter keeps 0% of colluders; App. F 'Statistics that failed': kept none of the colluders
 RETAIN = float(np.mean(ret)); print(f"[PF] LZ threshold {H_THR:.3f}; benign pass rate q: calibration 0.10, test {q_test:.3f}; MetaMathQA colluder retention {RETAIN:.3f}  ({time.time()-t0:.0f}s)")
 refP = np.random.default_rng(12).choice(np.concatenate(cal_pool), min(100000, sum(len(g) for g in cal_pool)), replace=False)
 BP = {h: make_bank_aug(Z[refP], h, SEED + 7) for h in [0.5, 4.0]}
@@ -714,7 +714,7 @@ for mode in ["unfiltered", "filtered"]:
             _, labc = np.unique(labc, return_inverse=True)
         k_eff = int(labc.max()) + 1; _, inv = np.unique(np.concatenate([labc, lab + k_eff]), return_inverse=True)
         atts.append(lean_ts(np.vstack([Zc, Z[idx]]), inv, np.bincount(inv)))
-    # [PAPER] App. P (Step 22): prefiltering restores power at 5% share, Fail (0.00) (filtered TPR)
+    # [PAPER] Prediction log (Step 22): prefiltering restores power at 5% share, Fail (0.00) (filtered TPR)
     thr = np.quantile(nulls, 0.99); PF[mode] = dict(tpr=float(np.mean(np.array(atts) > thr)), A_eff=float(np.mean([len(p) for p in [pick]])))
     print(f"[PF] {mode:>10}: oracle TPR at 1% = {PF[mode]['tpr']:.2f}  ({time.time()-t0:.0f}s)")
 
@@ -727,14 +727,14 @@ g_ = lambda src, d, k=None: next(((r[d + "_roc"][k] if k else r[d][0]) for r in 
 print(f"P22.1 lambda_max(R) real/shuffled {DIAG['ratioR']:.2f} (pass if <= 2; C: {DIAG['ratioC']:.2f})")
 print(f"P22.2 bulk-user share of selected groups: C {DIAG['bulkC']:.2f} -> R {DIAG['bulkR']:.2f} (pass if falls by >= 50%)")
 print(f"P22.3 group-MMD AUC on MetaMathQA: hollowed {g_('metamath_unique','gmmdR','auc'):.2f} vs C {g_('metamath_unique','gmmdC','auc'):.2f} (pass if hollowed >= 0.6)")
-# [PAPER] App. P (Step 22): hollowing keeps calibration and power, Partial (8.4%; 0.90)
+# [PAPER] Prediction log (Step 22): hollowing keeps calibration and power, Partial (8.4%; 0.90)
 print(f"P22.4 hollowed two-scale: FPR {FPR['tsR'][0]:.3f} (<= 0.015), MetaMathQA power {g_('metamath_unique','tsR'):.2f} (>= 0.75)")
 print(f"P22.5 mixed padding oracle TPR@1%: profile {g_('metamath_mixed','profC','tpr1'):.2f} vs two-scale {g_('metamath_mixed','tsC','tpr1'):.2f} (pass if >= +0.1)")
-# [PAPER] App. P (Step 22): profile score flags GSM8K sweeps, Fail (43%)
+# [PAPER] Prediction log (Step 22): profile score flags GSM8K sweeps, Fail (43%)
 print(f"P22.6 GSM8K evaluation sweep flagged by the profile score: {g_('eval_gsm8k(3x300)','profC'):.2f} (pass if >= 0.5)")
 for src, v in SEQ.items(): print(f"P22.7/8 {src}: martingale median {v['median_martingale']} weeks vs ln(1/alpha)/D {v['predicted']:.1f}; detected within horizon {v['frac_detected']:.2f}")
 print(f"P22.8 all-time false alarms on null runs: martingale {FA_M:.3f}, CUSUM {FA_C:.3f} (pass if <= 0.01 and median <= 6 on mixed)")
-# [PAPER] App. P (Step 22): core-plus-halo, Fail (halo 0.02; hollowed cores 0.90 at 7.6%)
+# [PAPER] Prediction log (Step 22): core-plus-halo, Fail (halo 0.02; hollowed cores 0.90 at 7.6%)
 print(f"P22.9 core-plus-halo on mixed padding: deployed {g_('metamath_mixed','halo'):.2f} (FPR {FPR['halo'][0]:.3f}); core-hollowed {g_('metamath_mixed','coreR'):.2f} (FPR {FPR['coreR'][0]:.3f}) (pass if calibrated and >= 0.4)")
 print(f"P22.10 prefilter: test pass rate {q_test:.3f}, colluder retention {RETAIN:.3f} (>= 0.95)")
 print(f"P22.11 filtered oracle TPR at 5% share: {PF['filtered']['tpr']:.2f} vs unfiltered {PF['unfiltered']['tpr']:.2f} (pass if filtered >= 0.6)")

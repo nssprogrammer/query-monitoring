@@ -35,10 +35,10 @@
 # | App. E 'The dose–response study' | window-resampled suite false alarms at s = 1 | 0.6% | plausibly Part A print "null FPR" at s=1.00 (`geo_suite`); the companion 31% / 100% account-resampling figures come from Step 7 Part A |
 # | App. E 'The dose–response study' | union S̄ of benign ten-account clusters vs attacks | 83–159, against 26–30 for the attacks | Part C prints "benign 10-account clusters ... union S" and "attacks at N=10000: union S" |
 # | App. E 'The dose–response study' | task-aware suite tolerated one cluster at 100 accounts and a few at 1,000, then failed | qualitative (see Table 4) | Part B `dir_suite` |
-# | App. P (Step 8), row "Geometry breaks at s ∈ [0.05, 0.5]" (P8.1) | interpolated 50% point s50 | Partial (0.175 at A = 100; ≤ 0.06 at 1,000) | prediction print "P8.1/P8.2 ... (s50 ...)" |
-# | App. P (Step 8), row "Task-aware suite ≥ 0.8 at s = 1" (P8.2) | directional-suite power at s = 1 | Fail (≤ 0.17) | prediction print "P8.1/P8.2 ... dir s=1" |
-# | App. P (Step 8), row "Calibration ≤ 1.5× nominal" (P8.3) | null / random-campaign false-positive rate | Partial (mean 1.1%, worst 3.3%) | worst: print "P8.3 max null FPR ... random-campaign max"; mean: not isolated (summary over Part A / Part B random rows) |
-# | App. P (Step 8), row "Clusters out-shine attacks in geometry, not margin" (P8.4) | benign-cluster vs attack union S̄ and low-margin share | Partial (geometry yes, margin no) | Part C diagnostic prints |
+# | Prediction log (Step 8), row "Geometry breaks at s ∈ [0.05, 0.5]" (P8.1) | interpolated 50% point s50 | Partial (0.175 at A = 100; ≤ 0.06 at 1,000) | prediction print "P8.1/P8.2 ... (s50 ...)" |
+# | Prediction log (Step 8), row "Task-aware suite ≥ 0.8 at s = 1" (P8.2) | directional-suite power at s = 1 | Fail (≤ 0.17) | prediction print "P8.1/P8.2 ... dir s=1" |
+# | Prediction log (Step 8), row "Calibration ≤ 1.5× nominal" (P8.3) | null / random-campaign false-positive rate | Partial (mean 1.1%, worst 3.3%) | worst: print "P8.3 max null FPR ... random-campaign max"; mean: not isolated (summary over Part A / Part B random rows) |
+# | Prediction log (Step 8), row "Clusters out-shine attacks in geometry, not margin" (P8.4) | benign-cluster vs attack union S̄ and low-margin share | Partial (geometry yes, margin no) | Part C diagnostic prints |
 #
 # Not reported in the paper: N = 5,000 cells, random-campaign power curves, the combined `both` suite, individual
 # detectors (`spec`, `hc`, `glob`, `d_hc`, `d_glob`, `d_sum`), the low-margin threshold and per-topic low-margin shares,
@@ -559,7 +559,7 @@ for t in range(30 if not QUICK else 5):
 att_S = {n_: float(np.mean([r["S_un"] for r in rowsB if r["strategy"] == n_ and r["s"] == 0.0 and r["A"] == A_ and r["N"] == max(N8)])) for n_ in ["entropy", "kcenter"]}
 att_low = {n_: float(np.mean([r["low_share"] for r in rowsB if r["strategy"] == n_ and r["A"] == A_ and r["N"] == max(N8)])) for n_ in ["entropy", "kcenter"]}
 # [PAPER] App. E 'The dose–response study': benign ten-account clusters union S̄ 83–159, against 26–30 for the attacks
-# [PAPER] App. P (Step 8, "Clusters out-shine attacks in geometry, not margin"): Partial (geometry yes, margin no)
+# [PAPER] Prediction log (Step 8, "Clusters out-shine attacks in geometry, not margin"): Partial (geometry yes, margin no)
 print(f"benign 10-account clusters (n={len(clus_S)}): union S median {np.median(clus_S):.1f}, 90th pct {np.quantile(clus_S, .9):.1f} | low-margin share median {np.median(clus_low):.3f}, 90th pct {np.quantile(clus_low, .9):.3f}")
 print(f"attacks at N={max(N8)}: union S " + ", ".join(f"{k} {v:.1f}" for k, v in att_S.items()) + " | low-margin share " + ", ".join(f"{k} {v:.3f}" for k, v in att_low.items()))
 RESULTS8["C"] = dict(clusS_med=float(np.median(clus_S)), clusS_p90=float(np.quantile(clus_S, .9)), clusLow_med=float(np.median(clus_low)),
@@ -574,9 +574,9 @@ for A_ in A8:
     for n_ in ["entropy", "kcenter"]:
         for N in N8:
             rr = [r for r in rowsB if r["A"] == A_ and r["strategy"] == n_ and r["N"] == N]
-            # [PAPER] App. P (Step 8): "Geometry breaks at s ∈ [0.05, 0.5]" Partial (0.175 at A = 100; ≤ 0.06 at 1,000) via s50; "Task-aware suite ≥ 0.8 at s = 1" Fail (≤ 0.17) via dir s=1
+            # [PAPER] Prediction log (Step 8): "Geometry breaks at s ∈ [0.05, 0.5]" Partial (0.175 at A = 100; ≤ 0.06 at 1,000) via s50; "Task-aware suite ≥ 0.8 at s = 1" Fail (≤ 0.17) via dir s=1
             print(f"P8.1/P8.2 A={A_} {n_} N={N}: geo s=0 {rr[0]['geo_suite']:.2f} -> s=1 {rr[-1]['geo_suite']:.2f} (s50 {s50(rr):.3f}) | dir s=1 {rr[-1]['dir_suite']:.2f} | both s=1 {rr[-1]['both']:.2f}")
-# [PAPER] App. P (Step 8, "Calibration ≤ 1.5× nominal"): Partial (mean 1.1%, worst 3.3%); worst printed here, mean not isolated
+# [PAPER] Prediction log (Step 8, "Calibration ≤ 1.5× nominal"): Partial (mean 1.1%, worst 3.3%); worst printed here, mean not isolated
 print(f"P8.3 max null FPR: geo {max(r['geo_suite'] for r in rowsA):.3f} dir {max(r['dir_suite'] for r in rowsA):.3f} (nominal <= {ALPHA}); "
       f"random-campaign max: geo {max(r['geo_suite'] for r in rowsB if r['strategy']=='random'):.3f} dir {max(r['dir_suite'] for r in rowsB if r['strategy']=='random'):.3f}")
 

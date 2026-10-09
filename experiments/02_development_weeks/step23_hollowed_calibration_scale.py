@@ -20,15 +20,15 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | §5 'Padding, and a fix that looks at directions'; App. D.4; App. P (Step 23, "Common-mode removal: real/shuffled λmax (Rc) ≥ 1") | top eigenvalue of Rc, real / shuffled weeks | 1.14 (App. P: Pass (1.14)) | Cell 9, `RATIO` ("[C1]" print); print "P23.1" |
-# | §5 'Padding, and a fix that looks at directions'; App. D.4; App. Table 9 caption; App. P (Step 23, "Conformal hollowed selection: false alarms ≤ 2%") | held-out false alarms, conformal thresholds (Rc and C) | no false alarm in 960 windows; Pass (0/960 windows; week-level bound 12%) | Cell 9, `FPR[("conf","tsRc")]`, `FPR[("conf","tsC")]`; print "P23.2" |
+# | §5 'Padding, and a fix that looks at directions'; App. D.4; Prediction log (Step 23, "Common-mode removal: real/shuffled λmax (Rc) ≥ 1") | top eigenvalue of Rc, real / shuffled weeks | 1.14 (Prediction log: Pass (1.14)) | Cell 9, `RATIO` ("[C1]" print); print "P23.1" |
+# | §5 'Padding, and a fix that looks at directions'; App. D.4; App. Table 9 caption; Prediction log (Step 23, "Conformal hollowed selection: false alarms ≤ 2%") | held-out false alarms, conformal thresholds (Rc and C) | no false alarm in 960 windows; Pass (0/960 windows; week-level bound 12%) | Cell 9, `FPR[("conf","tsRc")]`, `FPR[("conf","tsC")]`; print "P23.2" |
 # | App. Table 9 (top, row "Selection on Rc"; cols MetaMathQA, Mixed, Follow-up, Random, Sweep 3 accts, Sweep 10 accts) | weekly deployed detection (conformal) | 1.00; 0.48; 0.46; 0.00; 0.42; 0.97 | Cell 9, `RES` key `"conf/tsRc"` ("[W]" print) |
 # | App. Table 9 (top, row "Selection on C", same cols) | weekly deployed detection (conformal) | 0.82; 0.00; 0.02; 0.00; 0.80; 0.82 | Cell 9, `RES` key `"conf/tsC"` |
-# | §5 'Padding, and a fix that looks at directions'; App. D.4; Table 3 caption (development-week hollowed values); App. P (Step 23, "Calibrated hollowed selection ≥ 0.6 under padding": Fail (0.48)) | hollowed vs C selection on padded campaigns; hollowed on dataset | 0.46–0.48 against 0.00–0.02; dataset 1.00 | Cell 9, `"conf/tsRc"` / `"conf/tsC"` for metamath_mixed, metamath_followup, metamath_unique; print "P23.3" |
+# | §5 'Padding, and a fix that looks at directions'; App. D.4; Table 3 caption (development-week hollowed values); Prediction log (Step 23, "Calibrated hollowed selection ≥ 0.6 under padding": Fail (0.48)) | hollowed vs C selection on padded campaigns; hollowed on dataset | 0.46–0.48 against 0.00–0.02; dataset 1.00 | Cell 9, `"conf/tsRc"` / `"conf/tsC"` for metamath_mixed, metamath_followup, metamath_unique; print "P23.3" |
 # | Table 2 (row "Hollowed", col "Weekly detection", development weeks); App. Table 15 (development weeks, col "Hollowed") | weekly detection, dataset; half padding | 1.00; 0.44–0.48 | plausibly Cell 9 `"conf/tsRc"` (this script gives 1.00 and 0.46–0.48; the 0.44 end plausibly from the Steps 27–31 run) |
-# | App. D.4; App. P (Step 23, "Sweeps: 3 accounts ≤ 0.4, 10 accounts ≥ 0.5") | benign GSM8K evaluation sweep flagged (Rc, conformal) | 0.97 (ten accounts), 0.42 (three accounts); Partial (0.42; 0.97) | Cell 9, `"conf/tsRc"` for `eval_gsm8k(10x100)` and `eval_gsm8k(3x300)`; print "P23.5" |
+# | App. D.4; Prediction log (Step 23, "Sweeps: 3 accounts ≤ 0.4, 10 accounts ≥ 0.5") | benign GSM8K evaluation sweep flagged (Rc, conformal) | 0.97 (ten accounts), 0.42 (three accounts); Partial (0.42; 0.97) | Cell 9, `"conf/tsRc"` for `eval_gsm8k(10x100)` and `eval_gsm8k(3x300)`; print "P23.5" |
 # | App. Table 9 (bottom, pooled oracle TPR at 1%, A = 250 / 1,000 / 2,500 / 5,000 / 10,000; rows "C, unpadded", "Rc, unpadded", "Rc, mixed padding") | oracle TPR at 1% | 0.97 0.75 0.28 0.12 0.05; 1.00 1.00 0.00 0.00 0.03; 1.00 0.10 0.00 0.00 0.03 | Cell 10, `SCALE` rows, `row["tsC"]`, `row["tsRc"]` ("[S]" print) |
-# | App. Table 9 (bottom, row "Colluders in Rc's group"); App. P (Step 23, "Hollowed selection ≥ 0.5 at 1% colluders") | share of colluders in the Rc-selected group; Rc TPR at A = 5,000 | 1.00 1.00 0.00 0.00 0.00; Fail (0.00; group has no colluders) | Cell 10, `row["recall_Rc"]`, `row["tsRc"]`; print "P23.4" |
+# | App. Table 9 (bottom, row "Colluders in Rc's group"); Prediction log (Step 23, "Hollowed selection ≥ 0.5 at 1% colluders") | share of colluders in the Rc-selected group; Rc TPR at A = 5,000 | 1.00 1.00 0.00 0.00 0.00; Fail (0.00; group has no colluders) | Cell 10, `row["recall_Rc"]`, `row["tsRc"]`; print "P23.4" |
 # | App. Table 15 (row "Pooled, 1,000 accounts, 5% colluders / Dataset", col "Two-scale") | oracle detection | 0.75–0.80 | plausibly Cell 10 `SCALE` `tsC` at A = 1,000 (0.75; the 0.80 is App. Table 10 from a separate run) |
 #
 # Not reported in the paper: rolling-calibration (`roll/...`) false alarms and power; selection on the uncentred hollowed matrix R (`tsR`) in this run; weekly oracle TPR/AUC; the true-colluder-set score `orc` in `SCALE` (App. Table 10 comes from a separate run); the figure `step23_figure.png`.
@@ -43,7 +43,7 @@
 # * **Mimicry and benign sweeps**: MetaMathQA, mixed padding, follow-up mimicry, random natural, and GSM8K evaluation sweeps from 3 × 300 and 10 × 100 accounts.
 # * **Scale**: pooled populations of A = 250 … 10,000 account-weeks, campaign fixed at 1,640 queries over 50 colluders, oracle thresholds. The top eigenvector of R is computed matrix-free (Lanczos), so A = 10⁴ is cheap.
 #
-# | ID | Locked prediction (paper's App. P (prediction log), Step 23 rows) |
+# | ID | Locked prediction (paper's the prediction log (docs/prediction_log.md), Step 23 rows) |
 # |---|---|
 # | **P23.1** | Removing the common mode exposes coordination: real/shuffled λmax(Rc) ≥ 1 |
 # | **P23.2** | Hollowed selection can be calibrated: Rc with the conformal threshold has held-out false alarms ≤ 2% |
@@ -528,7 +528,7 @@ for b in TB:
     TH[b].update({("conf", d): float(np.quantile([r[d] for r in allp], 1 - ALPHA)) for d in DET23})
 CALS = [(c, d) for c in ["roll", "conf"] for d in DET23]
 fires = lambda s, b: {k: s[k[1]] > TH[b][k] for k in CALS}
-# [PAPER] §5 'Padding, and a fix that looks at directions', App. D.4, App. Table 9 caption, App. P (Step 23): conformal (conf/tsRc, conf/tsC) no false alarm in 960 windows (0/960; week-level bound 12%)
+# [PAPER] §5 'Padding, and a fix that looks at directions', App. D.4, App. Table 9 caption, Prediction log (Step 23): conformal (conf/tsRc, conf/tsC) no false alarm in 960 windows (0/960; week-level bound 12%)
 FPR = {k: boot_ci([np.mean([fires(r, b)[k] for r in NULLW[b]]) for b in TB]) for k in CALS}
 print("[weekly] held-out FPR: " + " ".join(f"{c}/{d}={FPR[(c, d)][0]:.3f}" for c, d in CALS))
 lr, ls = [], []
@@ -536,7 +536,7 @@ for b in TB:
     for t in range(3):
         r = np.random.default_rng(SEED + 300 * b + t); idx, lab, vols = sub_window(b, r); lr.append(NULLW[b][t]["lamRc"])
         ls.append(stats23(Z[idx[r.permutation(len(idx))]], lab, np.bincount(lab), *BANK[b])["lamRc"])
-# [PAPER] §5 'Padding, and a fix that looks at directions', App. D.4, App. P (Step 23): top eigenvalue of Rc real/shuffled 1.14
+# [PAPER] §5 'Padding, and a fix that looks at directions', App. D.4, Prediction log (Step 23): top eigenvalue of Rc real/shuffled 1.14
 RATIO = float(np.median(lr) / np.median(ls)); print(f"[C1] lambda_max(Rc) real/shuffled = {RATIO:.2f}")
 RES = []
 CONFIGS = [(s_, None, None) for s_ in ["metamath_unique", "metamath_mixed", "metamath_followup", "random"]] + [(s_, k_, n_) for s_, k_, n_ in S23["EVALS"]]
@@ -591,7 +591,7 @@ for A_ in S23["AS"]:
         for d in DET23:
             thr = np.quantile([x[d] for x in nul], 0.99); row[d] = float(np.mean([x[d] > thr for x in att]))
         row["orc"] = float(np.mean([x["orc"] > np.quantile([x["tsC"] for x in nul], 0.99) for x in att]))
-        # [PAPER] App. Table 9 (bottom, row "Colluders in Rc's group"): 1.00 1.00 0.00 0.00 0.00; App. P (Step 23): 0.00 at 1% colluders, group has no colluders
+        # [PAPER] App. Table 9 (bottom, row "Colluders in Rc's group"): 1.00 1.00 0.00 0.00 0.00; Prediction log (Step 23): 0.00 at 1% colluders, group has no colluders
         row["recall_Rc"] = float(np.mean([np.mean(x["gRc"] < S23["KP"]) for x in att]))
         SCALE.append(row)
         print(f"[S] A={A_:6d} ({100*row['share']:.1f}%) {src:>16}: oracle TPR@1% C {row['tsC']:.2f} | R {row['tsR']:.2f} | Rc {row['tsRc']:.2f} | true colluder set {row['orc']:.2f} | Rc group precision {row['recall_Rc']:.2f}  ({time.time()-t0:.0f}s)")
@@ -602,7 +602,7 @@ for A_ in S23["AS"]:
 # %%
 # ===== Cell 11: predictions, figure, verdict =====
 G = lambda name, key: next((r[key][0] for r in RES if r["source"] == name and key in r), None)
-# [PAPER] App. P (Step 23 rows): 1.14; 0/960 windows; 0.48; 0.00; 0.42 and 0.97
+# [PAPER] Prediction log (Step 23 rows): 1.14; 0/960 windows; 0.48; 0.00; 0.42 and 0.97
 print(f"P23.1 lambda_max(Rc) real/shuffled {RATIO:.2f} (pass if >= 1)")
 print(f"P23.2 held-out FPR conf/tsRc {FPR[('conf','tsRc')][0]:.3f} [{FPR[('conf','tsRc')][1]:.3f},{FPR[('conf','tsRc')][2]:.3f}]; roll/tsRc {FPR[('roll','tsRc')][0]:.3f} (pass if conf <= 0.02)")
 print(f"P23.3 mixed padding deployed: conf/tsRc {G('metamath_mixed','conf/tsRc'):.2f}, roll/tsRc {G('metamath_mixed','roll/tsRc'):.2f}, conf/tsC {G('metamath_mixed','conf/tsC'):.2f} (pass if conf/tsRc >= 0.6)")

@@ -277,10 +277,11 @@ In pooled WildChat populations of 250, 2{,}500 and 10{,}000 account-weeks, each 
 \input{sections/full/s10_related}
 \input{sections/full/s11_limitations}
 
+\clearpage
 \section{Implementation details}
 \label{app:impl}
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \caption{Main settings.}
 \small
@@ -303,20 +304,8 @@ Compute & Kaggle notebooks with one T4 or P100 GPU; each experiment runs in 0.5-
 \end{tabular}
 \end{table}
 
-\section{Prediction log and corrections}
-\label{app:log}
-
-Experiments ran as numbered steps, each in its own notebook. Every prediction below was written into the header of its notebook before the run; 40 concern the controlled studies (Steps 1--8) and 13 the frozen evaluation on untouched weeks (Step 35). The predictions carry no external timestamp, so we call them locked rather than pre-registered. Of 184, 75 passed, 30 passed partially, 74 failed and 5 could not be tested.
-
-{\small
-\setlength{\tabcolsep}{4pt}
-\input{sections/prediction_log}
-}
-
-\paragraph{Corrections made during the study.}
-\input{sections/corrections_body}
-
+\FloatBarrier
 \section{Reproducibility}
 \label{app:repro}
 
-Every number comes from Kaggle notebooks run with fixed seeds on one T4 or P100 GPU, numbered by the steps of the prediction log. WildChat-1M, WildChat-4.8M, MetaMathQA, Magicoder-OSS-Instruct, Alpaca, GSM8K and MMLU are public; the WildChat notebooks require a Hugging Face token with access to the datasets. The supplementary material contains the benign-coordination census script. The detectors, the calibration protocol and the notebooks will be released with the final version; the campaign constructions will be shared with researchers and providers on request.
+Every number comes from Kaggle notebooks run with fixed seeds on one T4 or P100 GPU. Experiments ran as numbered steps, each in its own notebook, and before each run we wrote its predictions into the notebook header; they carry no external timestamp, so we call them locked rather than pre-registered. Of 184 predictions, 75 passed, 30 passed partially, 74 failed and 5 could not be tested. The supplementary code contains every notebook; a map from each table, figure and quoted number in this paper to the script and line that computes it; the full prediction log with outcomes; the corrections we made during the study; the figure script; and the benign-coordination census script. WildChat-1M, WildChat-4.8M, MetaMathQA, Magicoder-OSS-Instruct, Alpaca, GSM8K and MMLU are public; the WildChat notebooks require a Hugging Face token with access to the datasets.

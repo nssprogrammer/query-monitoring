@@ -20,14 +20,14 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 1), row "Union S(k) matches jittered-grid theory" (P1) | max relative error of the colluders' union structure factor vs jittered-grid theory | Pass (≤ 2% error) | Part A cell (shell table); VERDICT REPORT cell, `relA`, print "[P1] max rel err union vs theory" |
-# | App. P (Step 1), row "Colluder pair correlation −(1 − S̄)/K" (P2) | mean colluder-pair C_ab, measured vs predicted | Pass (−0.0451 vs −0.0451) | Part B cell (`pred_pair`); VERDICT REPORT cell, print "[P2] pair mean=... pred=..." |
-# | App. P (Step 1), row "BBP outlier below the bulk" (P3); App. E "Spectral detection condition" ("on a 2-D torus the measured lower outlier matched the BBP prediction to four decimals") | attacked λ_min, measured vs BBP prediction | Pass (0.0702 vs 0.0701) | Part B cell (`att["lam_min"]`, `att["lam_pred"]`); VERDICT REPORT cell, print "[P3] lam_min=... pred=..." |
-# | App. P (Step 1), row "Padding threshold f∗ = 0.445" (P4) | predicted padding threshold f* vs empirical f at power 0.5 | 0.445 predicted; Partial (0.408) | Part C cell (`fstar`); VERDICT REPORT cell, `fc = interp_cross(...)`, print "[P4] empirical f(power=0.5)" |
-# | App. P (Step 1), row "Outlier independent of K" (P5) | spread (max − min) of attacked λ_min over K ∈ {5, 10, 20, 40, 80} at f = 0.3 | Pass (spread 0.0017) | Part D cell; VERDICT REPORT cell, print "[P5] spread(max-min)=" |
+# | Prediction log (Step 1), row "Union S(k) matches jittered-grid theory" (P1) | max relative error of the colluders' union structure factor vs jittered-grid theory | Pass (≤ 2% error) | Part A cell (shell table); VERDICT REPORT cell, `relA`, print "[P1] max rel err union vs theory" |
+# | Prediction log (Step 1), row "Colluder pair correlation −(1 − S̄)/K" (P2) | mean colluder-pair C_ab, measured vs predicted | Pass (−0.0451 vs −0.0451) | Part B cell (`pred_pair`); VERDICT REPORT cell, print "[P2] pair mean=... pred=..." |
+# | Prediction log (Step 1), row "BBP outlier below the bulk" (P3); App. E "Spectral detection condition" ("on a 2-D torus the measured lower outlier matched the BBP prediction to four decimals") | attacked λ_min, measured vs BBP prediction | Pass (0.0702 vs 0.0701) | Part B cell (`att["lam_min"]`, `att["lam_pred"]`); VERDICT REPORT cell, print "[P3] lam_min=... pred=..." |
+# | Prediction log (Step 1), row "Padding threshold f∗ = 0.445" (P4) | predicted padding threshold f* vs empirical f at power 0.5 | 0.445 predicted; Partial (0.408) | Part C cell (`fstar`); VERDICT REPORT cell, `fc = interp_cross(...)`, print "[P4] empirical f(power=0.5)" |
+# | Prediction log (Step 1), row "Outlier independent of K" (P5) | spread (max − min) of attacked λ_min over K ∈ {5, 10, 20, 40, 80} at f = 0.3 | Pass (spread 0.0017) | Part D cell; VERDICT REPORT cell, print "[P5] spread(max-min)=" |
 #
 # The P4 shortfall (0.408 vs 0.445) is the finite-size effect that Step 2 corrects with Tracy–Widom
-# thresholds (App. P, Step 1 consequence "TW finite-size correction").
+# thresholds (Prediction log, Step 1 consequence "TW finite-size correction").
 # A standalone CPU version of the same experiment is `step01_missing_mode_toy.py`.
 #
 # Not reported in the paper: per-shell S(k) values and benign-union S(k) (Part A table), λ_max attack vs null,
@@ -247,7 +247,7 @@ print(f"Part B done in {time.time()-t0:.1f}s")
 # %%
 t0 = time.time()
 S_design = att["S_bar_union"].mean(); g = A / m
-# [PAPER] App. P (Step 1, P4): predicted padding threshold f* = 0.445
+# [PAPER] Prediction log (Step 1, P4): predicted padding threshold f* = 0.445
 fstar = 1 - math.sqrt(g) / (1 - S_design)
 print(f"predicted f* = {fstar:.3f}")
 print(f"{'f':>5} {'lam_min':>17} {'lam_pred':>9} {'null_1%':>8} {'power':>6} {'overlap':>8}")
@@ -336,23 +336,23 @@ def interp_cross(xs, ys, level=0.5):
 R = RESULTS; Bq = R["B"]
 print("=" * 70); print("STEP 1 VERDICT REPORT"); print("=" * 70)
 print("config:", json.dumps(R["config"]))
-# [PAPER] App. P (Step 1, P1): union S(k) vs jittered-grid theory, Pass (≤ 2% error)
+# [PAPER] Prediction log (Step 1, P1): union S(k) vs jittered-grid theory, Pass (≤ 2% error)
 relA = max(abs(r["S_union"] - r["theory"]) / r["theory"] for r in R["A"])
 devA = max(abs(r["S_1acct"] - r["pred_1acct"]) for r in R["A"])
 benA = max(abs(r["S_benign"] - 1) for r in R["A"])
 print(f"[P1] max rel err union vs theory = {relA:.3f} | max |S_1acct - pred| = {devA:.4f} | max |S_benign-1| = {benA:.4f}")
-# [PAPER] App. P (Step 1, P3) and App. E: BBP outlier below the bulk, measured 0.0702 vs predicted 0.0701
+# [PAPER] Prediction log (Step 1, P3) and App. E: BBP outlier below the bulk, measured 0.0702 vs predicted 0.0701
 lm, lp, le = Bq["lam_min"][0], Bq["lam_pred"][0], Bq["lo_edge"][0]
 print(f"[P3] lam_min={lm:.4f}  pred={lp:.4f}  rel.err={(lm-lp)/lp:+.3f}  lower_edge={le:.4f}  below_edge={lm<le}")
 dmax = (Bq["lam_max"][0] - Bq["null_lam_max"][0]) / max(Bq["null_lam_max"][1], 1e-9)
 print(f"[P3] lam_max attack - null = {dmax:+.2f} null-sd  (expect ~0) | overlap={Bq['overlap'][0]:.3f} | power={Bq['power']:.2f}")
-# [PAPER] App. P (Step 1, P2): colluder-pair correlation, −0.0451 vs −0.0451
+# [PAPER] Prediction log (Step 1, P2): colluder-pair correlation, −0.0451 vs −0.0451
 print(f"[P2] pair mean={Bq['col_pair_mean'][0]:+.4f}  pred={Bq['pair_pred']:+.4f}  single-pair SNR={Bq['pair_snr']:.2f}")
-# [PAPER] App. P (Step 1, P4): empirical f at power 0.5, Partial (0.408) vs predicted 0.445
+# [PAPER] Prediction log (Step 1, P4): empirical f at power 0.5, Partial (0.408) vs predicted 0.445
 fc = interp_cross([r["f"] for r in R["C"]["rows"]], [r["power"] for r in R["C"]["rows"]])
 print(f"[P4] empirical f(power=0.5) = {fc:.3f}   predicted f* = {R['C']['fstar_pred']:.3f}")
 print("[P4] f -> power: " + ", ".join(f"{r['f']:.2f}:{r['power']:.2f}" for r in R["C"]["rows"]))
-# [PAPER] App. P (Step 1, P5): λ_min spread across K, Pass (spread 0.0017)
+# [PAPER] Prediction log (Step 1, P5): λ_min spread across K, Pass (spread 0.0017)
 lmK = [r["lam_min"] for r in R["D"]]
 gapK = np.mean([r["null_thr"] - r["lam_min"] for r in R["D"]])
 print(f"[P5] lam_min across K: " + ", ".join(f"K={r['K']}:{r['lam_min']:.4f}(pw {r['power']:.2f}, ov {r['overlap']:.2f})" for r in R["D"]))

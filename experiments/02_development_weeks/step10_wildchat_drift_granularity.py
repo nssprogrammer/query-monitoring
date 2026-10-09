@@ -30,7 +30,7 @@
 # | App. Table 5, row "500, 100 broad capability 5,000" | share; Fixed / Rolling / Rolling + lag | 0.46; 0.10 / 0.07 / 0.29 | Part B cell, as above (A = 500, `capability`, N = 5000) |
 # | App. Table 5, row "500, 100 narrow capability 5,000" | share; Fixed / Rolling / Rolling + lag | 0.46; 0.44 / 0.78 / 0.71 | Part B cell, as above (A = 500, `capability_narrow`, N = 5000) |
 # | App. F "Small monitored populations" | equal-volume colluders' fraction of the window | 46–94% | Part B cell, `share` |
-# | App. P (Step 10) | locked predictions P10.1–P10.5 | P10.1 Partial (A = 100 yes; A = 500 no); P10.2 Partial (lagged 0.21, 0.29); P10.3 Pass (0.94; 0.71); P10.4 Pass; P10.5 Partial (A = 100 yes) | Part C "predictions" cell (prints "P10.1"–"P10.5") |
+# | Prediction log (Step 10) | locked predictions P10.1–P10.5 | P10.1 Partial (A = 100 yes; A = 500 no); P10.2 Partial (lagged 0.21, 0.29); P10.3 Pass (0.94; 0.71); P10.4 Pass; P10.5 Partial (A = 100 yes) | Part C "predictions" cell (prints "P10.1"–"P10.5") |
 # | App. Table 5 caption; App. Table 16 (Calibration) | 8 held-out weeks, 3 campaigns × 3 windows per week, α = 5%; 250 windows from the 4 preceding weeks (small populations) | as quoted | Cell 1 configuration (`N_TW`, `TRIALS9`, `W_TW`, `ALPHA`, `N_CAL_ROLL`, `LAG`) |
 #
 # Not reported in the paper: raw power and `excess` columns (the paper reports only the paired/attributable
@@ -383,19 +383,19 @@ for A_, K_ in AK9:
 # %%
 # ===== Part C: predictions =====
 get = lambda A_, s_, N: next((r for r in rowsB if r["A"] == A_ and r["strategy"] == s_ and r["N"] == N), None)
-# [PAPER] App. P (Step 10): P10.1 Partial (A = 100 yes; A = 500 no)
+# [PAPER] Prediction log (Step 10): P10.1 Partial (A = 100 yes; A = 500 no)
 for r in rowsA: print(f"P10.1 A={r['A']} {r['scheme']}: FPR {r['fpr']:.3f}")
 mid = sorted(N9)[len(N9) // 2]
 for A_, K_ in AK9:
     a = get(A_, "capability", mid); b = get(A_, "capability_narrow", mid)
-    # [PAPER] App. P (Step 10): P10.2 Partial (lagged 0.21, 0.29); P10.3 Pass (0.94; 0.71)
+    # [PAPER] Prediction log (Step 10): P10.2 Partial (lagged 0.21, 0.29); P10.3 Pass (0.94; 0.71)
     if a: print(f"P10.2 A={A_} capability N={mid}: attrib " + " ".join(f"{s} {a[s+'_attrib']:.2f}" for s in SCHEMES) + "  (pass if all <= 0.2)")
     if b: print(f"P10.3 A={A_} capability_narrow N={mid}: rolling_lag attrib {b['rolling_lag_attrib']:.2f} (pass if >= 0.5)")
     c, d = get(A_, "capability", max(N9)), get(A_, "capability_pad50", max(N9))
-    # [PAPER] App. P (Step 10): P10.5 Partial (A = 100 yes)
+    # [PAPER] Prediction log (Step 10): P10.5 Partial (A = 100 yes)
     if c and d: print(f"P10.5 A={A_} N={max(N9)}: pad50 drop " + " ".join(f"{s} {c[s+'_attrib']-d[s+'_attrib']:+.2f}" for s in SCHEMES) + "  (pass if all >= 0.5)")
 hits = [r for r in rowsB if r["rolling_lag_attrib"] >= 0.5]
-# [PAPER] App. P (Step 10): P10.4 Pass
+# [PAPER] Prediction log (Step 10): P10.4 Pass
 print("P10.4 cells with rolling_lag attrib >= 0.5: " + "; ".join(f"A={r['A']} {r['strategy']} N={r['N']} share={r['share']:.2f}" for r in hits))
 RESULTS10 = dict(config=dict(QUICK=QUICK, AK=AK9, N=N9, TW=[int(w) for w in TW], ALPHA=ALPHA, LAG=LAG), A=rowsA, B=rowsB)
 

@@ -31,7 +31,7 @@ A model provider faces a distillation campaign spread over many accounts, and it
 ├── REPRODUCING.md                  every paper number -> script -> line (generated from the annotations)
 ├── census/
 │   └── benign_coordination_census.py   measure benign coordination in your own logs (§9, item 1)
-├── experiments/                    one script per experiment "Step" (numbering follows the prediction log, App. P)
+├── experiments/                    one script per experiment "Step" (numbering follows docs/prediction_log.md)
 │   ├── 01_controlled_studies/      Steps 1–8: synthetic worlds and real CIFAR-10 extraction (App. E, Fig. 3, Table 4)
 │   ├── 02_development_weeks/       Steps 9–13, 15, 17, 18, 20–23, 27–31: WildChat-1M development weeks (§5, Tables 1, 5–11, Figs. 4–5)
 │   ├── 03_capability_frontier/     Steps 14, 16, 19, 29d, 32: distillation into small students (§6, Fig. 6, Tables 12–14)
@@ -41,7 +41,8 @@ A model provider faces a distillation campaign spread over many accounts, and it
 ├── figures/
 │   └── make_figures.py             draws Figs. 1–6 from the recorded numbers; comments name each data source
 ├── docs/
-│   └── prediction_log.md           all 184 locked predictions with outcomes, each linked to its script
+│   ├── prediction_log.md           all 184 locked predictions with outcomes, each linked to its script
+│   └── corrections.md              corrections made during the study
 ├── paper/                          LaTeX source of the submission and the compiled PDF
 └── tools/
     └── sync_notebooks.py           regenerates the Kaggle .ipynb files from the annotated .py sources
@@ -51,14 +52,14 @@ Each experiment exists twice: `stepNN_name.py` is the canonical, reviewable sour
 
 ## Experiments
 
-Steps are numbered in the order they were run. Predictions for every step were written into the notebook header before it ran; [`docs/prediction_log.md`](docs/prediction_log.md) lists them with their outcomes (74 of 184 failed). Step numbers 24–26 and 33 have no locked predictions and no number in the paper depends on them, so they are not part of this release.
+Steps are numbered in the order they were run. Predictions for every step were written into the notebook header before it ran; [`docs/prediction_log.md`](docs/prediction_log.md) lists them with their outcomes (74 of 184 failed), and [`docs/corrections.md`](docs/corrections.md) lists the errors we found and fixed along the way. Both are referenced from the paper's Reproducibility appendix rather than printed in it; in the scripts' annotations, "Prediction log (Step N …)" refers to `docs/prediction_log.md`. Step numbers 24–26 and 33 have no locked predictions and no number in the paper depends on them, so they are not part of this release.
 
 | Step | Script | What it tests | Main paper items | Kaggle time |
 |---|---|---|---|---|
-| 1 | [`step01_missing_mode`](experiments/01_controlled_studies/step01_missing_mode.py) (+ CPU [`_toy`](experiments/01_controlled_studies/step01_missing_mode_toy.py)) | Toy-world validation of the spectral signal | App. P | short |
-| 2 | [`step02_theory_scaling_zoo`](experiments/01_controlled_studies/step02_theory_scaling_zoo.py) | Analytic calibration, scaling law, attacker designs | App. E, App. P | 40–70 min |
-| 3 | [`step03_highdim_rff`](experiments/01_controlled_studies/step03_highdim_rff.py) | Random Fourier modes in high dimension | App. P | 25–45 min |
-| 4 | [`step04_linkage_price_law`](experiments/01_controlled_studies/step04_linkage_price_law.py) | A unified detectability law; spectral linkage | App. E, App. P | 30–60 min |
+| 1 | [`step01_missing_mode`](experiments/01_controlled_studies/step01_missing_mode.py) (+ CPU [`_toy`](experiments/01_controlled_studies/step01_missing_mode_toy.py)) | Toy-world validation of the spectral signal | Prediction log | short |
+| 2 | [`step02_theory_scaling_zoo`](experiments/01_controlled_studies/step02_theory_scaling_zoo.py) | Analytic calibration, scaling law, attacker designs | App. E, Prediction log | 40–70 min |
+| 3 | [`step03_highdim_rff`](experiments/01_controlled_studies/step03_highdim_rff.py) | Random Fourier modes in high dimension | Prediction log | 25–45 min |
+| 4 | [`step04_linkage_price_law`](experiments/01_controlled_studies/step04_linkage_price_law.py) | A unified detectability law; spectral linkage | App. E, Prediction log | 30–60 min |
 | 5 | [`step05_real_extraction_cifar10`](experiments/01_controlled_studies/step05_real_extraction_cifar10.py) | Real extraction attacks on a CIFAR-10 victim | App. E, Table 16 | 45–70 min |
 | 6 | [`step06_baselines`](experiments/01_controlled_studies/step06_baselines.py) | Per-account, Higher-Criticism and global baselines | App. E | 45–70 min |
 | 7 | [`step07_robustness`](experiments/01_controlled_studies/step07_robustness.py) | Correlated benign traffic, adaptive attackers | App. E | 60–80 min |

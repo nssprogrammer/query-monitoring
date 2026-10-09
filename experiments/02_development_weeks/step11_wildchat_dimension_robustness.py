@@ -22,11 +22,11 @@
 # |---|---|---|---|
 # | App. F "Small monitored populations" | broad capability, 5,000 prompts: paired (attributable) detection from d = 32 to d = 384 | 0.18 to 0.35 | Cell 6 print "P11.3" (`capability`, N = 5000) and verdict "[B]" lines; plausibly A = 100, `rolling_lag` (paper does not name the cell) |
 # | App. F "Small monitored populations" | broad, 50% natural padding, 20,000 prompts: paired detection from d = 32 to d = 384 | 0.36 to 0.60 | verdict "[B]" lines, `capability_pad50` N = 20000 (`att`); plausibly A = 100, `rolling_lag` |
-# | App. P (Step 11, "Lagged calibration nominal at 100, not 500, every d") | `rolling_lag` held-out FPR at A = 100 / A = 500 over d | Pass (3.4–4.4%; 22–39%) | Cell 5 print "held-out FPR"; Cell 6 print "P11.1"; verdict "[A]" lines |
-# | App. P (Step 11, "Narrow at 5,000 ≥ 0.8 at every d") | narrow capability, N = 5,000, A = 100, paired detection | Pass (0.94–0.96) | Cell 6 print "P11.2" |
-# | App. P (Step 11, "Broad at 5,000 ≤ 0.35 at every d and A") | broad capability, N = 5,000 | Partial (up to 0.44 at A = 500) | Cell 6 print "P11.3" |
-# | App. P (Step 11, "Random ≤ 0.05") | max paired detection of random campaigns per d | Pass (≤ 0.01) | Cell 6 print "P11.4" |
-# | App. P (Step 11, "Padding drops ≥ 0.4 at every d") | drop `capability` → `capability_pad50`, N = 20,000, A = 100, `rolling_lag` | Partial (0.32 at d = 384) | Cell 6 print "P11.5" |
+# | Prediction log (Step 11, "Lagged calibration nominal at 100, not 500, every d") | `rolling_lag` held-out FPR at A = 100 / A = 500 over d | Pass (3.4–4.4%; 22–39%) | Cell 5 print "held-out FPR"; Cell 6 print "P11.1"; verdict "[A]" lines |
+# | Prediction log (Step 11, "Narrow at 5,000 ≥ 0.8 at every d") | narrow capability, N = 5,000, A = 100, paired detection | Pass (0.94–0.96) | Cell 6 print "P11.2" |
+# | Prediction log (Step 11, "Broad at 5,000 ≤ 0.35 at every d and A") | broad capability, N = 5,000 | Partial (up to 0.44 at A = 500) | Cell 6 print "P11.3" |
+# | Prediction log (Step 11, "Random ≤ 0.05") | max paired detection of random campaigns per d | Pass (≤ 0.01) | Cell 6 print "P11.4" |
+# | Prediction log (Step 11, "Padding drops ≥ 0.4 at every d") | drop `capability` → `capability_pad50`, N = 20,000, A = 100, `rolling_lag` | Partial (0.32 at d = 384) | Cell 6 print "P11.5" |
 # | App. Table 16 (Embedding) | MiniLM, PCA to d ∈ {32, 64, 128, 384}, rescaled to total variance 4 | as quoted | Cell 1 `DIMS`; Cell 2 `make_Z` |
 #
 # Not reported in the paper: `rolling` (non-lagged) cells and FPRs except as covered by the ranges above,
@@ -257,7 +257,7 @@ for d in DIMS:
                 for t in range(N_NULL_TW):
                     r = np.random.default_rng(SEED + 7_000_000 + 1000 * tw + 10 * A_ + t); idx, lab = window_at(tw, A_, r)
                     fp += int(suite(ws(idx, lab, A_, tw, s), THR[(s, A_, tw)])); n += 1
-            # [PAPER] App. P (Step 11): rolling_lag FPR 3.4–4.4% at A = 100, 22–39% at A = 500 (across d)
+            # [PAPER] Prediction log (Step 11): rolling_lag FPR 3.4–4.4% at A = 100, 22–39% at A = 500 (across d)
             rowsA.append(dict(d=d, A=A_, scheme=s, fpr=fp / n, n=n)); print(f"d={d:3d} A={A_:4d} {s:>11}: held-out FPR {fp/n:.3f}  ({time.time()-t0:.0f}s)")
         for name in STRATS:
             for N in NS:
@@ -287,15 +287,15 @@ print(f"all dimensions done in {time.time()-T0:.0f}s")
 # ===== Cell 6: predictions, figure, verdict =====
 g = lambda d, A_, s_, N: next((r for r in rowsB if r["d"] == d and r["A"] == A_ and r["strategy"] == s_ and r["N"] == N), None)
 mid, top = sorted(NS)[len(NS) // 2], max(NS); A1 = AK[0][0]
-# [PAPER] App. P (Step 11): P11.1 Pass (3.4–4.4%; 22–39%)
+# [PAPER] Prediction log (Step 11): P11.1 Pass (3.4–4.4%; 22–39%)
 print("P11.1 rolling_lag FPR: " + "; ".join(f"d={r['d']} A={r['A']}: {r['fpr']:.3f}" for r in rowsA if r["scheme"] == "rolling_lag"))
-# [PAPER] App. P (Step 11): P11.2 Pass (0.94–0.96)
+# [PAPER] Prediction log (Step 11): P11.2 Pass (0.94–0.96)
 print("P11.2 narrow N=%d A=%d: " % (mid, A1) + "; ".join(f"d={d}: " + "/".join(f"{g(d, A1, 'capability_narrow', mid)[s+'_attrib']:.2f}" for s in SCHEMES) for d in DIMS if g(d, A1, "capability_narrow", mid)))
-# [PAPER] App. P (Step 11): P11.3 Partial (up to 0.44 at A = 500); App. F: broad 5,000 from 0.18 to 0.35
+# [PAPER] Prediction log (Step 11): P11.3 Partial (up to 0.44 at A = 500); App. F: broad 5,000 from 0.18 to 0.35
 print("P11.3 broad N=%d: " % mid + "; ".join(f"d={d} A={A_}: " + "/".join(f"{g(d, A_, 'capability', mid)[s+'_attrib']:.2f}" for s in SCHEMES) for d in DIMS for A_, _ in AK if g(d, A_, "capability", mid)))
-# [PAPER] App. P (Step 11): P11.4 Pass (≤ 0.01)
+# [PAPER] Prediction log (Step 11): P11.4 Pass (≤ 0.01)
 print("P11.4 random max attrib per d: " + "; ".join(f"d={d}: {max(max(r[s+'_attrib'] for s in SCHEMES) for r in rowsB if r['d'] == d and r['strategy'] == 'random'):.2f}" for d in DIMS))
-# [PAPER] App. P (Step 11): P11.5 Partial (0.32 at d = 384)
+# [PAPER] Prediction log (Step 11): P11.5 Partial (0.32 at d = 384)
 print("P11.5 pad50 drop at N=%d A=%d (rolling_lag): " % (top, A1) + "; ".join(f"d={d}: {g(d, A1, 'capability', top)['rolling_lag_attrib'] - g(d, A1, 'capability_pad50', top)['rolling_lag_attrib']:+.2f}" for d in DIMS if g(d, A1, "capability", top)))
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots(1, len(AK), figsize=(8 * len(AK), 5), squeeze=False)

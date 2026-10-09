@@ -20,27 +20,27 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | §5 'Coordinated, dataset-like campaigns are catchable'; App. D.2 'Its edge is calibration, not ranking'; Table 6 row "MetaMathQA (generated)"; App. P (Step 15, P15.5) | oracle-matched 1% TPR, two-scale vs global stream vs MMD (weekly, K = 50) | 0.80 vs 0.70 vs 0.58; App. P "Partial (0.80 vs 0.58; group MMD fails)" | Cell 8 `roc(null_v[d], att_v[d])` -> `row[d + "_roc"]["tpr1"]`; Cell 12 print "P15.5" and verdict "ROC:" lines (`twoscale`, `glob`, `mmd`) |
+# | §5 'Coordinated, dataset-like campaigns are catchable'; App. D.2 'Its edge is calibration, not ranking'; Table 6 row "MetaMathQA (generated)"; Prediction log (Step 15, P15.5) | oracle-matched 1% TPR, two-scale vs global stream vs MMD (weekly, K = 50) | 0.80 vs 0.70 vs 0.58; Prediction log "Partial (0.80 vs 0.58; group MMD fails)" | Cell 8 `roc(null_v[d], att_v[d])` -> `row[d + "_roc"]["tpr1"]`; Cell 12 print "P15.5" and verdict "ROC:" lines (`twoscale`, `glob`, `mmd`) |
 # | §5 'Coordinated, dataset-like campaigns are catchable'; App. D.2 | AUC, global stream vs two-scale | 0.97 against 0.88 | Cell 8 `roc(...)["auc"]`; Cell 12 verdict "ROC:" line (`glob`, `twoscale`) |
 # | Table 6 row "MetaMathQA (generated)", cols Two-scale / Global stream / MMD | AUC / TPR at 1% / TPR at 5% | 0.88 / 0.80 / 0.81; 0.97 / 0.70 / 0.74; 0.94 / 0.58 / 0.62 | Cell 8 `roc(...)`; Cell 12 verdict "ROC:" line (`auc`, `tpr1`, `tpr5`), source `metamath_unique` K=50 |
 # | Table 6 row "Human GSM8K questions", cols Two-scale / Global stream / MMD | AUC / TPR at 1% / TPR at 5% | 0.96 / 0.95 / 0.95; 0.99 / 0.88 / 0.94; 0.97 / 0.73 / 0.80 | same, source `gsm8k_human` K=50 |
 # | Table 6 row "Half natural, mixed into every account", cols Two-scale / Global stream / MMD | AUC / TPR at 1% / TPR at 5% | 0.68 / 0.24 / 0.39; 0.75 / 0.05 / 0.11; 0.71 / 0.07 / 0.14 | same, source `metamath_mixed` K=50 |
 # | Table 6 row "Real follow-up after every prompt", cols Two-scale / Global stream / MMD | AUC / TPR at 1% / TPR at 5% | 0.68 / 0.24 / 0.40; 0.75 / 0.06 / 0.11; 0.72 / 0.11 / 0.20 | same, source `metamath_followup` K=50 |
 # | Table 6 row "Random natural prompts", cols Two-scale / Global stream / MMD | AUC / TPR at 1% / TPR at 5% | 0.48 / 0.00 / 0.07; 0.39 / 0.00 / 0.04; 0.39 / 0.02 / 0.02 | same, source `random` K=50 (Table 6's QC column is the repaired detector of Step 18, not this script) |
-# | §5 'It detects topic shift, not extraction'; App. D.3; App. P (Step 15, P15.4) | weekly paired two-scale detection, human GSM8K vs MetaMathQA (K = 50) | 0.94 vs 0.79; App. P "Pass (0.94 vs 0.79)" | Cell 8 rows `gsm8k_human` / `metamath_unique` (`twoscale`); Cell 12 print "P15.4" |
+# | §5 'It detects topic shift, not extraction'; App. D.3; Prediction log (Step 15, P15.4) | weekly paired two-scale detection, human GSM8K vs MetaMathQA (K = 50) | 0.94 vs 0.79; Prediction log "Pass (0.94 vs 0.79)" | Cell 8 rows `gsm8k_human` / `metamath_unique` (`twoscale`); Cell 12 print "P15.4" |
 # | App. D.3 | weekly paired two-scale detection, MetaMathQA behind a fixed template | 0.94 | Cell 8 row `metamath_template` K=50 (`twoscale`); verdict "[W]" line |
-# | App. D.3; App. P (Step 15, P15.3) | two-scale, unique prompts vs exact repeats | "from 0.79 to 0.73"; App. P "Fail (0.79 to 0.73)" | Cell 8 rows `metamath_unique` / `metamath_repeat`; Cell 12 print "P15.3" |
-# | App. F 'Mechanism probes'; App. P (Step 15, P15.2) | distance between rephrasings of one problem (median); share within h = 0.5 | median 0.67; only 35% within the fine bandwidth; App. P "Pass (median 0.67)" | Cell 9 `MECH["rephrase_median"]`, `MECH["frac_below_h"]` ("[M] distance between rephrasings" print); Cell 12 print "P15.2" |
-# | App. P (Step 15, P15.1); App. P 'Corrections' ('Query-cluster calibration and the population protocol') | first query-cluster (QC) detector: false alarms; AUC under mimicry | Fail (detector miscalibrated, 64% false alarms; AUC 0.89–0.90) | Cell 8 `FPR["qc"]` ("held-out FPR" print), `row["qc_roc"]["auc"]`; Cell 12 print "P15.1" |
-# | App. P (Step 15, P15.6) | camouflage (most natural-looking 20% of MetaMathQA), two-scale | Fail (two-scale rose to 0.94) | Cell 8 row `metamath_camouflage`; Cell 12 print "P15.6" |
-# | App. P (Step 15, P15.7); App. P 'Corrections' ('Query-cluster calibration and the population protocol') | realistic share, best calibrated detector | Fail (0.00 at A = 1,000) | Cell 10 `RESP`; Cell 12 print "P15.7" |
-# | App. P (Step 15, P15.8) | mixed padding caught within 12 weeks; P(>= 1 false alarm in 12 weeks), two-scale alone | Partial (two-scale alone: 0.96, 9.6%) | Cell 11 `LIFE[("metamath_mixed", "twoscale")][12]` and the two-scale "at least one false alarm in 12 weeks" print |
+# | App. D.3; Prediction log (Step 15, P15.3) | two-scale, unique prompts vs exact repeats | "from 0.79 to 0.73"; Prediction log "Fail (0.79 to 0.73)" | Cell 8 rows `metamath_unique` / `metamath_repeat`; Cell 12 print "P15.3" |
+# | App. F 'Mechanism probes'; Prediction log (Step 15, P15.2) | distance between rephrasings of one problem (median); share within h = 0.5 | median 0.67; only 35% within the fine bandwidth; Prediction log "Pass (median 0.67)" | Cell 9 `MECH["rephrase_median"]`, `MECH["frac_below_h"]` ("[M] distance between rephrasings" print); Cell 12 print "P15.2" |
+# | Prediction log (Step 15, P15.1); Corrections (docs/corrections.md), 'Corrections' ('Query-cluster calibration and the population protocol') | first query-cluster (QC) detector: false alarms; AUC under mimicry | Fail (detector miscalibrated, 64% false alarms; AUC 0.89–0.90) | Cell 8 `FPR["qc"]` ("held-out FPR" print), `row["qc_roc"]["auc"]`; Cell 12 print "P15.1" |
+# | Prediction log (Step 15, P15.6) | camouflage (most natural-looking 20% of MetaMathQA), two-scale | Fail (two-scale rose to 0.94) | Cell 8 row `metamath_camouflage`; Cell 12 print "P15.6" |
+# | Prediction log (Step 15, P15.7); Corrections (docs/corrections.md), 'Corrections' ('Query-cluster calibration and the population protocol') | realistic share, best calibrated detector | Fail (0.00 at A = 1,000) | Cell 10 `RESP`; Cell 12 print "P15.7" |
+# | Prediction log (Step 15, P15.8) | mixed padding caught within 12 weeks; P(>= 1 false alarm in 12 weeks), two-scale alone | Partial (two-scale alone: 0.96, 9.6%) | Cell 11 `LIFE[("metamath_mixed", "twoscale")][12]` and the two-scale "at least one false alarm in 12 weeks" print |
 #
 # Not reported in the paper: the K = 10 rows; the `qcount`, `spec`, `fraudar` and `gmmd` power values (only "group MMD
 # fails" is cited); QC purity and two-scale `prec2s`; QC/`either` cumulative curves; per-account clumping (Part M);
 # Part P rows other than the cited 0.00; `metamath_rephrase` and `wild_cluster` rows in this step (Table 7 uses
 # Step 13); the figure. The QC calibration and the single-period population protocol used here were later
-# corrected (Step 17); App. P 'Corrections' calls the false-alarm rates from this step uninterpretable.
+# corrected (Step 17); Corrections (docs/corrections.md), 'Corrections' calls the false-alarm rates from this step uninterpretable.
 
 # %% [markdown]
 # # Step 15 — Query-cluster detection vs mimicry, fair baselines, mechanism checks, realistic colluder share, cumulative detection
@@ -487,7 +487,7 @@ print(f"[weekly] test weeks {TB}; banks and null windows for {len(NEED)} weeks (
 THR = {b: calibrate15([r for v in range(b - WK["CAL_N"], b) for r in NULLW[v]]) for b in TB}
 for b in TB:
     for r in NULLW[b]: add_scores(r, THR[b])
-# [PAPER] App. P (Step 15, P15.1): first QC detector miscalibrated, 64% false alarms (FPR["qc"])
+# [PAPER] Prediction log (Step 15, P15.1): first QC detector miscalibrated, 64% false alarms (FPR["qc"])
 FPR = {d: boot_ci([np.mean([fires15(r, THR[b])[d] for r in NULLW[b]]) for b in TB]) for d in DETS}
 print("[weekly] held-out FPR: " + " ".join(f"{d}={FPR[d][0]:.3f}" for d in DETS))
 RES, WEEKP, RAW = [], {}, {}
@@ -593,7 +593,7 @@ for A_ in POP["AS"]:
                 for d in DETS: hits[d].append(float(f[d] and not fb[d])); nv[d].append(sb[d]); av[d].append(s[d])
             row = dict(A=A_, K=K_, share=K_ / A_, source=src, **{d: float(np.mean(hits[d])) for d in DETS}, **{f"{d}_fpr": fpr[d] for d in DETS},
                        **{f"{d}_tpr1": roc(nv[d], av[d])["tpr1"] for d in DETS})
-            # [PAPER] App. P (Step 15, P15.7): best calibrated detector at realistic share, Fail (0.00 at A = 1,000)
+            # [PAPER] Prediction log (Step 15, P15.7): best calibrated detector at realistic share, Fail (0.00 at A = 1,000)
             RESP.append(row)
             print(f"[pop] A={A_} K={K_} ({100*K_/A_:.1f}%) {src:>16}: " + " ".join(f"{d}={row[d]:.2f}" for d in DETS) + f"  ({time.time()-t0:.0f}s)")
 
@@ -610,14 +610,14 @@ kk = max(WK["KS"])
 for src in ["metamath_unique", "metamath_mixed", "metamath_followup", "metamath_camouflage"]:
     for d in ["twoscale", "qc"]:
         pw = WEEKP.get((src, kk), {}).get(d, [])
-        # [PAPER] App. P (Step 15, P15.8): mixed padding caught within 12 weeks, two-scale alone 0.96
+        # [PAPER] Prediction log (Step 15, P15.8): mixed padding caught within 12 weeks, two-scale alone 0.96
         LIFE[(src, d)] = {w: cumulative(pw, w) for w in [1, 4, 8, 12]}
     either = [1 - (1 - a) * (1 - b) for a, b in zip(WEEKP[(src, kk)]["twoscale"], WEEKP[(src, kk)]["qc"])]
     LIFE[(src, "either")] = {w: cumulative(either, w) for w in [1, 4, 8, 12]}
     print(f"[L] {src:>19}: P(caught within w weeks) two-scale " + " ".join(f"w{w}={LIFE[(src,'twoscale')][w]:.2f}" for w in [1, 4, 12])
           + " | QC " + " ".join(f"w{w}={LIFE[(src,'qc')][w]:.2f}" for w in [1, 4, 12]) + " | either " + " ".join(f"w{w}={LIFE[(src,'either')][w]:.2f}" for w in [1, 4, 12]))
 for d in ["twoscale", "qc"]:
-    # [PAPER] App. P (Step 15, P15.8): two-scale alone, P(>= 1 false alarm in 12 weeks) 9.6%
+    # [PAPER] Prediction log (Step 15, P15.8): two-scale alone, P(>= 1 false alarm in 12 weeks) 9.6%
     f1 = FPR[d][0]; print(f"[L] {d}: P(at least one false alarm in 12 weeks) = {1 - (1 - f1) ** 12:.3f} (weekly FPR {f1:.4f})")
 f_either = 1 - (1 - FPR["twoscale"][0]) * (1 - FPR["qc"][0]); print(f"[L] either: P(>=1 false alarm in 12 weeks) = {1 - (1 - f_either) ** 12:.3f}")
 
@@ -631,24 +631,24 @@ g = lambda src, K_, d: next((r.get(d) for r in RES if r["source"] == src and r["
 gr = lambda src, K_, d, k="tpr1": next((r[d + "_roc"][k] for r in RES if r["source"] == src and r["K"] == K_), None)
 K1 = max(WK["KS"])
 u, m_, f_ = g("metamath_unique", K1, "qc"), g("metamath_mixed", K1, "qc"), g("metamath_followup", K1, "qc")
-# [PAPER] App. P (Step 15, P15.1): Fail (detector miscalibrated, 64% false alarms; AUC 0.89–0.90)
+# [PAPER] Prediction log (Step 15, P15.1): Fail (detector miscalibrated, 64% false alarms; AUC 0.89–0.90)
 print(f"P15.1 QC power: unique {fmt(u)}, mixed {fmt(m_)}, follow-up {fmt(f_)} (pass if both >= 0.6 and within 0.25 of unique)")
-# [PAPER] App. P (Step 15, P15.2): Pass (median 0.67)
+# [PAPER] Prediction log (Step 15, P15.2): Pass (median 0.67)
 print(f"P15.2 rephrasing distance median {MECH['rephrase_median']:.3f} vs h_fine {H_FINE} (pass if > h_fine: Step 13 ablation was uninformative)")
-# [PAPER] App. P (Step 15, P15.3): Fail (0.79 to 0.73); also App. D.3
+# [PAPER] Prediction log (Step 15, P15.3): Fail (0.79 to 0.73); also App. D.3
 print(f"P15.3 two-scale: unique {fmt(g('metamath_unique', K1, 'twoscale'))} vs exact repeats {fmt(g('metamath_repeat', K1, 'twoscale'))} (pass if drop >= 0.3)")
-# [PAPER] App. P (Step 15, P15.4): Pass (0.94 vs 0.79); also §5 and App. D.3
+# [PAPER] Prediction log (Step 15, P15.4): Pass (0.94 vs 0.79); also §5 and App. D.3
 print(f"P15.4 two-scale: human GSM8K {fmt(g('gsm8k_human', K1, 'twoscale'))} vs MetaMathQA {fmt(g('metamath_unique', K1, 'twoscale'))} (pass if ratio >= 0.7: source shift)")
-# [PAPER] App. P (Step 15, P15.5): Partial (0.80 vs 0.58; group MMD fails); also Table 6, §5, App. D.2
+# [PAPER] Prediction log (Step 15, P15.5): Partial (0.80 vs 0.58; group MMD fails); also Table 6, §5, App. D.2
 print(f"P15.5 TPR at matched 1% FPR on MetaMathQA: two-scale {fmt(gr('metamath_unique', K1, 'twoscale'))}, MMD {fmt(gr('metamath_unique', K1, 'mmd'))}, group-MMD {fmt(gr('metamath_unique', K1, 'gmmd'))}, QC {fmt(gr('metamath_unique', K1, 'qc'))}")
-# [PAPER] App. P (Step 15, P15.6): Fail (two-scale rose to 0.94)
+# [PAPER] Prediction log (Step 15, P15.6): Fail (two-scale rose to 0.94)
 print(f"P15.6 camouflage: two-scale {fmt(g('metamath_camouflage', K1, 'twoscale'))} vs {fmt(g('metamath_unique', K1, 'twoscale'))}; QC {fmt(g('metamath_camouflage', K1, 'qc'))} vs {fmt(u)} (pass if both drop >= 0.3)")
-# [PAPER] App. P (Step 15, P15.7): Fail (0.00 at A = 1,000)
+# [PAPER] Prediction log (Step 15, P15.7): Fail (0.00 at A = 1,000)
 for r in RESP:
     if r["source"] == "metamath_unique":
         cal_ok = [d for d in DETS if r[f"{d}_fpr"] <= 0.02]; best = max([r[d] for d in cal_ok], default=float("nan"))
         print(f"P15.7 A={r['A']} K={r['K']} ({100*r['share']:.1f}%): best calibrated detector power {fmt(best)} (calibrated: {cal_ok})")
-# [PAPER] App. P (Step 15, P15.8): Partial (two-scale alone: 0.96, 9.6%); the two-scale-alone values are the Cell 11 prints
+# [PAPER] Prediction log (Step 15, P15.8): Partial (two-scale alone: 0.96, 9.6%); the two-scale-alone values are the Cell 11 prints
 print(f"P15.8 mixed padding caught within 12 weeks (either detector): {fmt(LIFE[('metamath_mixed','either')][12])}; P(>=1 false alarm in 12 weeks) {1 - (1 - (1 - (1 - FPR['twoscale'][0]) * (1 - FPR['qc'][0]))) ** 12:.3f}")
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots(1, 2, figsize=(15, 4.8))

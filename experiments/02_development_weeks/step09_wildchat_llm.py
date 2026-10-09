@@ -20,17 +20,17 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | §5 "Calibration breaks first"; App. D.1; App. P (Step 9, "Fixed calibration transfers to later weeks") | false alarms on later (held-out) null weeks of thresholds set once on early weeks, nominal 1% | 12% (App. P: "Fail (12%)") | Part A cell, `row["suite"]` in print "held-out-week FPR ... suite="; Part C print "P9.1" |
-# | App. P (Step 9, "Real users structured: λmax real/shuffled ≥ 2") | median λ_max of real windows / same windows with prompts shuffled across accounts | Pass (4.3–5.1) | Part A cell, print "(ratio ...)" from `lm_real`/`lm_shuf`; Part C print "P9.2" |
-# | App. P (Step 9, "Capability campaigns detected at 5,000 and 20,000") | suite power of `capability`/`capability_kcenter` campaigns | Partial (20,000 via global only) | Part B cell, `suite` and `glob` columns of the per-row print; Part C print "P9.3" |
-# | App. P (Step 9, "Random campaigns ≤ 2× nominal") | suite power of `random` campaigns | Fail (8–21% floor) | Part B cell, `random` rows; Part C print "P9.4" |
-# | App. P (Step 9, "Padding costs ≥ 0.3 power at 5,000") | power cost of 50% padding, `capability` vs `capability_pad50` | Fail as specified; 0.79 at 20,000 | Part C print "P9.5" (N = 5,000); the N = 20,000 value from Part B rows `capability` vs `capability_pad50` at N = 20000 (not printed as a difference) |
+# | §5 "Calibration breaks first"; App. D.1; Prediction log (Step 9, "Fixed calibration transfers to later weeks") | false alarms on later (held-out) null weeks of thresholds set once on early weeks, nominal 1% | 12% (Prediction log: "Fail (12%)") | Part A cell, `row["suite"]` in print "held-out-week FPR ... suite="; Part C print "P9.1" |
+# | Prediction log (Step 9, "Real users structured: λmax real/shuffled ≥ 2") | median λ_max of real windows / same windows with prompts shuffled across accounts | Pass (4.3–5.1) | Part A cell, print "(ratio ...)" from `lm_real`/`lm_shuf`; Part C print "P9.2" |
+# | Prediction log (Step 9, "Capability campaigns detected at 5,000 and 20,000") | suite power of `capability`/`capability_kcenter` campaigns | Partial (20,000 via global only) | Part B cell, `suite` and `glob` columns of the per-row print; Part C print "P9.3" |
+# | Prediction log (Step 9, "Random campaigns ≤ 2× nominal") | suite power of `random` campaigns | Fail (8–21% floor) | Part B cell, `random` rows; Part C print "P9.4" |
+# | Prediction log (Step 9, "Padding costs ≥ 0.3 power at 5,000") | power cost of 50% padding, `capability` vs `capability_pad50` | Fail as specified; 0.79 at 20,000 | Part C print "P9.5" (N = 5,000); the N = 20,000 value from Part B rows `capability` vs `capability_pad50` at N = 20000 (not printed as a difference) |
 # | §2 "Data" | development data: hashed IPs and weeks of WildChat-1M | 98,331 hashed IPs over 56 weeks | plausibly the account/week counts printed at the end of Cell 2 (same loading code in Steps 9–12); not isolated |
 # | §2 "Data"; App. Table 16 (Embedding, Fourier modes, Whitening floor) | attacker pool share; MiniLM → PCA rescaled to total variance 4; m = 400 complex modes, h = 4, floor 10−4 | 20%; "rescaled to total variance 4"; "m = 400"; "h = 4"; "10−4" | Cell 1 configuration (`POOL_FRAC`, `D_DEF`, `H_BW`, `M_MODES`, `FLOOR`) and the PCA step in Cell 2 |
 #
 # Not reported in the paper: per-detector held-out FPRs other than the suite (spec/hc/glob/acct), the S_all
 # real-vs-shuffled medians, the `broad_kcenter` (P9.6, exploratory) and `capability_kcenter` cells individually,
-# the per-N power curves and the figure. The consequences recorded in App. P (drift-aware calibration;
+# the per-N power curves and the figure. The consequences recorded in Prediction log (drift-aware calibration;
 # "Detection needs dominance") motivated Step 10.
 
 # %% [markdown]
@@ -290,8 +290,8 @@ for A_, K_ in AK9:
     row = dict(A=A_, n_cal=len(recs), n_test=n, **{k: fp[k] / max(n, 1) for k in DKEYS},
                lm_real=float(np.median(lm_real)), lm_shuf=float(np.median(lm_shuf)), ga_real=float(np.median(ga_real)), ga_shuf=float(np.median(ga_shuf)))
     rowsA.append(row)
-    # [PAPER] §5, App. D.1, App. P (Step 9): fixed thresholds fired on 12% of later null weeks (suite, nominal 1%)
-    # [PAPER] App. P (Step 9): λmax real/shuffled ratio 4.3–5.1 (the "(ratio ...)" part of this print)
+    # [PAPER] §5, App. D.1, Prediction log (Step 9): fixed thresholds fired on 12% of later null weeks (suite, nominal 1%)
+    # [PAPER] Prediction log (Step 9): λmax real/shuffled ratio 4.3–5.1 (the "(ratio ...)" part of this print)
     print(f"A={A_}: held-out-week FPR " + " ".join(f"{k}={row[k]:.3f}" for k in DKEYS) +
           f" | median lam_max real {row['lm_real']:.2f} vs shuffled {row['lm_shuf']:.2f} (ratio {row['lm_real']/row['lm_shuf']:.2f}); "
           f"S_all real {row['ga_real']:.2f} vs shuffled {row['ga_shuf']:.2f}  ({time.time()-t0:.0f}s)")
@@ -318,7 +318,7 @@ for A_, K_ in AK9:
                     for k in DKEYS: hits[k] += int(d[k])
             row = dict(A=A_, K=K_, strategy=name, N=N, n_per=N // K_, n=n, S_un=float(np.mean(Su)), **{k: hits[k] / max(n, 1) for k in DKEYS})
             rowsB.append(row)
-            # [PAPER] App. P (Step 9): capability detected at 20,000 via global only; random floor 8–21%; padding "0.79 at 20,000" (P9.5)
+            # [PAPER] Prediction log (Step 9): capability detected at 20,000 via global only; random floor 8–21%; padding "0.79 at 20,000" (P9.5)
             print(f"A={A_:4d} K={K_:3d} {name:>18} N={N:6d} (n/acct {N//K_:5d}) S_un={row['S_un']:7.2f} | " + " ".join(f"{k}={row[k]:.2f}" for k in DKEYS) + f"  ({time.time()-t0:.0f}s)")
 
 # %% [markdown]
@@ -327,18 +327,18 @@ for A_, K_ in AK9:
 # %%
 # ===== Part C: predictions =====
 get = lambda A_, s_, N: next((r for r in rowsB if r["A"] == A_ and r["strategy"] == s_ and r["N"] == N), None)
-# [PAPER] App. P (Step 9): P9.1 Fail (12%); P9.2 Pass (4.3–5.1)
+# [PAPER] Prediction log (Step 9): P9.1 Fail (12%); P9.2 Pass (4.3–5.1)
 for r in rowsA: print(f"P9.1 A={r['A']}: held-out suite FPR {r['suite']:.3f} (pass if <= 0.02) | P9.2 lam_max ratio real/shuffled {r['lm_real']/r['lm_shuf']:.2f} (pass if >= 2)")
 for A_, K_ in AK9:
     for s_ in ["capability", "capability_kcenter"]:
         a, b = get(A_, s_, max(N9)), get(A_, s_, sorted(N9)[len(N9) // 2])
-        # [PAPER] App. P (Step 9): P9.3 Partial (20,000 via global only)
+        # [PAPER] Prediction log (Step 9): P9.3 Partial (20,000 via global only)
         if a: print(f"P9.3 A={A_} {s_}: N={max(N9)} power {a['suite']:.2f} (>=0.8) | N={b['N']} power {b['suite']:.2f}")
     rr = [r for r in rowsB if r["A"] == A_ and r["strategy"] == "random"]
-    # [PAPER] App. P (Step 9): P9.4 Fail (8–21% floor)
+    # [PAPER] Prediction log (Step 9): P9.4 Fail (8–21% floor)
     if rr: print(f"P9.4 A={A_} random: max suite power {max(r['suite'] for r in rr):.3f} (pass if <= 0.02)")
     mid = sorted(N9)[len(N9) // 2]; a, b = get(A_, "capability", mid), get(A_, "capability_pad50", mid)
-    # [PAPER] App. P (Step 9): P9.5 Fail as specified (N = 5,000); 0.79 at 20,000 (from Part B rows, not printed here)
+    # [PAPER] Prediction log (Step 9): P9.5 Fail as specified (N = 5,000); 0.79 at 20,000 (from Part B rows, not printed here)
     if a and b: print(f"P9.5 A={A_} N={mid}: capability {a['suite']:.2f} vs pad50 {b['suite']:.2f} (drop {a['suite']-b['suite']:+.2f}; pass if >= 0.3)")
 RESULTS9 = dict(config=dict(QUICK=QUICK, AK9=AK9, N9=N9, MEFF=MEFF, n_queries=int(len(Z_all)), n_weeks=int(n_w)), A=rowsA, B=rowsB)
 

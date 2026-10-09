@@ -27,34 +27,34 @@
 # | §5 'Scale: selection fails before the barrier does'; App. D.5 | multi-outlier selection (Tmax), oracle thresholds | 93–100% of unpadded campaigns up to 10^4 accounts; padded 77–100% up to 5,000 accounts and 17% at 10^4 | Cell 12, `row["Tmax"]` |
 # | Fig. 5 | curves "every outlier eigenvector", "top eigenvector only", "true colluders scored (oracle)" vs accounts monitored | (plotted curves) | plausibly Cell 12 `row["Tmax"]`, `row["tsRc"]`, `row["orc"]` (unpadded); not isolated: the "top eigenvector only" curve may be the two-scale (C) curve of App. Table 10 |
 # | App. Table 15 (rows "Pooled, 1,000 accounts" and "Pooled, 10,000 accounts", cols "Hollowed" and "Multi-outlier", Dataset / Half padding) | oracle detection | Hollowed 1.00 / 0.07 and 0.03 / 0.03; Multi-outlier 1.00 / 1.00 and 1.00 / 0.17 | Cell 12, `row["tsRc"]`, `row["Tmax"]` |
-# | App. F 'Scale'; App. P (Step 27, "r ≥ 1,500 lifts unpadded TPR at A = 2,500 to ≥ 0.5") | top-eigenvector selection at A = 2,500, 600 to 1,500 components | 0.00 to 0.57 | Cell 12, `HI["metamath_unique"]["tsRc"]` ("[27d]" print; "P27d") |
-# | App. F 'Scale'; App. P (Step 28, "k(10,000) ≤ 5 k(1,000)") | number of retained outlier eigenvectors | cap of 20 from 1,000 accounts upward; Pass (uninformative: cap of 20 reached) | Cell 12, `row["k_med"]`; print "P28c" |
-# | App. P (Step 27, "Campaign below the bulk edge at A ≥ 2,500") | colluder eigenvalue vs null 99% λmax | Pass by the letter (uninformative: compared with null λmax; campaign far above the edge) | Cell 12, `row["above_edge"]`; print "P27a/b" |
-# | App. P (Step 27, "Null-selected groups not coordinated") | null-selected group cosine vs random groups | Fail (cosine 0.43–0.57 vs 0.00; selection-biased) | Cell 12, `row["cos_sel"]`, `row["cos_rand"]`; print "P27a/b" |
-# | App. P (Step 27, "Colluder cosine 0.025–0.045; padded ratio 0.4–0.6") | colluder cosine (unpadded); padded/unpadded ratio | Partial (0.57; 0.51) | print "P27c" (mean of `row["rho"]`) |
-# | App. P (Step 28, "Tmax calibrated (conformal)") | held-out false alarms of Tmax | Pass (0/960 windows; week-level bound 12%) | Cell 10, `FPR["Tmax"]`; print "P28a" |
-# | App. P (Step 28, "Multi-outlier ≥ top eigenvector + 0.2 at A = 2,500") | oracle TPR, Tmax vs top eigenvector | Pass (1.00 vs 0.00) | Cell 12, `SC` row A = 2,500; print "P28b" |
-# | App. P (Step 28, "GEV predicts Tmax threshold at ≥ 3 of 4 sizes") | GEV-predicted 99% Tmax threshold inside band | Fail (2 of 4) | Cell 12, `GEV` ("[28d]" print); print "P28d" |
-# | §4 (discussion after Prop. 4); App. B 'The least-favourable campaign'; App. P (Step 29, "Task region rare: p ≤ 5%") | benign share of the task region | p = 1.48%; Pass (1.48%) | Cell 9, `P_TASK` ("[29a]" print; "P29a"); the "about 51" extra queries over twelve weeks of 1,640 is derived from p analytically in the paper, not computed here |
-# | App. P (Step 29, "Tilted campaign evades: two-scale ≤ 0.10, hollowed ≤ 0.25") | weekly deployed detection of the tilted (c = 0.5) campaign | Pass (0.00; 0.01) | Cell 10, `RES` row tilted_c05, `tsC` / `tsRc`; print "P29b" |
+# | App. F 'Scale'; Prediction log (Step 27, "r ≥ 1,500 lifts unpadded TPR at A = 2,500 to ≥ 0.5") | top-eigenvector selection at A = 2,500, 600 to 1,500 components | 0.00 to 0.57 | Cell 12, `HI["metamath_unique"]["tsRc"]` ("[27d]" print; "P27d") |
+# | App. F 'Scale'; Prediction log (Step 28, "k(10,000) ≤ 5 k(1,000)") | number of retained outlier eigenvectors | cap of 20 from 1,000 accounts upward; Pass (uninformative: cap of 20 reached) | Cell 12, `row["k_med"]`; print "P28c" |
+# | Prediction log (Step 27, "Campaign below the bulk edge at A ≥ 2,500") | colluder eigenvalue vs null 99% λmax | Pass by the letter (uninformative: compared with null λmax; campaign far above the edge) | Cell 12, `row["above_edge"]`; print "P27a/b" |
+# | Prediction log (Step 27, "Null-selected groups not coordinated") | null-selected group cosine vs random groups | Fail (cosine 0.43–0.57 vs 0.00; selection-biased) | Cell 12, `row["cos_sel"]`, `row["cos_rand"]`; print "P27a/b" |
+# | Prediction log (Step 27, "Colluder cosine 0.025–0.045; padded ratio 0.4–0.6") | colluder cosine (unpadded); padded/unpadded ratio | Partial (0.57; 0.51) | print "P27c" (mean of `row["rho"]`) |
+# | Prediction log (Step 28, "Tmax calibrated (conformal)") | held-out false alarms of Tmax | Pass (0/960 windows; week-level bound 12%) | Cell 10, `FPR["Tmax"]`; print "P28a" |
+# | Prediction log (Step 28, "Multi-outlier ≥ top eigenvector + 0.2 at A = 2,500") | oracle TPR, Tmax vs top eigenvector | Pass (1.00 vs 0.00) | Cell 12, `SC` row A = 2,500; print "P28b" |
+# | Prediction log (Step 28, "GEV predicts Tmax threshold at ≥ 3 of 4 sizes") | GEV-predicted 99% Tmax threshold inside band | Fail (2 of 4) | Cell 12, `GEV` ("[28d]" print); print "P28d" |
+# | §4 (discussion after Prop. 4); App. B 'The least-favourable campaign'; Prediction log (Step 29, "Task region rare: p ≤ 5%") | benign share of the task region | p = 1.48%; Pass (1.48%) | Cell 9, `P_TASK` ("[29a]" print; "P29a"); the "about 51" extra queries over twelve weeks of 1,640 is derived from p analytically in the paper, not computed here |
+# | Prediction log (Step 29, "Tilted campaign evades: two-scale ≤ 0.10, hollowed ≤ 0.25") | weekly deployed detection of the tilted (c = 0.5) campaign | Pass (0.00; 0.01) | Cell 10, `RES` row tilted_c05, `tsC` / `tsRc`; print "P29b" |
 # | Table 2 (row "Any / Least detectable", development weeks); App. G.2 ("at most 0.01 on development weeks"); App. Table 15 (development weeks, "Least detectable": Two-scale / Hollowed / Multi-outlier); §6 'What the attacker gets' ('The covert end': evaded every detector) | weekly detection of the least-detectable campaign | ≈0.01; 0.00 / 0.01 / 0.01 | Cell 10, `RES` row tilted_c05 (`tsC`, `tsRc`, `Tmax`) |
-# | App. P (Step 29, "Detectors realise ≤ 1% of Nw d(c∥p)") | share of available nats per week realised by the best detector | Pass (0.03%) | Cell 10, `best / AVAIL` ("[29c]" print; "P29c") |
+# | Prediction log (Step 29, "Detectors realise ≤ 1% of Nw d(c∥p)") | share of available nats per week realised by the best detector | Pass (0.03%) | Cell 10, `best / AVAIL` ("[29c]" print; "P29c") |
 # | Table 2 (row "Multi-outlier", col "Weekly detection", development weeks); Table 3 caption; App. Table 15 (development weeks, col "Multi-outlier") | weekly detection, dataset; half padding | 1.00; 0.36–0.42 | plausibly Cell 10, `RES` `Tmax` for metamath_unique; metamath_mixed / metamath_followup |
 # | Table 2 (row "Hollowed / Half padding", col "Weekly detection", development weeks); App. Table 15 | weekly detection under half padding | 0.44–0.48 | plausibly in part Cell 10, `RES` `tsRc` for metamath_mixed / metamath_followup, combined with Step 23 (0.46–0.48) |
-# | App. P (Step 30, "Cell drift low-rank (≥ 50% in q ≤ 5)"); App. F 'Query-level pooling' ("two factors carried only 31% of the variance") | variance share of the first q cell-drift factors | Fail (31%) | Cell 11, median `QCR[b]["share"]` ("[30a]" print; "P30a") |
-# | App. P (Step 30, "Factor adjustment calibrates (≤ 2%)"); App. F 'Query-level pooling' ("a factor model of cell drift on 23%") | held-out false alarms, factor-adjusted query-cluster | Fail (23%) | Cell 11, `FPRQ["qc_fac"]` ("[30b/d]" print; "P30b") |
-# | App. P (Step 30, "Factor QC ≥ two-scale + 0.1 under padding") | mixed padding, factor QC vs two-scale | Partial (0.48 vs 0.01 at 23% false alarms) | Cell 11, `QRES["metamath_mixed"]["qc_fac"]` vs Cell 10 `tsC`; print "P30c" |
-# | App. P (Step 30, "Factor model ≥ 5 points below forecast") | false alarms, factor model vs EWMA forecast | Fail (23% vs 14.5%) | Cell 11, `FPRQ["qc_fac"]` vs `FPRQ["qc_fc"]`; print "P30d" |
-# | App. P (Step 31, "Two-sided prefilter keeps ≥ 80% of colluders" and "It keeps evaluation sweeps too"); App. F 'Statistics that failed' ("kept 13% of colluders and every benign evaluation account") | retention at 20% benign pass rate, colluders; GSM8K-sweep accounts | Fail (13%); Pass (100%) | Cell 13, `RET_COL`, `RET_SWP` ("[31]" print; "P31a") |
+# | Prediction log (Step 30, "Cell drift low-rank (≥ 50% in q ≤ 5)"); App. F 'Query-level pooling' ("two factors carried only 31% of the variance") | variance share of the first q cell-drift factors | Fail (31%) | Cell 11, median `QCR[b]["share"]` ("[30a]" print; "P30a") |
+# | Prediction log (Step 30, "Factor adjustment calibrates (≤ 2%)"); App. F 'Query-level pooling' ("a factor model of cell drift on 23%") | held-out false alarms, factor-adjusted query-cluster | Fail (23%) | Cell 11, `FPRQ["qc_fac"]` ("[30b/d]" print; "P30b") |
+# | Prediction log (Step 30, "Factor QC ≥ two-scale + 0.1 under padding") | mixed padding, factor QC vs two-scale | Partial (0.48 vs 0.01 at 23% false alarms) | Cell 11, `QRES["metamath_mixed"]["qc_fac"]` vs Cell 10 `tsC`; print "P30c" |
+# | Prediction log (Step 30, "Factor model ≥ 5 points below forecast") | false alarms, factor model vs EWMA forecast | Fail (23% vs 14.5%) | Cell 11, `FPRQ["qc_fac"]` vs `FPRQ["qc_fc"]`; print "P30d" |
+# | Prediction log (Step 31, "Two-sided prefilter keeps ≥ 80% of colluders" and "It keeps evaluation sweeps too"); App. F 'Statistics that failed' ("kept 13% of colluders and every benign evaluation account") | retention at 20% benign pass rate, colluders; GSM8K-sweep accounts | Fail (13%); Pass (100%) | Cell 13, `RET_COL`, `RET_SWP` ("[31]" print; "P31a") |
 # | §7 'The test that matters: one frozen evaluation on untouched weeks'; App. I | multi-outlier design constants | bulk-edge factor of 1.05, minimum group spread of 5 accounts, cap of 20 eigenvectors | Cell 8, `stats27` (`1.05 * e_hat`, participation number `>= 5`, `min(20, ...)`) |
 #
-# Not reported in the paper: the tilted c = 1 source; weekly oracle TPR/AUC; the frozen-loading (`qc_frz`) and forecast-plus-factor (`qc_fcf`) variants; per-detector KDE `D` values; `kpre` and eigenvector overlap `ov_med`; prefilter feature medians and benign pass rate `q_pass`. App. P (Step 29, "Base-rate on-task prompts distil", +1.5) comes from the separate distillation notebook `step29d_tilted_distillation_kaggle.ipynb`, not from this script.
+# Not reported in the paper: the tilted c = 1 source; weekly oracle TPR/AUC; the frozen-loading (`qc_frz`) and forecast-plus-factor (`qc_fcf`) variants; per-detector KDE `D` values; `kpre` and eigenvector overlap `ov_med`; prefilter feature medians and benign pass rate `q_pass`. Prediction log (Step 29, "Base-rate on-task prompts distil", +1.5) comes from the separate distillation notebook `step29d_tilted_distillation_kaggle.ipynb`, not from this script.
 
 # %% [markdown]
 # # Steps 27–31 — Bulk edge or benign blocks, multi-outlier selection, the least-favourable campaign, factor-adjusted calibration, and a two-sided prefilter
 # **Kaggle:** GPU + Internet + `HF_TOKEN` → **Run All** (≈60–100 min; reuses earlier caches). `QUICK=True` first. Distillation for Step 29d is the separate notebook `step29d_tilted_distillation_kaggle.ipynb`.
 #
-# All predictions are locked in the paper's App. P (prediction log), Steps 27–31 rows. One implementation choice fixed before running: the candidate set of multi-outlier selection always includes the top eigenvector, so T_max is defined in every window and T_max ≥ the hollowed score.
+# All predictions are locked in the paper's the prediction log (docs/prediction_log.md), Steps 27–31 rows. One implementation choice fixed before running: the candidate set of multi-outlier selection always includes the top eigenvector, so T_max is defined in every window and T_max ≥ the hollowed score.
 #
 # * **27** — For each attacked pooled window: rank j* and squared overlap of the eigenvector of R_c most aligned with the colluder indicator, whether λ_{j*} exceeds the null 99% λmax, and the colluders' mean pairwise cosine ρ; coordination of null-selected groups against random groups; and the scale test repeated with r = 1,500 components (750 modes).
 # * **28** — Multi-outlier selection: eigenvectors of R_c above (1 + 0.05)·ê (median-matched Marchenko–Pastur edge, using the min(A, r) nonzero eigenvalues), participation number ≥ 5, at most 20; T_max = largest group two-scale score; conformal thresholds; k(A) and a max-stable GEV check with λ = k(A).
@@ -544,7 +544,7 @@ neg = np.flatnonzero((~is_pool[ACCT]) & (WEEK < 8)); neg = np.random.default_rng
 clf_t = LogisticRegression(max_iter=2000, class_weight="balanced").fit(np.vstack([D_MMU.astype(np.float32), EN[neg].astype(np.float32)]), np.r_[np.ones(len(D_MMU)), np.zeros(len(neg))])
 POST = np.zeros(len(EN), np.float32)
 for s0 in range(0, len(EN), 200000): POST[s0:s0 + 200000] = clf_t.predict_proba(EN[s0:s0 + 200000].astype(np.float32))[:, 1]
-# [PAPER] §4 (after Prop. 4), App. B 'The least-favourable campaign', App. P (Step 29): measured p = 1.48% (P_TASK); the ~51 queries are derived from it in the paper
+# [PAPER] §4 (after Prop. 4), App. B 'The least-favourable campaign', Prediction log (Step 29): measured p = 1.48% (P_TASK); the ~51 queries are derived from it in the paper
 IN_S = POST >= 0.5; ben = ~is_pool[ACCT]; P_TASK = float(IN_S[ben].mean()); ON = pool_idx[IN_S[pool_idx]]
 if len(ON) < 50:
     ON = pool_idx[np.argsort(-POST[pool_idx])[: max(50, len(pool_idx) // 50)]]; print(f"[29a] WARNING: only {int(IN_S[pool_idx].sum())} on-task pool prompts; using the top {len(ON)} by posterior")
@@ -586,7 +586,7 @@ for b in WEEKS:
         idx, lab, vols = sub_window(b, np.random.default_rng(SEED + 100 * b + t)); NULLW[b].append(stats27(Z[idx], lab, np.bincount(lab), *BANK[b], top=TOPIC[idx], cells=True))
 print(f"[weekly] banks and null windows for {len(WEEKS)} weeks ({time.time()-t0:.0f}s)")
 TH = {b: {d: float(np.quantile([r[d] for v in WEEKS if v < b for r in NULLW[v]], 1 - ALPHA)) for d in DETW} for b in TB}
-# [PAPER] App. P (Step 28): Tmax calibrated (conformal), 0/960 windows; week-level bound 12%
+# [PAPER] Prediction log (Step 28): Tmax calibrated (conformal), 0/960 windows; week-level bound 12%
 FPR = {d: boot_ci([np.mean([r[d] > TH[b][d] for r in NULLW[b]]) for b in TB]) for d in DETW}
 print("[weekly] held-out FPR (conformal): " + " ".join(f"{d}={FPR[d][0]:.4f}" for d in DETW))
 RES, ATTW = [], {}
@@ -606,7 +606,7 @@ for src in SRCW:
             for d in DETW: acc[d].append(float(sa[d] > TH[b][d] and not sb[d] > TH[b][d])); nv[d].append(sb[d]); av[d].append(sa[d])
         for d in DETW:
             if acc[d]: pw[d].append(np.mean(acc[d]))
-    # [PAPER] App. P (Step 29): tilted_c05 two-scale 0.00, hollowed 0.01; Table 2 ("Any / Least detectable", dev) ≈0.01; App. G.2 at most 0.01; App. Table 15 dev 0.00 / 0.01 / 0.01
+    # [PAPER] Prediction log (Step 29): tilted_c05 two-scale 0.00, hollowed 0.01; Table 2 ("Any / Least detectable", dev) ≈0.01; App. G.2 at most 0.01; App. Table 15 dev 0.00 / 0.01 / 0.01
     # [PAPER] Table 2, Table 3 caption, App. Table 15 (dev weeks, Multi-outlier): dataset 1.00, half padding 0.36–0.42 (plausibly Tmax rows here, see header)
     row = dict(source=src, **{d: boot_ci(pw[d]) for d in DETW}, **{d + "_roc": roc(nv[d], av[d]) for d in DETW})
     from scipy.stats import gaussian_kde
@@ -616,7 +616,7 @@ for src in SRCW:
         except Exception: row["D_" + d] = float("nan")
     RES.append(row)
     print(f"[W] {src:>18} | deployed " + " ".join(f"{d}={row[d][0]:.2f}" for d in DETW) + " | oracle " + " ".join(f"{d}={row[d+'_roc']['tpr1']:.2f}" for d in DETW) + " | nats/week " + " ".join(f"{d}={row['D_'+d]:.2f}" for d in DETW) + f"  ({time.time()-t0:.0f}s)")
-# [PAPER] App. P (Step 29): detectors realise 0.03% of Nw d(c∥p) (best / AVAIL)
+# [PAPER] Prediction log (Step 29): detectors realise 0.03% of Nw d(c∥p) (best / AVAIL)
 NW = S27["NP"]; AVAIL = NW * dkl(0.5, P_TASK)
 best = max(next(r for r in RES if r["source"] == "tilted_c05")["D_" + d] for d in DETW)
 print(f"[29c] available N_w d(0.5||p) = {AVAIL:.0f} nats/week; best detector realised {best:.3f} ({100*best/AVAIL:.4f}% of available)")
@@ -692,9 +692,9 @@ def qc_scores(r, b):
     return dict(qc_fac=score_max(fac_resid(z, Q["L"], Q["mu"]), Q["sc"]), qc_frz=score_max(fac_resid(z, Lfr, mufr), Q["scf"]), qc_fc=score_max(z - Q["offb"], Q["scc"]),
                 qc_fcf=score_max(fac_resid(z - Q["offb"], Q["L2"], Q["mu2"]), Q["scff"]))
 QCD = ["qc_fac", "qc_frz", "qc_fc", "qc_fcf"]
-# [PAPER] App. P (Step 30): factor-adjusted false alarms 23% (qc_fac) vs forecast 14.5% (qc_fc); App. F 'Query-level pooling': factor model on 23%
+# [PAPER] Prediction log (Step 30): factor-adjusted false alarms 23% (qc_fac) vs forecast 14.5% (qc_fc); App. F 'Query-level pooling': factor model on 23%
 FPRQ = {d: boot_ci([np.mean([qc_scores(r, b)[d] > QCR[b]["th_" + d.split("_")[1]] for r in NULLW[b]]) for b in TB]) for d in QCD}
-# [PAPER] App. P (Step 30): cell drift variance share 31%; App. F 'Query-level pooling': two factors carried only 31% of the variance
+# [PAPER] Prediction log (Step 30): cell drift variance share 31%; App. F 'Query-level pooling': two factors carried only 31% of the variance
 print(f"[30a] factors q (median) {np.median([QCR[b]['q'] for b in TB]):.0f}; variance share of first q components {np.median([QCR[b]['share'] for b in TB]):.3f}")
 print("[30b/d] held-out FPR (rolling): " + " ".join(f"{d}={FPRQ[d][0]:.3f}[{FPRQ[d][1]:.3f},{FPRQ[d][2]:.3f}]" for d in QCD))
 QRES = {}
@@ -707,7 +707,7 @@ for src in ["metamath_unique", "metamath_mixed", "metamath_followup", "tilted_c0
             for d in QCD: th = QCR[b]["th_" + d.split("_")[1]]; acc[d].append(float(qa[d] > th and not qb[d] > th))
         for d in QCD:
             if acc[d]: pw[d].append(np.mean(acc[d]))
-    # [PAPER] App. P (Step 30): factor QC under padding 0.48 vs two-scale 0.01 at 23% false alarms (metamath_mixed, qc_fac)
+    # [PAPER] Prediction log (Step 30): factor QC under padding 0.48 vs two-scale 0.01 at 23% false alarms (metamath_mixed, qc_fac)
     QRES[src] = {d: boot_ci(pw[d]) for d in QCD}
     print(f"[30c] {src:>18}: " + " ".join(f"{d}={QRES[src][d][0]:.2f}" for d in QCD) + f"  ({time.time()-t0:.0f}s)")
 
@@ -738,12 +738,12 @@ for A_ in S27["AS"]:
     for src in ["metamath_unique", "metamath_mixed"]:
         att = [attack_big(A_, src, np.random.default_rng(SEED + 37 * A_ + t + len(src)), BL) for t in range(S27["ATT"])]
         # [PAPER] App. Table 11 diagnostics: colluder rank (jstar_med) 0/0 ... 3/8, ρ vs needed (rho vs bbp_needed) 0.49 vs 0.013 ... 0.61 vs 0.082; App. F 'Scale': cap of 20 reached (k_med)
-        # [PAPER] App. P (Step 27): campaign vs null 99% λmax (above_edge); null-selected group cosine 0.43–0.57 vs 0.00 (cos_sel vs cos_rand)
+        # [PAPER] Prediction log (Step 27): campaign vs null 99% λmax (above_edge); null-selected group cosine 0.43–0.57 vs 0.00 (cos_sel vs cos_rand)
         row = dict(A=A_, source=src, r=2 * M_MODES, k_med=float(np.median([x["k"] for x in nul])), kpre_med=float(np.median([x["kpre"] for x in nul])),
                    above_edge=float(np.mean([x["lam_js"] > lam99 for x in att])), jstar_med=float(np.median([x["jstar"] for x in att])), ov_med=float(np.median([x["ov"] for x in att])),
                    rho=float(np.mean([x["rho"] for x in att])), cos_sel=float(np.mean([x["cos_sel"] for x in nul])), cos_rand=float(np.mean([x["cos_rand"] for x in nul])),
                    bbp_needed=float(np.sqrt(A_ / (2 * M_MODES)) / S27["KP"]))
-        # [PAPER] App. Table 11: top eigenvector (tsRc) and Tmax, unpadded/padded, oracle TPR at 1%; App. Table 15 pooled rows; App. P (Step 28): 1.00 vs 0.00 at A = 2,500
+        # [PAPER] App. Table 11: top eigenvector (tsRc) and Tmax, unpadded/padded, oracle TPR at 1%; App. Table 15 pooled rows; Prediction log (Step 28): 1.00 vs 0.00 at A = 2,500
         # [PAPER] §5 'Scale: selection fails before the barrier does', App. D.5: Tmax 93–100% unpadded up to 10^4, padded 77–100% up to 5,000 and 17% at 10^4; Fig. 5 (plausibly, see header)
         for d in DETW + ["orc"]:
             thr = np.quantile([x[d if d != "orc" else "tsC"] for x in nul], 0.99); row[d] = float(np.mean([x[d] > thr for x in att]))
@@ -753,7 +753,7 @@ A_hi = S27["A_HI"]; HI = {}
 with modes(S27["M_HI"]): nulh = [stats27(Z[i], l, v, *BH) for i, l, v in (big_window(A_hi, np.random.default_rng(SEED + 77 + t)) for t in range(S27["NUL_HI"]))]
 for src in ["metamath_unique", "metamath_mixed"]:
     att = [attack_big(A_hi, src, np.random.default_rng(SEED + 79 + t + len(src)), BH, m=S27["M_HI"]) for t in range(S27["ATT_HI"])]
-    # [PAPER] App. F 'Scale', App. P (Step 27): 1,500 components at A = 2,500 lift top-eigenvector selection 0.00 to 0.57 (unpadded tsRc)
+    # [PAPER] App. F 'Scale', Prediction log (Step 27): 1,500 components at A = 2,500 lift top-eigenvector selection 0.00 to 0.57 (unpadded tsRc)
     HI[src] = {d: float(np.mean([x[d] > np.quantile([y[d] for y in nulh], 0.99) for x in att])) for d in DETW}; HI[src]["rho"] = float(np.mean([x["rho"] for x in att]))
     print(f"[27d] A={A_hi}, r={2*S27['M_HI']}: {src:>16}: TPR C {HI[src]['tsC']:.2f} Rc {HI[src]['tsRc']:.2f} Tmax {HI[src]['Tmax']:.2f}; rho {HI[src]['rho']:.4f} (BBP needs {np.sqrt(A_hi/(2*S27['M_HI']))/S27['KP']:.4f})")
 from scipy.stats import genextreme
@@ -768,7 +768,7 @@ def q99(xi, loc, sc, ratio):
 GEV = []
 for A_ in sorted(NULLS)[1:]:
     ratio = kk[A_] / kk[A0]; band = [q99(*b, ratio) for b in boots]; meas = float(np.quantile([x["Tmax"] for x in NULLS[A_]], 0.99))
-    # [PAPER] App. P (Step 28): GEV predicts the Tmax threshold at 2 of 4 sizes (Fail)
+    # [PAPER] Prediction log (Step 28): GEV predicts the Tmax threshold at 2 of 4 sizes (Fail)
     GEV.append(dict(A=A_, pred=q99(xi0, l0, s0, ratio), lo=float(np.quantile(band, .05)), hi=float(np.quantile(band, .95)), meas=meas))
     print(f"[28d] A={A_}: predicted 99% Tmax {GEV[-1]['pred']:.3f} [{GEV[-1]['lo']:.3f},{GEV[-1]['hi']:.3f}] vs measured {meas:.3f} (k ratio {ratio:.2f})")
 
@@ -808,7 +808,7 @@ q_pass = float(np.mean(extremeness(np.array([feats(Z[g], TOPIC[g]) for g in test
 def acct_feats(src, n, r): Zc, _, Tc = campaign_points(src, n, r); p_ = r.permutation(len(Tc)); return feats(Zc[p_], Tc[p_])
 col = np.array([acct_feats("metamath_unique", int(r_.choice([len(g) for g in testp])), r_) for r_ in [np.random.default_rng(100 + i) for i in range(200 if not QUICK else 20)]])
 swp = np.array([acct_feats("eval_gsm8k", 300 if not QUICK else 40, np.random.default_rng(300 + i)) for i in range(100 if not QUICK else 10)])
-# [PAPER] App. P (Step 31): two-sided prefilter keeps 13% of colluders, 100% of sweeps; App. F 'Statistics that failed': 13% and every benign evaluation account
+# [PAPER] Prediction log (Step 31): two-sided prefilter keeps 13% of colluders, 100% of sweeps; App. F 'Statistics that failed': 13% and every benign evaluation account
 RET_COL, RET_SWP = float(np.mean(extremeness(col) > TH_PF)), float(np.mean(extremeness(swp) > TH_PF))
 print(f"[31] benign pass rate (test) {q_pass:.3f}; colluder retention {RET_COL:.3f}; GSM8K-sweep retention {RET_SWP:.3f}; "
       f"feature medians benign/colluder/sweep: LZ {np.median(Fcal[:,0]):.2f}/{np.median(col[:,0]):.2f}/{np.median(swp[:,0]):.2f}, coarse novelty {np.median(Fcal[:,1]):.2f}/{np.median(col[:,1]):.2f}/{np.median(swp[:,1]):.2f}, fine novelty {np.median(Fcal[:,2]):.2f}/{np.median(col[:,2]):.2f}/{np.median(swp[:,2]):.2f}  ({time.time()-t0:.0f}s)")
@@ -819,7 +819,7 @@ print(f"[31] benign pass rate (test) {q_pass:.3f}; colluder retention {RET_COL:.
 # %%
 # ===== Cell 14: predictions and verdict =====
 fmt = lambda x: f"{x:.2f}"
-# [PAPER] App. P (Steps 27-31 rows): locked predictions P27a-P31b, outcomes as listed there (see header table)
+# [PAPER] Prediction log (Steps 27-31 rows): locked predictions P27a-P31b, outcomes as listed there (see header table)
 for A_ in [a for a in S27["AS"] if a >= 2500]:
     for src in ["metamath_unique", "metamath_mixed"]:
         r_ = next((x for x in SC if x["A"] == A_ and x["source"] == src), None)

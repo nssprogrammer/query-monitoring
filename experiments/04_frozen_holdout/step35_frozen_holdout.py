@@ -23,41 +23,41 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | Table 3 (MiniLM, 64–252 accounts, row "False alarms"); Fig. 1b ("false alarms (1.9%)"); §7 'What held' and App. I ('1.8–1.9%'); App. P (Step 35, frozen calibration: 'Pass (1.8%, 1.9%, 1.9%') | held-out false-alarm rate, Two-scale / Hollowed / Multi-outlier / Volume scan (volume scan = rolling 8-week `vol_roll`) | 1.8% / 1.9% / 1.9% / 1.5% | Cell 8, `FPR_M = fpr_table(...)`, print "[P35a] held-out FPR" (tsC / tsRc / Tmax / vol_roll); Cell 14 P35a print and "[FPR matched]" |
+# | Table 3 (MiniLM, 64–252 accounts, row "False alarms"); Fig. 1b ("false alarms (1.9%)"); §7 'What held' and App. I ('1.8–1.9%'); Prediction log (Step 35, frozen calibration: 'Pass (1.8%, 1.9%, 1.9%') | held-out false-alarm rate, Two-scale / Hollowed / Multi-outlier / Volume scan (volume scan = rolling 8-week `vol_roll`) | 1.8% / 1.9% / 1.9% / 1.5% | Cell 8, `FPR_M = fpr_table(...)`, print "[P35a] held-out FPR" (tsC / tsRc / Tmax / vol_roll); Cell 14 P35a print and "[FPR matched]" |
 # | App. I 'What held' | weeks with any false alarm (MiniLM) | two or three of 17 weeks | Cell 8 print "[P35a]" (`weeks with FA`) |
-# | App. P (Step 35, frozen calibration) | week-unit 95% upper bound on false alarms | week-level upper 4–6% | `week_upper(...)` in Cell 4; printed in Cell 8 "[P35a]" and Cell 14 P35a |
-# | Table 3 (MiniLM, 64–252 accounts, row "Dataset (MetaMathQA)"); Fig. 1b; Table 2 (col "Weekly detection", untouched values); App. Table 15 (untouched, "Dataset"); App. P (Step 35, dataset campaigns: 'Pass (1.00, 0.97; 0.86)') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.86 / 1.00 / 0.97 / 0.61 | Cell 8, `RES_M = run_sources(...)`, print "[matched] metamath_unique" (tsC / tsRc / Tmax / vol_roll); Cell 14 P35b |
+# | Prediction log (Step 35, frozen calibration) | week-unit 95% upper bound on false alarms | week-level upper 4–6% | `week_upper(...)` in Cell 4; printed in Cell 8 "[P35a]" and Cell 14 P35a |
+# | Table 3 (MiniLM, 64–252 accounts, row "Dataset (MetaMathQA)"); Fig. 1b; Table 2 (col "Weekly detection", untouched values); App. Table 15 (untouched, "Dataset"); Prediction log (Step 35, dataset campaigns: 'Pass (1.00, 0.97; 0.86)') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.86 / 1.00 / 0.97 / 0.61 | Cell 8, `RES_M = run_sources(...)`, print "[matched] metamath_unique" (tsC / tsRc / Tmax / vol_roll); Cell 14 P35b |
 # | Abstract ('0.86–1.00 of weeks'); §1 item 1 ('86–100% of weeks'); §7 and App. I ('0.86–1.00') | dataset-campaign detection range over both encoders | 0.86–1.00 | Cell 8 `RES_M` and Cell 13 `RES_E`, source metamath_unique |
-# | Table 3 (MiniLM, 64–252 accounts, row "Half padding"); Fig. 1b (0.57); Table 2 (untouched: two-scale 0.00, multi-outlier 0.00); App. Table 15 (untouched, "Half padding"); App. P (Step 35, mimicry: 'hollowed 0.57; Tmax 0.00; two-scale 0.00'); App. I ('0.37 against 0.00') | weekly paired detection under half padding, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.57 / 0.00 / 0.37 | Cell 8, `RES_M`, print "[matched] metamath_mixed"; Cell 14 P35c |
+# | Table 3 (MiniLM, 64–252 accounts, row "Half padding"); Fig. 1b (0.57); Table 2 (untouched: two-scale 0.00, multi-outlier 0.00); App. Table 15 (untouched, "Half padding"); Prediction log (Step 35, mimicry: 'hollowed 0.57; Tmax 0.00; two-scale 0.00'); App. I ('0.37 against 0.00') | weekly paired detection under half padding, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.57 / 0.00 / 0.37 | Cell 8, `RES_M`, print "[matched] metamath_mixed"; Cell 14 P35c |
 # | §7 'What held'; App. I; Table 2 (Hollowed, Half padding, untouched); App. Table 15 (untouched, Hollowed) | hollowed detection of padded campaigns across three campaign seeds | 0.50–0.57 | Cell 8, `RES_M` (seed 0) and `RUNS[sd]` (seeds 1, 2); Cell 14 verdict rows "[matched]", "[seed1]", "[seed2]" metamath_mixed tsRc |
 # | Abstract ('0.50–0.96 of weeks'); §1 item 2 ('50–96% of untouched weeks') | hollowed detection of padded campaigns, over seeds, E5 and whole weeks | 0.50–0.96 | Cell 8 `RES_M`/`RUNS`, Cell 13 `RES_E`, Cell 12 `RES_L` (metamath_mixed, tsRc) |
-# | App. I 'What held'; App. P (Step 35, run-to-run spread: 'Pass (≤ 0.07)') | run-to-run spread across campaign seeds | at most 0.07 | Cell 14, `spread`, print "P35l" |
-# | Table 3 (MiniLM, 64–252 accounts, row "Least detectable (tilted)"); Fig. 1b (0.04); Table 2 (row "Least detectable", '≤0.04'); App. Table 15 (untouched, "Least detectable"); §7 and App. I ('at or below 0.04'); App. G.2 ('at most 0.04 on untouched weeks'); App. P (Step 35, tilted: 'Pass (≤ 0.04)') | weekly paired detection of the tilted campaign, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.04 / 0.00 / 0.10 | Cell 8, `RES_M`, print "[matched] tilted_c05"; Cell 14 P35d |
-# | Table 3 (MiniLM, 64–252 accounts, row "Random real prompts"); App. P (Step 35, random natural: 'Pass (0.00)') | weekly paired detection, all four detectors | 0.00 / 0.00 / 0.00 / 0.00 | Cell 8, `RES_M`, print "[matched] random"; Cell 14 P35e |
+# | App. I 'What held'; Prediction log (Step 35, run-to-run spread: 'Pass (≤ 0.07)') | run-to-run spread across campaign seeds | at most 0.07 | Cell 14, `spread`, print "P35l" |
+# | Table 3 (MiniLM, 64–252 accounts, row "Least detectable (tilted)"); Fig. 1b (0.04); Table 2 (row "Least detectable", '≤0.04'); App. Table 15 (untouched, "Least detectable"); §7 and App. I ('at or below 0.04'); App. G.2 ('at most 0.04 on untouched weeks'); Prediction log (Step 35, tilted: 'Pass (≤ 0.04)') | weekly paired detection of the tilted campaign, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.04 / 0.00 / 0.10 | Cell 8, `RES_M`, print "[matched] tilted_c05"; Cell 14 P35d |
+# | Table 3 (MiniLM, 64–252 accounts, row "Random real prompts"); Prediction log (Step 35, random natural: 'Pass (0.00)') | weekly paired detection, all four detectors | 0.00 / 0.00 / 0.00 / 0.00 | Cell 8, `RES_M`, print "[matched] random"; Cell 14 P35e |
 # | Table 3 (MiniLM, 64–252 accounts, row "GSM8K sweep, 10 / 3 accounts") | weekly paired detection of benign evaluation sweeps, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.87 / 0.88, 1.00 / 0.34, 0.97 / 0.93, 0.46 / 0.46 | Cell 8, `RES_M`, prints "[matched] eval_gsm8k(10x100)" and "eval_gsm8k(3x300)" (from `R["EVALS"]`) |
 # | Table 3 (E5-small-v2, row "False alarms"); §7 and App. I ('0–1.3%') | held-out false-alarm rate, Two-scale / Hollowed / Multi-outlier / Volume scan | 1.3% / 0.3% / 0.0% / 6.2% | Cell 13, `FPR_E = fpr_table(...)`, print "[E5] held-out FPR" |
-# | Table 3 (E5-small-v2, row "Dataset"); App. P (Step 35, E5: 'Pass (1.00, 0.00, 0.00; ...') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.86 / 1.00 / 1.00 / 0.48 | Cell 13, `RES_E`, print "[matched] metamath_unique" (second occurrence); Cell 14 P35f |
+# | Table 3 (E5-small-v2, row "Dataset"); Prediction log (Step 35, E5: 'Pass (1.00, 0.00, 0.00; ...') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.86 / 1.00 / 1.00 / 0.48 | Cell 13, `RES_E`, print "[matched] metamath_unique" (second occurrence); Cell 14 P35f |
 # | Table 3 (E5-small-v2, row "Half padding"); §7 and App. I ('0.89 with E5') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.89 / 0.00 / 0.09 | Cell 13, `RES_E`, print "[matched] metamath_mixed" (second occurrence); Cell 14 P35f |
 # | Table 3 (E5-small-v2, row "Least detectable") | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.03 / 0.00 / 0.02 | Cell 13, `RES_E`, print "[matched] tilted_c05" (second occurrence); Cell 14 P35f |
-# | Table 3 (MiniLM, whole weeks, row "False alarms"); App. P (Step 35, whole weeks: 'Fail (2.5%; 1.00)'); App. I ('fired on 6–11% of null windows elsewhere', with E5 6.2%) | held-out false-alarm rate, Two-scale / Hollowed / Multi-outlier / Volume scan | 1.0% / 0.5% / 2.5% / 11.3% | Cell 12, `FPR_L = fpr_table(...)`, print "[P35k] held-out FPR"; Cell 14 P35k |
+# | Table 3 (MiniLM, whole weeks, row "False alarms"); Prediction log (Step 35, whole weeks: 'Fail (2.5%; 1.00)'); App. I ('fired on 6–11% of null windows elsewhere', with E5 6.2%) | held-out false-alarm rate, Two-scale / Hollowed / Multi-outlier / Volume scan | 1.0% / 0.5% / 2.5% / 11.3% | Cell 12, `FPR_L = fpr_table(...)`, print "[P35k] held-out FPR"; Cell 14 P35k |
 # | Table 3 (MiniLM, whole weeks, row "Dataset") | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.90 / 1.00 / 1.00 / 0.84 | Cell 12, `RES_L`, print "[large] metamath_unique"; Cell 14 P35k |
 # | Table 3 (MiniLM, whole weeks, row "Half padding"); §7 and App. I ('0.96 in whole weekly populations') | weekly paired detection, Two-scale / Hollowed / Multi-outlier / Volume scan | 0.00 / 0.96 / 0.00 / 0.51 | Cell 12, `RES_L`, print "[large] metamath_mixed" |
-# | Table 3 (row label "(260–469 accounts)"); App. I 'What could not be tested'; App. P (Step 35, whole weeks: 'weeks of 260–469 accounts only') | size of whole-week populations | 260–469 | plausibly Cell 12 print "[large] holdout weeks ... window sizes" (`sizes_L`); not otherwise isolated |
+# | Table 3 (row label "(260–469 accounts)"); App. I 'What could not be tested'; Prediction log (Step 35, whole weeks: 'weeks of 260–469 accounts only') | size of whole-week populations | 260–469 | plausibly Cell 12 print "[large] holdout weeks ... window sizes" (`sizes_L`); not otherwise isolated |
 # | App. I 'What could not be tested' | benign accounts flagged per week by multi-outlier selection at 10^5 accounts | about 160 | Cell 12, `FLAGGED_1E5`, print "[large] benign accounts flagged per week at 1e5" |
 # | App. I 'What held' | share of accounts flagged by multi-outlier selection that are colluders | 94% | `Tmax_precision` in `run_sources` (Cell 7); printed as "Tmax prec" in Cell 14 verdict rows (paper does not say which row) |
-# | App. I 'What held' ('changed nothing'); App. P (Step 35, addition vs replacement: 'Pass (0.00)') | change in random-campaign detection, addition vs replacement | 0.00 | Cell 8, `RES_ADD`; Cell 14 print "P35m" |
-# | §7 'What did not'; App. I; App. D.4 ('On the untouched weeks the ratio was 2.22'); App. P (Step 35, E5: '3.06 vs 2.22'; 'Census ratio 2.22, not 1.14') | real-to-shuffled top-eigenvalue ratio of R_c, MiniLM / E5 | 2.22 / 3.06 | Cell 9 `CEN["minilm"]` and Cell 13 `CEN["e5"]` (`census`), prints "[census]"; Cell 14 P35f |
-# | App. I ('calibrated but nearly powerless (0.03 on dataset campaigns)'); App. P (Step 35, volume scan: 'Fail (0.0%; 0.03; both 0.00)') | conformal volume scan: false alarms; dataset detection; padded detection (volume scan and T_max) | 0.0%; 0.03; both 0.00 | `vol_conf` detector: Cell 8 `FPR_M`/`RES_M`; Cell 14 print "P35g" |
-# | §7 'What held' and App. I ('49–59% of the non-sacrificial colluders'; 'both still caught every campaign'; selection on C 'again 0.00 here'); App. P (Step 35, sacrificial: 'Fail (1.00; recall 0.49)') | sacrificial scheduling: detection and non-sacrificial recall | 49–59%; 1.00; 0.00 | Cell 10, `SCHED`, print "[X] sacrificial" (and "[X] random" for comparison); Cell 14 P35h and "[SCHED]" |
-# | §7 'What did not' and App. I (ramp); App. P (Step 35, ramp: 'Fail (0.89 to 0.00)'); App. D.6 ('On the untouched weeks the attack defeated every detector') | abrupt -> ramped detection: multi-outlier; conformal two-scale; hollowed; rolling two-scale | 0.89 to 0.00; 0.80 to 0.02; 0.98 to 0.32; 0.79 to 0.32 | Cell 10, `TEMP`, print "[T] week" (cumulative; last line = final); Cell 14 P35i and "[TEMP]" |
-# | §7 'Covert is not invisible'; App. I; App. P (Step 35, tilted: 'Ranked by hollowed (AUC 0.97)') | AUC of hollowed selection: tilted (MiniLM), tilted (E5), random real prompts (MiniLM) | 0.97, 0.92, 0.88 | `roc(...)` in Cell 4 via `run_sources`; Cell 14 verdict rows "[matched] tilted_c05", "[e5] tilted_c05", "[matched] random", tsRc `auc=` |
-# | Table 2 (col "First weekly alarm", untouched values: Two-scale and Multi-outlier); App. P (Step 35, martingale: 'never') | median week of first weekly alarm: dataset / half padding | week 1 / none (both detectors) | Cell 11, `SEQ[('all', d, src)]['first_alarm']`, print "[SEQ] all"; Cell 14 P35j. GSM8K gains in parentheses come from the distillation steps, not this script |
-# | Table 2 (col "Anytime-valid", untouched values: Two-scale and Multi-outlier); App. P (Step 35, martingale: 'Fail (25% of runs in 16 weeks; ...') | median week of conformal-martingale alarm: dataset / half padding | week 3 / none (two-scale); week 3 / 25% of runs (multi-outlier) | Cell 11, `SEQ[('all', d, src)]['martingale']` and `['frac_m']`, print "[SEQ] all"; Cell 14 P35j |
+# | App. I 'What held' ('changed nothing'); Prediction log (Step 35, addition vs replacement: 'Pass (0.00)') | change in random-campaign detection, addition vs replacement | 0.00 | Cell 8, `RES_ADD`; Cell 14 print "P35m" |
+# | §7 'What did not'; App. I; App. D.4 ('On the untouched weeks the ratio was 2.22'); Prediction log (Step 35, E5: '3.06 vs 2.22'; 'Census ratio 2.22, not 1.14') | real-to-shuffled top-eigenvalue ratio of R_c, MiniLM / E5 | 2.22 / 3.06 | Cell 9 `CEN["minilm"]` and Cell 13 `CEN["e5"]` (`census`), prints "[census]"; Cell 14 P35f |
+# | App. I ('calibrated but nearly powerless (0.03 on dataset campaigns)'); Prediction log (Step 35, volume scan: 'Fail (0.0%; 0.03; both 0.00)') | conformal volume scan: false alarms; dataset detection; padded detection (volume scan and T_max) | 0.0%; 0.03; both 0.00 | `vol_conf` detector: Cell 8 `FPR_M`/`RES_M`; Cell 14 print "P35g" |
+# | §7 'What held' and App. I ('49–59% of the non-sacrificial colluders'; 'both still caught every campaign'; selection on C 'again 0.00 here'); Prediction log (Step 35, sacrificial: 'Fail (1.00; recall 0.49)') | sacrificial scheduling: detection and non-sacrificial recall | 49–59%; 1.00; 0.00 | Cell 10, `SCHED`, print "[X] sacrificial" (and "[X] random" for comparison); Cell 14 P35h and "[SCHED]" |
+# | §7 'What did not' and App. I (ramp); Prediction log (Step 35, ramp: 'Fail (0.89 to 0.00)'); App. D.6 ('On the untouched weeks the attack defeated every detector') | abrupt -> ramped detection: multi-outlier; conformal two-scale; hollowed; rolling two-scale | 0.89 to 0.00; 0.80 to 0.02; 0.98 to 0.32; 0.79 to 0.32 | Cell 10, `TEMP`, print "[T] week" (cumulative; last line = final); Cell 14 P35i and "[TEMP]" |
+# | §7 'Covert is not invisible'; App. I; Prediction log (Step 35, tilted: 'Ranked by hollowed (AUC 0.97)') | AUC of hollowed selection: tilted (MiniLM), tilted (E5), random real prompts (MiniLM) | 0.97, 0.92, 0.88 | `roc(...)` in Cell 4 via `run_sources`; Cell 14 verdict rows "[matched] tilted_c05", "[e5] tilted_c05", "[matched] random", tsRc `auc=` |
+# | Table 2 (col "First weekly alarm", untouched values: Two-scale and Multi-outlier); Prediction log (Step 35, martingale: 'never') | median week of first weekly alarm: dataset / half padding | week 1 / none (both detectors) | Cell 11, `SEQ[('all', d, src)]['first_alarm']`, print "[SEQ] all"; Cell 14 P35j. GSM8K gains in parentheses come from the distillation steps, not this script |
+# | Table 2 (col "Anytime-valid", untouched values: Two-scale and Multi-outlier); Prediction log (Step 35, martingale: 'Fail (25% of runs in 16 weeks; ...') | median week of conformal-martingale alarm: dataset / half padding | week 3 / none (two-scale); week 3 / 25% of runs (multi-outlier) | Cell 11, `SEQ[('all', d, src)]['martingale']` and `['frac_m']`, print "[SEQ] all"; Cell 14 P35j |
 # | §6 and App. G.3 ('null runs alarmed within 16 weeks a quarter of the time on untouched weeks') | share of null runs with a first weekly alarm within 16 weeks | a quarter of the time | Cell 11, `SEQ[('all', d, 'null')]['frac_f']`; Cell 14 P35j ("first-alarm Tmax") |
 # | Table 2 (Hollowed, untouched: 'week 1 (8.8)', 'week 1 (5.6)') | first weekly alarm of hollowed selection | week 1 / week 1 | not isolated (Cell 11 runs the sequential rules for tsC and Tmax only) |
 # | §2 'Data'; §7; App. I 'Design' | untouched data: test weeks; history weeks; English user turns; hashed IPs | 17 weeks; 31 weeks; 757,000; 76,000 | Cell 2 print (turns, hashed IPs, history/holdout weeks); Cell 8 print "[matched] holdout test weeks" |
 # | Table 3 (row label "MiniLM, 64–252 accounts"); App. Table 15 ("Untouched weeks, 64–252 accounts"); App. I 'Design' | window sizes, matched regime | 64–252 | Cell 8 print "[matched] ... window sizes" |
-# | App. P (Step 35 rows) | locked predictions P35a-P35m | pass/fail as listed | Cell 14 ("predictions and verdict") |
+# | Prediction log (Step 35 rows) | locked predictions P35a-P35m | pass/fail as listed | Cell 14 ("predictions and verdict") |
 #
 # Not reported in the paper: oracle-threshold detection (`tpr1`) and bootstrap intervals, the rolling two-scale
 # (`tsC_roll`) and global-stream (`glob`) detectors' weekly rates, T_max recall, E5 random-prompt results,
@@ -76,7 +76,7 @@
 #
 # **Regimes.** *matched*: windows of 64–364 accounts (the WildChat-1M range), the direct replication; *large*: whole real weeks (accounts with ≥ 5 queries, 70% subsamples), campaign fixed at 1,640 queries over 50 colluders — real same-week populations with deployed thresholds, which the pooled populations of Steps 20–32 could not provide.
 #
-# | ID | Locked prediction (locked in this notebook before the run; outcomes in App. P (prediction log), Step 35) |
+# | ID | Locked prediction (locked in this notebook before the run; outcomes in the prediction log (docs/prediction_log.md), Step 35) |
 # |---|---|
 # | **P35a** | Frozen calibration holds on untouched weeks (matched): held-out false alarms ≤ 2% for two-scale (conformal), hollowed and T_max |
 # | **P35b** | Dataset campaigns replicate: MetaMathQA weekly detection ≥ 0.9 (hollowed, T_max) and ≥ 0.7 (two-scale) |
@@ -312,7 +312,7 @@ def boot_ci(x, B=1000, rng=np.random.default_rng(7)):
     x = np.array(x, float)
     if len(x) == 0: return (float("nan"),) * 3
     bs = [x[rng.integers(0, len(x), len(x))].mean() for _ in range(B)]; return float(x.mean()), float(np.quantile(bs, .025)), float(np.quantile(bs, .975))
-# [PAPER] App. P (Step 35, frozen calibration): week-level upper 4–6%
+# [PAPER] Prediction log (Step 35, frozen calibration): week-level upper 4–6%
 def week_upper(fpr_by_week):
     """95% upper bound on the false-alarm rate with weeks as the unit: 1 - 0.05^(1/W) when no week had a false alarm."""
     f = np.array(fpr_by_week); W = len(f)
@@ -482,14 +482,14 @@ sizes = [s["A"] for b in HOLDW for s in NULM[b]]
 # [PAPER] Table 3 / App. Table 15 / App. I: windows of 64–252 accounts on 17 untouched weeks
 print(f"[matched] holdout test weeks {HOLDW}; window sizes {min(sizes)}-{max(sizes)} accounts; eligible accounts per holdout week {[len(GAM[b]) for b in HOLDW]}")
 FPR_M = fpr_table(NULM, THM, HOLDW)
-# [PAPER] Table 3 (MiniLM, "False alarms"), Fig. 1b, §7, App. P (Step 35): 1.8% / 1.9% / 1.9% / 1.5% (tsC / tsRc / Tmax / vol_roll)
+# [PAPER] Table 3 (MiniLM, "False alarms"), Fig. 1b, §7, Prediction log (Step 35): 1.8% / 1.9% / 1.9% / 1.5% (tsC / tsRc / Tmax / vol_roll)
 # [PAPER] App. I: two or three of 17 weeks had any false alarm (weeks with FA)
 print("[P35a] held-out FPR: " + " ".join(f"{d}={FPR_M[d]['fpr']:.4f}(weeks with FA {FPR_M[d]['weeks_with_fa']}/{FPR_M[d]['W']}, week-unit 95% upper {FPR_M[d]['week_upper']:.3f})" for d in DETS))
 # [PAPER] Table 3 (MiniLM, 64–252 accounts), Fig. 1b, Table 2 & App. Table 15 (untouched): Dataset 0.86 / 1.00 / 0.97 / 0.61;
 # [PAPER]   Half padding 0.00 / 0.57 / 0.00 / 0.37; Least detectable 0.00 / 0.04 / 0.00 / 0.10; Random 0.00 / 0.00 / 0.00 / 0.00;
 # [PAPER]   GSM8K sweep 10 / 3 accounts 0.87 / 0.88, 1.00 / 0.34, 0.97 / 0.93, 0.46 / 0.46 (tsC / tsRc / Tmax / vol_roll)
 RES_M = run_sources(GAM, "matched", THM, BANK, ["metamath_unique", "metamath_mixed", "tilted_c05", "random"] + [tuple(e) for e in R["EVALS"]], HOLDW, R["REPS"])
-# [PAPER] App. I / App. P (Step 35): addition vs replacement changes random-campaign detection by 0.00
+# [PAPER] App. I / Prediction log (Step 35): addition vs replacement changes random-campaign detection by 0.00
 RES_ADD = run_sources(GAM, "matched", THM, BANK, ["random"], HOLDW, R["REPS"], add=True)
 RUNS = {}
 for sd in R["RUN_SEEDS"][1:]:
@@ -527,7 +527,7 @@ for sched in ["random", "balanced", "sacrificial"]:
                 if f: g = sa[gk]; rec_ns[d].append(float(np.sum((g >= 5) & (g < K_)) / (K_ - 5)))
     SCHED[sched] = {d: dict(det=float(np.mean(det[d])) if det[d] else float("nan"), recall_nonsac=float(np.mean(rec_ns[d])) if rec_ns[d] else float("nan")) for d in det}
     # [PAPER] §7 / App. I: sacrificial schedule - hollowed and multi-outlier detect 1.00, non-sacrificial recall 49–59%; selection on C 0.00
-    # [PAPER] App. P (Step 35, sacrificial): Fail (1.00; recall 0.49)
+    # [PAPER] Prediction log (Step 35, sacrificial): Fail (1.00; recall 0.49)
     print(f"[X] {sched:>11}: " + " | ".join(f"{d} det {SCHED[sched][d]['det']:.2f}, non-sacrificial recall {SCHED[sched][d]['recall_nonsac']:.2f}" for d in det) + f"  ({time.time()-t0:.0f}s)")
 TEMP = {d: {"abrupt": [], "ramped": []} for d in ["tsC", "tsC_roll", "tsRc", "Tmax"]}
 TWK = [b for b in HOLDW if b - CAL_N - LAGB >= 0][:: max(1, len(HOLDW) // R["T_WEEKS"])][: R["T_WEEKS"]]
@@ -606,7 +606,7 @@ t0 = time.time(); GAL = groups_by_week(MIN_Q_LARGE)
 NULL_L = build_nulls(GAL, "large", R["NULL_L"], BANK); THL = thresholds(NULL_L)
 HOLDL = [b for b in sorted(THL) if b >= HOLD_WEEK and len(GAL[b]) >= 4 * K_COLL]
 sizes_L = [s["A"] for b in HOLDL for s in NULL_L[b]]
-# [PAPER] Table 3 / App. I / App. P (Step 35): whole weeks of 260–469 accounts (plausibly these window sizes)
+# [PAPER] Table 3 / App. I / Prediction log (Step 35): whole weeks of 260–469 accounts (plausibly these window sizes)
 print(f"[large] holdout weeks {HOLDL}; window sizes {min(sizes_L)}-{max(sizes_L)} accounts (colluder share {100*K_COLL/max(sizes_L):.2f}-{100*K_COLL/min(sizes_L):.2f}%)")
 FPR_L = fpr_table(NULL_L, THL, HOLDL)
 # [PAPER] Table 3 (MiniLM, whole weeks, "False alarms"): 1.0% / 0.5% / 2.5% / 11.3% (tsC / tsRc / Tmax / vol_roll)
@@ -637,7 +637,7 @@ print("[E5] held-out FPR: " + " ".join(f"{d}={FPR_E[d]['fpr']:.4f}" for d in DET
 # [PAPER]   Least detectable 0.00 / 0.03 / 0.00 / 0.02 (tsC / tsRc / Tmax / vol_roll)
 RES_E = run_sources(GAM, "matched", TH_E, BANK_E, ["metamath_unique", "metamath_mixed", "tilted_c05", "random"], HOLDW_E, R["REPS"])
 CEN["e5"] = census(GAM, NUL_E, BANK_E, HOLDW_E, "matched")
-# [PAPER] §7 / App. I / App. P (Step 35, E5): real-to-shuffled ratio of R_c 3.06 (E5) vs 2.22 (MiniLM)
+# [PAPER] §7 / App. I / Prediction log (Step 35, E5): real-to-shuffled ratio of R_c 3.06 (E5) vs 2.22 (MiniLM)
 print(f"[census] E5 holdout: real/shuffled lambda_1(R_c) {CEN['e5']['ratio']:.2f}; outliers per window median {CEN['e5']['k_median']:.0f} ({time.time()-t0:.0f}s)")
 
 # %% [markdown]
@@ -648,32 +648,32 @@ print(f"[census] E5 holdout: real/shuffled lambda_1(R_c) {CEN['e5']['ratio']:.2f
 g = lambda rows, src, d: next(r[d][0] for r in rows if r["source"] == src)
 o = lambda rows, src, d: next(r[d + "_roc"]["tpr1"] for r in rows if r["source"] == src)
 cal3 = ["tsC", "tsRc", "Tmax"]
-# [PAPER] App. P (Step 35): P35a Pass (1.8%, 1.9%, 1.9%; week-level upper 4–6%)
+# [PAPER] Prediction log (Step 35): P35a Pass (1.8%, 1.9%, 1.9%; week-level upper 4–6%)
 print(f"P35a matched FPR " + ", ".join(f"{d} {FPR_M[d]['fpr']:.4f} (week-unit upper {FPR_M[d]['week_upper']:.3f})" for d in cal3) + " (pass if all <= 0.02)")
-# [PAPER] App. P (Step 35): P35b Pass (1.00, 0.97; 0.86)
+# [PAPER] Prediction log (Step 35): P35b Pass (1.00, 0.97; 0.86)
 print(f"P35b MetaMathQA: tsRc {g(RES_M,'metamath_unique','tsRc'):.2f}, Tmax {g(RES_M,'metamath_unique','Tmax'):.2f} (>= 0.9); tsC {g(RES_M,'metamath_unique','tsC'):.2f} (>= 0.7)")
-# [PAPER] App. P (Step 35): P35c Partial (hollowed 0.57; Tmax 0.00; two-scale 0.00)
+# [PAPER] Prediction log (Step 35): P35c Partial (hollowed 0.57; Tmax 0.00; two-scale 0.00)
 print(f"P35c mixed: tsRc {g(RES_M,'metamath_mixed','tsRc'):.2f}, Tmax {g(RES_M,'metamath_mixed','Tmax'):.2f} (0.25-0.65); tsC {g(RES_M,'metamath_mixed','tsC'):.2f} (<= 0.35)")
-# [PAPER] App. P (Step 35): P35d Pass (≤ 0.04)
+# [PAPER] Prediction log (Step 35): P35d Pass (≤ 0.04)
 print(f"P35d tilted: " + ", ".join(f"{d} {g(RES_M,'tilted_c05',d):.2f}" for d in cal3 + ["vol_conf"]) + " (<= 0.05)")
-# [PAPER] App. P (Step 35): P35e Pass (0.00)
+# [PAPER] Prediction log (Step 35): P35e Pass (0.00)
 print(f"P35e random: " + ", ".join(f"{d} {g(RES_M,'random',d):.2f}" for d in cal3 + ["vol_conf"]) + " (<= 0.05)")
-# [PAPER] App. P (Step 35): P35f Pass (1.00, 0.00, 0.00; 3.06 vs 2.22)
+# [PAPER] Prediction log (Step 35): P35f Pass (1.00, 0.00, 0.00; 3.06 vs 2.22)
 print(f"P35f E5: Tmax MetaMathQA {g(RES_E,'metamath_unique','Tmax'):.2f} (>= 0.7), mixed {g(RES_E,'metamath_mixed','Tmax'):.2f} (<= 0.6), tilted {g(RES_E,'tilted_c05','Tmax'):.2f} (<= 0.1); FPR Tmax {FPR_E['Tmax']['fpr']:.4f}; census ratio E5 {CEN['e5']['ratio']:.2f} vs MiniLM {CEN['minilm']['ratio']:.2f} (within +-50%)")
-# [PAPER] App. P (Step 35): P35g Fail (0.0%; 0.03; both 0.00); App. I 'nearly powerless (0.03 on dataset campaigns)'
+# [PAPER] Prediction log (Step 35): P35g Fail (0.0%; 0.03; both 0.00); App. I 'nearly powerless (0.03 on dataset campaigns)'
 print(f"P35g volume scan: FPR conformal {FPR_M['vol_conf']['fpr']:.4f} (<= 0.02), rolling {FPR_M['vol_roll']['fpr']:.4f}; MetaMathQA {g(RES_M,'metamath_unique','vol_conf'):.2f} (>= 0.5); mixed {g(RES_M,'metamath_mixed','vol_conf'):.2f} vs Tmax {g(RES_M,'metamath_mixed','Tmax'):.2f} (trails by >= 0.2)")
-# [PAPER] App. P (Step 35): P35h Fail (1.00; recall 0.49)
+# [PAPER] Prediction log (Step 35): P35h Fail (1.00; recall 0.49)
 print(f"P35h sacrificial vs Tmax: detection {SCHED['sacrificial']['Tmax']['det']:.2f} (>= 0.8), non-sacrificial recall {SCHED['sacrificial']['Tmax']['recall_nonsac']:.2f} (<= 0.10); random schedule recall {SCHED['random']['Tmax']['recall_nonsac']:.2f}")
-# [PAPER] App. P (Step 35): P35i Fail (0.89 to 0.00)
+# [PAPER] Prediction log (Step 35): P35i Fail (0.89 to 0.00)
 print(f"P35i ramp: Tmax abrupt {np.mean(TEMP['Tmax']['abrupt']):.2f} vs ramped {np.mean(TEMP['Tmax']['ramped']):.2f} (drop <= 0.3); rolling two-scale {np.mean(TEMP['tsC_roll']['abrupt']):.2f} -> {np.mean(TEMP['tsC_roll']['ramped']):.2f}")
-# [PAPER] App. P (Step 35): P35j Fail (25% of runs in 16 weeks; never)
+# [PAPER] Prediction log (Step 35): P35j Fail (25% of runs in 16 weeks; never)
 print(f"P35j martingale median weeks, mixed: Tmax {SEQ[('all','Tmax','metamath_mixed')]['martingale']} (<= 6), tsC {SEQ[('all','tsC','metamath_mixed')]['martingale']}; first weekly alarm, mixed: Tmax {SEQ[('all','Tmax','metamath_mixed')]['first_alarm']}, tsC {SEQ[('all','tsC','metamath_mixed')]['first_alarm']} (both <= 3); null all-time alarms: martingale Tmax {SEQ[('all','Tmax','null')]['frac_m']:.2f}, first-alarm Tmax {SEQ[('all','Tmax','null')]['frac_f']:.2f}")
-# [PAPER] App. P (Step 35): P35k Fail (2.5%; 1.00)
+# [PAPER] Prediction log (Step 35): P35k Fail (2.5%; 1.00)
 print(f"P35k large: Tmax FPR {FPR_L['Tmax']['fpr']:.4f} (<= 0.02); MetaMathQA {g(RES_L,'metamath_unique','Tmax'):.2f}, largest weeks {g(RES_LBIG,'metamath_unique','Tmax'):.2f} (>= 0.5); mixed {g(RES_L,'metamath_mixed','Tmax'):.2f}; oracle Tmax {o(RES_L,'metamath_unique','Tmax'):.2f}")
 spread = {(src, d): [g(RES_M, src, d)] + [g(RUNS[s], src, d) for s in RUNS] for src in ["metamath_unique", "metamath_mixed"] for d in cal3}
-# [PAPER] App. P (Step 35): P35l Pass (≤ 0.07); App. I 'at most 0.07'
+# [PAPER] Prediction log (Step 35): P35l Pass (≤ 0.07); App. I 'at most 0.07'
 print(f"P35l run-to-run spread: " + ", ".join(f"{s}/{d} {max(v)-min(v):.2f}" for (s, d), v in spread.items()) + " (pass if all <= 0.10)")
-# [PAPER] App. P (Step 35): P35m Pass (0.00)
+# [PAPER] Prediction log (Step 35): P35m Pass (0.00)
 print(f"P35m addition vs replacement (random): " + ", ".join(f"{d} {abs(g(RES_ADD,'random',d)-g(RES_M,'random',d)):.2f}" for d in DETS) + " (<= 0.03)")
 print("=" * 90); print("STEP 35 VERDICT REPORT"); print("=" * 90)
 for nm_, F_ in [("matched", FPR_M), ("large", FPR_L), ("e5", FPR_E)]: print(f"[FPR {nm_}]", json.dumps({d: {k: (round(v, 4) if isinstance(v, float) else v) for k, v in F_[d].items()} for d in DETS}))

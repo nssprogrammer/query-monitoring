@@ -20,17 +20,17 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 17, P17.1); App. F 'Query-level pooling' ("robust per-cell calibration fired on 28% of null weeks"); App. D.4 and §5 'Padding, and a fix that looks at directions' (first of the "four repairs that pool topic cells across accounts") | corrected query-cluster (QC) held-out false alarms, weekly | Fail (28%) | Cell 8 `FPR["qc"]` ("held-out FPR" print); Cell 12 print "P17.1" |
-# | App. P (Step 17, P17.2) | QC paired power under mimicry (mixed padding, follow-up); AUC | Fail (0.38–0.40; AUC 0.80–0.82) | Cell 8 rows `metamath_mixed` / `metamath_followup` (`qc`, `qc_roc`); Cell 12 print "P17.2" |
-# | App. P (Step 17, P17.3) | QC on random natural campaigns; on human GSM8K questions | Partial (0.11; 0.58) | Cell 8 rows `random` / `gsm8k_human` (`qc`); Cell 12 print "P17.3" |
-# | App. P (Step 17, P17.4) | rolling 4-week populations (A = 1,000): held-out false alarms, two-scale; QC | Fail (24%, 69%) | Cell 10 `FPRP_CI` ("held-out FPR (position-clustered)" print); Cell 12 print "P17.4/5" (`fpr` values) |
-# | App. P (Step 17, P17.5) | rolling populations, K = 10 (1%): power of every detector | Pass (≤ 0.08) | Cell 10 `RESP` rows K=10 ("[pop] K=10" prints); Cell 12 print "P17.4/5" |
+# | Prediction log (Step 17, P17.1); App. F 'Query-level pooling' ("robust per-cell calibration fired on 28% of null weeks"); App. D.4 and §5 'Padding, and a fix that looks at directions' (first of the "four repairs that pool topic cells across accounts") | corrected query-cluster (QC) held-out false alarms, weekly | Fail (28%) | Cell 8 `FPR["qc"]` ("held-out FPR" print); Cell 12 print "P17.1" |
+# | Prediction log (Step 17, P17.2) | QC paired power under mimicry (mixed padding, follow-up); AUC | Fail (0.38–0.40; AUC 0.80–0.82) | Cell 8 rows `metamath_mixed` / `metamath_followup` (`qc`, `qc_roc`); Cell 12 print "P17.2" |
+# | Prediction log (Step 17, P17.3) | QC on random natural campaigns; on human GSM8K questions | Partial (0.11; 0.58) | Cell 8 rows `random` / `gsm8k_human` (`qc`); Cell 12 print "P17.3" |
+# | Prediction log (Step 17, P17.4) | rolling 4-week populations (A = 1,000): held-out false alarms, two-scale; QC | Fail (24%, 69%) | Cell 10 `FPRP_CI` ("held-out FPR (position-clustered)" print); Cell 12 print "P17.4/5" (`fpr` values) |
+# | Prediction log (Step 17, P17.5) | rolling populations, K = 10 (1%): power of every detector | Pass (≤ 0.08) | Cell 10 `RESP` rows K=10 ("[pop] K=10" prints); Cell 12 print "P17.4/5" |
 # | §5 'Scale: selection fails before the barrier does' | colluder shares at which no detector was both calibrated and powerful | 1–2.5% | Cell 10 rolling populations, K = 10 and 25 of A = 1,000 (plausibly combined with Step 15 Part P; summary statement, not isolated) |
 #
 # Not reported in the paper: corrected QC power on unpadded MetaMathQA and `wild_cluster`; two-scale/MMD/global
 # weekly rows of this step (Table 6 uses Step 15's run); `qcount`, `gmmd`, `spec`, `fraudar` values; QC purity;
 # rolling-population power at K = 25 and for `metamath_mixed` / `random`; the cumulative-detection cell (Part L);
-# the figure. App. P 'Corrections' ('Query-cluster calibration and the population protocol') describes this
+# the figure. Corrections (docs/corrections.md), 'Corrections' ('Query-cluster calibration and the population protocol') describes this
 # script as the corrected version of Step 15's QC calibration and population protocol.
 
 # %% [markdown]
@@ -477,7 +477,7 @@ print(f"[weekly] test weeks {TB}; banks and null windows for {len(NEED)} weeks (
 THR = {b: calibrate15([r for v in range(b - WK["CAL_N"], b) for r in NULLW[v]]) for b in TB}
 for b in TB:
     for r in NULLW[b]: add_scores(r, THR[b])
-# [PAPER] App. P (Step 17, P17.1): corrected QC weekly false alarms 28% (FPR["qc"]); App. F 'Query-level pooling': robust per-cell calibration fired on 28% of null weeks
+# [PAPER] Prediction log (Step 17, P17.1): corrected QC weekly false alarms 28% (FPR["qc"]); App. F 'Query-level pooling': robust per-cell calibration fired on 28% of null weeks
 FPR = {d: boot_ci([np.mean([fires15(r, THR[b])[d] for r in NULLW[b]]) for b in TB]) for d in DETS}
 print("[weekly] held-out FPR: " + " ".join(f"{d}={FPR[d][0]:.3f}" for d in DETS))
 RES, WEEKP, RAW = [], {}, {}
@@ -510,7 +510,7 @@ for K_ in WK["KS"]:
         row = dict(source=src, K=K_, ts_precision=float(np.mean(prec)) if prec else float("nan"), qc_purity=float(np.mean(purity)) if purity else float("nan"))
         for d in DETS:
             if pw[d]: m, lo, hi = boot_ci(pw[d]); row[d] = m; row[d + "_ci"] = (lo, hi)
-            # [PAPER] App. P (Step 17, P17.2): QC AUC under mimicry 0.80–0.82 (row["qc_roc"]["auc"])
+            # [PAPER] Prediction log (Step 17, P17.2): QC AUC under mimicry 0.80–0.82 (row["qc_roc"]["auc"])
             row[d + "_roc"] = roc(null_v[d], att_v[d])
         RES.append(row)
         print(f"[weekly] {src:>19} K={K_:3d} | " + " ".join(f"{d}={row.get(d, float('nan')):.2f}" for d in DETS) + f" | prec2s={row['ts_precision']:.2f} QCpurity={row['qc_purity']:.2f} | TPR@1% 2s/qc/mmd/gmmd = "
@@ -556,13 +556,13 @@ for t in positions:
     print(f"[pop] position week {t}: population {len(pool_t)} account-weeks, A={A_} ({time.time()-t0:.0f}s)")
 def by_position(lst):
     pos = sorted(set(p for p, _ in lst)); return [np.mean([v for p, v in lst if p == q]) for q in pos]
-# [PAPER] App. P (Step 17, P17.4): rolling populations, two-scale and QC false alarms 24%, 69%
+# [PAPER] Prediction log (Step 17, P17.4): rolling populations, two-scale and QC false alarms 24%, 69%
 FPRP_CI = {d: boot_ci(by_position(FPRP[d])) for d in DETS}
 print("[pop] held-out FPR (position-clustered): " + " ".join(f"{d}={FPRP_CI[d][0]:.3f}" for d in DETS))
 for K_ in POP["KS"]:
     for src in ["metamath_unique", "metamath_mixed", "random"]:
         row = dict(K=K_, A=POP["A"], source=src, **{d: boot_ci(by_position(HITP[(K_, src, d)])) for d in DETS}, **{f"{d}_fpr": FPRP_CI[d][0] for d in DETS})
-        # [PAPER] App. P (Step 17, P17.5): rolling populations at K = 10 (1%), every detector ≤ 0.08; §5 'Scale': no detector both calibrated and powerful at 1–2.5% (summary, see header)
+        # [PAPER] Prediction log (Step 17, P17.5): rolling populations at K = 10 (1%), every detector ≤ 0.08; §5 'Scale': no detector both calibrated and powerful at 1–2.5% (summary, see header)
         RESP.append(row)
         print(f"[pop] K={K_} ({100*K_/POP['A']:.1f}%) {src:>16}: " + " ".join(f"{d}={row[d][0]:.2f}" for d in DETS))
 
@@ -597,15 +597,15 @@ fmt = lambda x: "n/a" if x is None or (isinstance(x, float) and np.isnan(x)) els
 g = lambda src, K_, d: next((r.get(d) for r in RES if r["source"] == src and r["K"] == K_), None)
 gr = lambda src, K_, d, k="tpr1": next((r[d + "_roc"][k] for r in RES if r["source"] == src and r["K"] == K_), None)
 K1 = max(WK["KS"])
-# [PAPER] App. P (Step 17, P17.1): Fail (28%)
+# [PAPER] Prediction log (Step 17, P17.1): Fail (28%)
 print(f"P17.1 corrected QC weekly FPR {FPR['qc'][0]:.4f} [{FPR['qc'][1]:.4f}, {FPR['qc'][2]:.4f}] (pass if <= 0.02); qcount {FPR['qcount'][0]:.4f}; two-scale {FPR['twoscale'][0]:.4f}")
 u, m_, f_ = g("metamath_unique", K1, "qc"), g("metamath_mixed", K1, "qc"), g("metamath_followup", K1, "qc")
-# [PAPER] App. P (Step 17, P17.2): Fail (0.38–0.40; AUC 0.80–0.82)
+# [PAPER] Prediction log (Step 17, P17.2): Fail (0.38–0.40; AUC 0.80–0.82)
 print(f"P17.2 QC power: unique {fmt(u)}, mixed {fmt(m_)}, follow-up {fmt(f_)} (pass if both >= 0.5 and within 0.25 of unique); AUC unique/mixed/follow-up "
       f"{fmt(gr('metamath_unique', K1, 'qc', 'auc'))}/{fmt(gr('metamath_mixed', K1, 'qc', 'auc'))}/{fmt(gr('metamath_followup', K1, 'qc', 'auc'))}")
-# [PAPER] App. P (Step 17, P17.3): Partial (0.11; 0.58)
+# [PAPER] Prediction log (Step 17, P17.3): Partial (0.11; 0.58)
 print(f"P17.3 QC: random {fmt(g('random', K1, 'qc'))} (<= 0.05), human GSM8K {fmt(g('gsm8k_human', K1, 'qc'))} (>= 0.5)")
-# [PAPER] App. P (Step 17, P17.4): Fail (24%, 69%); P17.5: Pass (≤ 0.08)
+# [PAPER] Prediction log (Step 17, P17.4): Fail (24%, 69%); P17.5: Pass (≤ 0.08)
 for r in RESP:
     if r["source"] == "metamath_unique": print(f"P17.4/5 rolling A={r['A']} K={r['K']}: two-scale {r['twoscale'][0]:.2f} (fpr {r['twoscale_fpr']:.3f}), QC {r['qc'][0]:.2f} (fpr {r['qc_fpr']:.3f}), qcount {r['qcount'][0]:.2f} (fpr {r['qcount_fpr']:.3f}), MMD {r['mmd'][0]:.2f} (fpr {r['mmd_fpr']:.3f}), global {r['glob'][0]:.2f} (fpr {r['glob_fpr']:.3f})")
 import matplotlib.pyplot as plt
@@ -623,7 +623,7 @@ for r in RES:
     print(f"[W] {r['source']:>19} K={r['K']:3d} prec2s={fmt(r['ts_precision'])} QCpur={fmt(r['qc_purity'])} | " + " ".join(f"{d}={fmt(r.get(d))}[{fmt(r.get(d+'_ci',(None,None))[0])},{fmt(r.get(d+'_ci',(None,None))[1])}]" for d in DETS))
     print("    ROC: " + " ".join(f"{d}:auc={r[d+'_roc']['auc']:.2f},tpr1={r[d+'_roc']['tpr1']:.2f}" for d in DETS))
 print("[pop FPR] " + " ".join(f"{d}={FPRP_CI[d][0]:.3f}[{FPRP_CI[d][1]:.3f},{FPRP_CI[d][2]:.3f}]" for d in DETS))
-# [PAPER] App. P (Step 17, P17.5): every detector ≤ 0.08 at K = 10 (1%)
+# [PAPER] Prediction log (Step 17, P17.5): every detector ≤ 0.08 at K = 10 (1%)
 for r in RESP: print(f"[P] K={r['K']} {r['source']:>16} | " + " ".join(f"{d}={r[d][0]:.2f}[{r[d][1]:.2f},{r[d][2]:.2f}]" for d in DETS))
 for k, v in LIFE.items(): print(f"[L] {k}: " + " ".join(f"w{w}={x:.2f}" for w, x in v.items()))
 print("=" * 90)

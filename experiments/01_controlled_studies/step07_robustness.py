@@ -20,12 +20,12 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 7), row "Only whole-window resampling calibrates" (P7.1) | suite false-positive rate on realistic null windows, window-resampled calibration | Pass (suite 0.0–0.6%) | Part A print "calibrated by window_resample" (`suite=`) / VERDICT `[A]` lines |
+# | Prediction log (Step 7), row "Only whole-window resampling calibrates" (P7.1) | suite false-positive rate on realistic null windows, window-resampled calibration | Pass (suite 0.0–0.6%) | Part A print "calibrated by window_resample" (`suite=`) / VERDICT `[A]` lines |
 # | App. E 'The dose–response study' | window-resampled suite false alarms at s = 1; spectral and global tests under independent-account resampling | 0.6%; 31%; 100% | Part A prints (`window_resample` suite; `acct_resample` spec / glob). Plausibly from here: Step 7's realistic windows have the structure of Step 8's s = 1, and account resampling exists only in this script |
-# | App. P (Step 7), row "Evading the suite needs padding f ≥ 0.75" (P7.2) | suite detection vs padding fraction f | Fail (no detection even unpadded) | Part B print "suite: equal=..." at f=0.00 / VERDICT `[B]` lines |
-# | App. P (Step 7), row "Heterogeneous volumes cost ≤ 0.2 power" (P7.3) | suite power, heterogeneous colluder volumes | Untestable (power 0) | Part B `hetero` variant |
-# | App. P (Step 7), row "Time-splitting evades; aggregation restores" (P7.4) | any-window suite detection, split / aggregated | Untestable (power 0) | Part B `split2` / `split4` / `agg4` variants |
-# | App. P (Step 7), row "Upper-edge rule predicts power at A ≤ 10^4" (P7.5) | agreement of rule (S̄ − 1)√m_eff/√A > 1.36 with spectral power > 0.5 | Fail (10/24 cells) | Part C print "P7.5 rule ... agreement" (fraction of the 24 cells) |
+# | Prediction log (Step 7), row "Evading the suite needs padding f ≥ 0.75" (P7.2) | suite detection vs padding fraction f | Fail (no detection even unpadded) | Part B print "suite: equal=..." at f=0.00 / VERDICT `[B]` lines |
+# | Prediction log (Step 7), row "Heterogeneous volumes cost ≤ 0.2 power" (P7.3) | suite power, heterogeneous colluder volumes | Untestable (power 0) | Part B `hetero` variant |
+# | Prediction log (Step 7), row "Time-splitting evades; aggregation restores" (P7.4) | any-window suite detection, split / aggregated | Untestable (power 0) | Part B `split2` / `split4` / `agg4` variants |
+# | Prediction log (Step 7), row "Upper-edge rule predicts power at A ≤ 10^4" (P7.5) | agreement of rule (S̄ − 1)√m_eff/√A > 1.36 with spectral power > 0.5 | Fail (10/24 cells) | Part C print "P7.5 rule ... agreement" (fraction of the 24 cells) |
 #
 # Not reported in the paper: the iid calibration scheme's false-positive rates, per-detector rates other than those above,
 # fidelity under padding (`FIDP`), the Part C powers per detector and global-stream power at A = 10,000, the unused
@@ -512,7 +512,7 @@ for A_ in A_STRESS:
     for scheme in ["iid", "acct_resample", "window_resample"]:
         fp = {k: np.mean([decide(s, CAL[(scheme, A_)])[k] for s in test]) for k in ["spec", "hc", "acct", "glob", "suite"]}
         rowsA.append(dict(A=A_, scheme=scheme, **{k: float(v) for k, v in fp.items()}))
-        # [PAPER] App. P (Step 7, "Only whole-window resampling calibrates"): Pass (suite 0.0–0.6%)
+        # [PAPER] Prediction log (Step 7, "Only whole-window resampling calibrates"): Pass (suite 0.0–0.6%)
         # [PAPER] App. E 'The dose–response study': 0.6% (window-resampled suite); account resampling: spectral 31%, global 100% (plausibly from here, see header)
         print(f"A={A_:4d} calibrated by {scheme:>15}: FPR on realistic windows  " + " ".join(f"{k}={v:.3f}" for k, v in fp.items())
               + f"   (nominal {ALPHA_D:.4f} per detector, suite <= {ALPHA})  ({time.time()-t0:.0f}s)")
@@ -562,7 +562,7 @@ for A_ in A_ADAPT:
                             n += 1
                     row = dict(A=A_, strategy=name, N=N, f=f, variant=vname, n=n, dfid=FIDP[(name, N, f)] - FID[("random", N)][0], **{k: v / n for k, v in hits.items()})
                     rowsB.append(row)
-                # [PAPER] App. P (Step 7): padding f ≥ 0.75 "Fail (no detection even unpadded)"; hetero volumes and split/aggregate "Untestable (power 0)"
+                # [PAPER] Prediction log (Step 7): padding f ≥ 0.75 "Fail (no detection even unpadded)"; hetero volumes and split/aggregate "Untestable (power 0)"
                 print(f"A={A_:3d} {name:>8} N={N:5d} f={f:.2f} Δfid={100*rowsB[-1]['dfid']:+.2f}pt | suite: " +
                       " ".join(f"{r['variant']}={r['suite']:.2f}" for r in rowsB[-len(variants):]) + f"  ({time.time()-t0:.0f}s)")
 RESULTS7["B"] = rowsB
@@ -596,7 +596,7 @@ for A_ in A_SCALE:
                 print(f"A={A_:5d} {name:>8} N={N:5d} K={K_:3d} (n/acct {N//K_:4d}) S={S_:6.2f} x_up={xu:5.2f} pred={'Y' if xu > 1.36 else 'n'} | "
                       + " ".join(f"{k}={row[k]:.2f}" for k in ["spec", "hc", "acct", "glob", "suite"]) + f"  ({time.time()-t0:.0f}s)")
 agree = np.mean([r["pred_spec"] == (r["spec"] > 0.5) for r in rowsC])
-# [PAPER] App. P (Step 7, "Upper-edge rule predicts power at A ≤ 10^4"): Fail (10/24 cells)
+# [PAPER] Prediction log (Step 7, "Upper-edge rule predicts power at A ≤ 10^4"): Fail (10/24 cells)
 print(f"P7.5 rule (S-1)sqrt(m_eff)/sqrt(A) > 1.36 vs spectral power>0.5: agreement {agree:.3f} over {len(rowsC)} cells; "
       f"max global power at A={max(A_SCALE)}: {max(r['glob'] for r in rowsC if r['A']==max(A_SCALE)):.2f}")
 RESULTS7["C"] = rowsC; RESULTS7["C_agree"] = float(agree)

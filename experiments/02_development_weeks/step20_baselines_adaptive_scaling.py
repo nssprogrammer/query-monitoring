@@ -20,7 +20,7 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 20 rows) | locked predictions P20.1-P20.9 | Fail (0.00 vs 0.81, 0.95); Pass (0.8%; others 2.5–12%); Fail (0.00 vs 0.24); Fail (0.31; 0.00); Fail (slope −0.17 vs +0.62); Fail (502 vs 2,081); Fail (ξ = −0.16); Fail (1 of 4 inside band); Pass (all of it) | final cell "Predictions, figure, VERDICT REPORT", prints "P20.1" ... "P20.9" |
+# | Prediction log (Step 20 rows) | locked predictions P20.1-P20.9 | Fail (0.00 vs 0.81, 0.95); Pass (0.8%; others 2.5–12%); Fail (0.00 vs 0.24); Fail (0.31; 0.00); Fail (slope −0.17 vs +0.62); Fail (502 vs 2,081); Fail (ξ = −0.16); Fail (1 of 4 inside band); Pass (all of it) | final cell "Predictions, figure, VERDICT REPORT", prints "P20.1" ... "P20.9" |
 # | §5 'Attacks on the monitor'; App. D.6 'Optimising against the statistic' | weekly two-scale detection, prompts ordered greedily against the statistic, no padding | from 0.80 to 0.31 | Part B/D weekly loop (Cell 8): 0.31 = deployed two-scale on `metamath_adaptive` (print "P20.4"); 0.80 plausibly the `metamath_unique` row of the same run |
 # | §5 'It detects topic shift, not extraction'; App. D.3 | dataset-versus-chat classifier and topic-concentration statistic on the selected group | ranked campaigns moderately (AUC 0.69–0.84) but caught none at a 1% false-alarm rate | Part B/D weekly loop (Cell 8), `style_grp` / `topic_conc` `_roc` (auc, tpr1); verdict "oracle" lines; print "P20.1" |
 # | Table 10, cols "Null median", "Null 99%", "Detector TPR at 1%" (A = 250 / 1,000 / 2,500 / 5,000 / 10,000) | two-scale null median; null 99%; detector oracle TPR at 1% | 1.27, 1.21, 1.05, 0.94, 0.61; 3.28, 3.16, 4.35, 3.18, 2.95; 1.00, 0.80, 0.42, 0.15, 0.00 | Part L (Cell 10), print "[L] A=...: null median ..., 99% ... oracle TPR@1%" (`LAW`) |
@@ -28,7 +28,7 @@
 # | Fig. 5 series "top eigenvector only"; §5 'Scale: selection fails before the barrier does'; App. D.5 'Up to 10^4 accounts' | two-scale power as colluder share goes from 20% to 0.5% | fell from 1.00 to 0.00 | Part L (Cell 10), `LAW` field `tpr` / `EVT` field `tpr_selected` |
 # | App. D.5 'Up to 10^4 accounts' | null threshold of the two-scale score across A | stayed flat between 2.9 and 4.3 | Part L (Cell 10), `LAW` field `q99`; print "[L] ... 99%" |
 #
-# Not reported in the paper: style_acct (per-account classifier) deployed power except via P20.3/P20.4; global-stream and MMD rows of the weekly table; mixed/follow-up/human GSM8K/random/wild_cluster weekly rows beyond the App. P summaries; Gumbel-predicted medians and 99% quantiles (`med_pred`, `q99_pred`); campaign medians; GEV extrapolation to A = 100,000; step20_figure.png. (Fig. 5 series "every outlier eigenvector" comes from a later step, not this script.)
+# Not reported in the paper: style_acct (per-account classifier) deployed power except via P20.3/P20.4; global-stream and MMD rows of the weekly table; mixed/follow-up/human GSM8K/random/wild_cluster weekly rows beyond the Prediction log summaries; Gumbel-predicted medians and 99% quantiles (`med_pred`, `q99_pred`); campaign medians; GEV extrapolation to A = 100,000; step20_figure.png. (Fig. 5 series "every outlier eigenvector" comes from a later step, not this script.)
 
 # %% [markdown]
 # # Step 20 — Simple source-shift baselines, an adaptive attacker, and Proposition 2's scaling law up to 10⁴ accounts
@@ -574,7 +574,7 @@ for b in TB:
 DETS20 = ["twoscale", "style_grp", "style_acct", "topic_conc", "glob", "mmd"]
 TH20 = {b: {d: float(np.quantile([r[d] for v in range(b - WK["CAL_N"], b) for r in NULLW[v]], 1 - ALPHA)) for d in DETS20} for b in TB}
 fires20 = lambda s, b: {d: s[d] > TH20[b][d] for d in DETS20}
-# [PAPER] App. P (Step 20, P20.2): deployed FPR two-scale 0.8%; others 2.5–12%
+# [PAPER] Prediction log (Step 20, P20.2): deployed FPR two-scale 0.8%; others 2.5–12%
 FPR = {d: boot_ci([np.mean([fires20(r, b)[d] for r in NULLW[b]]) for b in TB]) for d in DETS20}
 print("[weekly] held-out FPR: " + " ".join(f"{d}={FPR[d][0]:.3f}" for d in DETS20) + f"  ({time.time()-t0:.0f}s)")
 RES = []; base_cache = {}; K1 = 50 if not QUICK else 20
@@ -649,9 +649,9 @@ dc = LAW[0]["camp_med"]; A_star = float(A0 * np.exp((dc - mu) / beta - 4.600))
 tp = [l["tpr"] for l in LAW]; As = [l["A"] for l in LAW]; A_emp = float("nan")
 for (a1, t1), (a2, t2) in zip(zip(As, tp), zip(As[1:], tp[1:])):
     if t1 >= 0.5 > t2: A_emp = float(np.exp(np.log(a1) + (t1 - 0.5) / (t1 - t2) * (np.log(a2) - np.log(a1)))); break
-# [PAPER] App. P (Step 20, P20.5): Fail (slope −0.17 vs +0.62)
+# [PAPER] Prediction log (Step 20, P20.5): Fail (slope −0.17 vs +0.62)
 print(f"[L] Gumbel fit at A0={A0}: mu={mu:.3f}, beta={beta:.3f}; empirical slope of null median vs ln A = {slope:.3f}")
-# [PAPER] App. P (Step 20, P20.6): Fail (502 vs 2,081)
+# [PAPER] Prediction log (Step 20, P20.6): Fail (502 vs 2,081)
 print(f"[L] predicted breaking point A* = {A_star:.0f}; empirical A where oracle TPR@1% crosses 0.5 = {A_emp:.0f}")
 # ---- Change 4: GEV tail shape, max-stable extrapolation, selection-vs-barrier decomposition
 from scipy.stats import genextreme
@@ -676,7 +676,7 @@ for A_ in AS_ + [100000]:
     EVT.append(row)
     # [PAPER] Table 10 col "True colluder set above threshold" / Fig. 5 "true colluders scored (oracle)": 1.00 at every A
     print(f"[EVT] A={A_:6d}: predicted 99% threshold {pred:.3f} [{row['band'][0]:.3f}, {row['band'][1]:.3f}]" + (f" | measured {row['q99']:.3f} inside={row['inside']} | TPR selected group {row['tpr_selected']:.2f}, true colluder set {row['tpr_oracle_group']:.2f}" if 'q99' in row else " | extrapolation"))
-# [PAPER] App. P (Step 20, P20.7): Fail (ξ = −0.16)
+# [PAPER] Prediction log (Step 20, P20.7): Fail (ξ = −0.16)
 print(f"[EVT] GEV shape xi = {xi0:.3f}, 95% bootstrap interval [{XI_CI[0]:.3f}, {XI_CI[1]:.3f}]")
 
 # %% [markdown]
@@ -687,23 +687,23 @@ print(f"[EVT] GEV shape xi = {xi0:.3f}, 95% bootstrap interval [{XI_CI[0]:.3f}, 
 fmt = lambda x: "n/a" if x is None or (isinstance(x, float) and np.isnan(x)) else f"{x:.2f}"
 O = lambda src, d: next((r[d + "_roc"]["tpr1"] for r in RES if r["source"] == src), None)
 D_ = lambda src, d: next((r[d][0] for r in RES if r["source"] == src and d in r), None)
-# [PAPER] App. P (Step 20, P20.1): Fail (0.00 vs 0.81, 0.95)
+# [PAPER] Prediction log (Step 20, P20.1): Fail (0.00 vs 0.81, 0.95)
 for src in ["metamath_unique", "gsm8k_human"]:
     best = max(["style_grp", "style_acct", "topic_conc"], key=lambda d: O(src, d) or 0)
     print(f"P20.1 {src}: oracle TPR@1% two-scale {fmt(O(src,'twoscale'))}; best simple baseline {best} {fmt(O(src,best))} (pass if >= two-scale - 0.05)")
 print("P20.2 deployed FPR: " + " ".join(f"{d}={FPR[d][0]:.3f}" for d in DETS20) + " (pass if only two-scale <= 0.02)")
-# [PAPER] App. P (Step 20, P20.3): Fail (0.00 vs 0.24)
+# [PAPER] Prediction log (Step 20, P20.3): Fail (0.00 vs 0.24)
 print(f"P20.3 mixed padding: oracle TPR@1% style_acct {fmt(O('metamath_mixed','style_acct'))} vs two-scale {fmt(O('metamath_mixed','twoscale'))} (pass if >= +0.1)")
-# [PAPER] App. P (Step 20, P20.4) and §5 / App. D.6: two-scale 0.31; style_acct oracle 0.00
+# [PAPER] Prediction log (Step 20, P20.4) and §5 / App. D.6: two-scale 0.31; style_acct oracle 0.00
 print(f"P20.4 adaptive attacker: two-scale paired {fmt(D_('metamath_adaptive','twoscale'))} (<= 0.3) | style_acct oracle {fmt(O('metamath_adaptive','style_acct'))} (>= 0.5) | MMD oracle {fmt(O('metamath_adaptive','mmd'))}, global {fmt(O('metamath_adaptive','glob'))}")
 print(f"P20.5 null-median slope vs ln A {slope:.3f} vs Gumbel beta {beta:.3f} (pass if within +/-50%)")
 print(f"P20.6 breaking point: predicted {A_star:.0f}, empirical {A_emp:.0f} (pass if within a factor of 2)")
 print(f"P20.7 GEV shape xi {xi0:.3f} [{XI_CI[0]:.3f}, {XI_CI[1]:.3f}] (pass if interval excludes 0 on the positive side)")
-# [PAPER] App. P (Step 20, P20.8): Fail (1 of 4 inside band)
+# [PAPER] Prediction log (Step 20, P20.8): Fail (1 of 4 inside band)
 print("P20.8 out-of-sample: " + ", ".join(f"A={r['A']}: {'inside' if r['inside'] else 'OUTSIDE'}" for r in EVT if 'inside' in r and r['A'] != A0))
 big = [r for r in EVT if 'tpr_selected' in r]; r0, r1 = big[0], big[-1]
 lost = r0["tpr_selected"] - r1["tpr_selected"]; rec = r1["tpr_oracle_group"] - r1["tpr_selected"]
-# [PAPER] App. P (Step 20, P20.9): Pass (all of it) — the true colluder set recovers all the lost power
+# [PAPER] Prediction log (Step 20, P20.9): Pass (all of it) — the true colluder set recovers all the lost power
 print(f"P20.9 decay A={r0['A']}->{r1['A']}: selected TPR {r0['tpr_selected']:.2f}->{r1['tpr_selected']:.2f}; true colluder set at A={r1['A']}: {r1['tpr_oracle_group']:.2f} (recovers {rec/lost if lost > 0 else float('nan'):.2f} of the loss; pass if >= 0.5)")
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots(1, 2, figsize=(15, 4.6)); srcs = [r["source"] for r in RES]; xs = np.arange(len(srcs)); w = 0.14

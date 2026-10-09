@@ -22,18 +22,18 @@
 # |---|---|---|---|
 # | §5 'Coordinated, dataset-like campaigns are catchable'; App. D.2 | two-scale flagged-group precision (share of the group that are colluders) | 0.94–1.00 (§5); 1.00 at K = 50, 0.94–0.96 at K = 10 (App. D.2) | Cell 6 `run_block`, `prec` list -> `ts_precision`; printed "two-scale group precision" (weekly, `metamath_unique`/`metamath_rephrase`, K = 10/50) and verdict `ts_prec=` |
 # | §5 'Coordinated, dataset-like campaigns are catchable'; App. D.2 | two-scale flagged-group recall (share of colluders in the group) | 12–31% | Cell 6 `run_block`, `rec` list -> `ts_recall`; printed "recall" and verdict `ts_rec=` (range plausibly over weekly sources and K) |
-# | App. P (Step 13, P13.4) | group precision; recall (metamath_unique, weekly K = 50) | Pass (1.00; recall 0.17) | Cell 8, print "P13.4" |
-# | Table 7 rows "MetaMathQA, one prompt per source problem" / "four variants per source problem"; App. D.3; App. P (Step 13, P13.1) | weekly paired detection, K = 50: two-scale / global / MMD | 0.88 / 0.68 / 0.57 (one prompt); 0.80 / 0.71 / 0.60 (four variants); App. D.3 "from 0.88 to 0.80"; App. P "Fail (0.88 vs 0.80)" | Cell 7 Part A (weekly), rows `metamath_unique` / `metamath_rephrase` K=50, columns `twoscale`, `glob`, `mmd`; Cell 8 print "P13.1" |
-# | Table 7 rows "WildChat broad cluster, random prompts" / "farthest-point deduplicated"; App. P (Step 13, P13.2) | weekly paired detection, K = 50: two-scale / global / MMD | 0.01 / 0.01 / 0.07 (random); 0.04 / 0.02 / 0.07 (deduplicated); App. P "Fail (0.04 vs 0.01)" | Cell 7 Part A, rows `wild_cluster` / `wild_cluster_dedup` K=50; Cell 8 print "P13.2" |
-# | App. P (Step 13, P13.3) | two-scale held-out false alarms, weekly; 4-week | Partial (0.6%; 9.8%) | Cell 6 `FPR[...]` ("held-out FPR" print); Cell 8 print "P13.3" |
-# | App. P (Step 13, P13.5) | 4-week populations, K = 200: two-scale on metamath_unique; on random | Pass (0.86; 0.00) | Cell 7 Part B rows; Cell 8 print "P13.5" |
-# | App. D.5 'Smaller colluder shares'; App. P (Step 13, P13.6); App. L item 4; App. P 'Corrections' ('Sharding') | paired attacker-aware sharding, one colluder per 100-account shard, per-shard power of every detector | "defeated every detector in all 352 shard tests" (App. D.5); "Pass (0.00 for all)" (App. P); "Sharding defeats every detector" (App. L) | Cell 6 `run_block(..., shard=True)` shard branch, printed "sharded (one colluder per 100-account shard)" with `n=`; Cell 8 print "P13.6" (352 plausibly the total of `n` over the two sources) |
+# | Prediction log (Step 13, P13.4) | group precision; recall (metamath_unique, weekly K = 50) | Pass (1.00; recall 0.17) | Cell 8, print "P13.4" |
+# | Table 7 rows "MetaMathQA, one prompt per source problem" / "four variants per source problem"; App. D.3; Prediction log (Step 13, P13.1) | weekly paired detection, K = 50: two-scale / global / MMD | 0.88 / 0.68 / 0.57 (one prompt); 0.80 / 0.71 / 0.60 (four variants); App. D.3 "from 0.88 to 0.80"; Prediction log "Fail (0.88 vs 0.80)" | Cell 7 Part A (weekly), rows `metamath_unique` / `metamath_rephrase` K=50, columns `twoscale`, `glob`, `mmd`; Cell 8 print "P13.1" |
+# | Table 7 rows "WildChat broad cluster, random prompts" / "farthest-point deduplicated"; Prediction log (Step 13, P13.2) | weekly paired detection, K = 50: two-scale / global / MMD | 0.01 / 0.01 / 0.07 (random); 0.04 / 0.02 / 0.07 (deduplicated); Prediction log "Fail (0.04 vs 0.01)" | Cell 7 Part A, rows `wild_cluster` / `wild_cluster_dedup` K=50; Cell 8 print "P13.2" |
+# | Prediction log (Step 13, P13.3) | two-scale held-out false alarms, weekly; 4-week | Partial (0.6%; 9.8%) | Cell 6 `FPR[...]` ("held-out FPR" print); Cell 8 print "P13.3" |
+# | Prediction log (Step 13, P13.5) | 4-week populations, K = 200: two-scale on metamath_unique; on random | Pass (0.86; 0.00) | Cell 7 Part B rows; Cell 8 print "P13.5" |
+# | App. D.5 'Smaller colluder shares'; Prediction log (Step 13, P13.6); App. L item 4; Corrections (docs/corrections.md), 'Corrections' ('Sharding') | paired attacker-aware sharding, one colluder per 100-account shard, per-shard power of every detector | "defeated every detector in all 352 shard tests" (App. D.5); "Pass (0.00 for all)" (Prediction log); "Sharding defeats every detector" (App. L) | Cell 6 `run_block(..., shard=True)` shard branch, printed "sharded (one colluder per 100-account shard)" with `n=`; Cell 8 print "P13.6" (352 plausibly the total of `n` over the two sources) |
 #
 # Not reported in the paper: the `magicoder` and `random` weekly rows; the K = 10 detection rows; the `spec`, `hc`,
 # `acct`, `fraudar` and `vol` detector columns; 4-week K = 50 rows and the 4-week `metamath_rephrase` /
 # `wild_cluster_dedup` rows; held-out FPRs of detectors other than two-scale; bootstrap intervals; the figure.
-# The paper reports this step's mechanism result as "Not deduplication" (App. P); the deduplication claim in the
-# header below was withdrawn (App. P 'Corrections', 'Mechanism claims').
+# The paper reports this step's mechanism result as "Not deduplication" (Prediction log); the deduplication claim in the
+# header below was withdrawn (Corrections (docs/corrections.md), 'Corrections', 'Mechanism claims').
 
 # %% [markdown]
 # # Step 13 — Why does the two-scale test work, does it identify colluders, and does it scale?
@@ -349,7 +349,7 @@ def run_block(P, sources, label, shard=False):
             idx, lab, vols = sub_window(b, np.random.default_rng(SEED + 100 * b + t)); NULLW[b].append(window_stats(idx, lab, np.bincount(lab), *BANK[b], REFS[b]))
     print(f"[{label}] banks and null windows for {len(NEED)} blocks ({time.time()-t0:.0f}s)")
     THR = {b: calibrate([r for v in range(b - P["CAL_N"], b) for r in NULLW[v]], ALPHA) for b in TB}
-    # [PAPER] App. P (Step 13, P13.3): two-scale held-out false alarms, weekly 0.6%; 4-week 9.8%
+    # [PAPER] Prediction log (Step 13, P13.3): two-scale held-out false alarms, weekly 0.6%; 4-week 9.8%
     FPR = {d: boot_ci([np.mean([fires(r, THR[b])[d] for r in NULLW[b]]) for b in TB]) for d in DETS}
     print(f"[{label}] held-out FPR: " + " ".join(f"{d}={FPR[d][0]:.3f}" for d in DETS))
     rows = []
@@ -401,7 +401,7 @@ def run_block(P, sources, label, shard=False):
                         for d in DETS: per_shard[d].append(float(f[d] and not base[d]))
             row = dict(part=label + "-shard", source=src, **{d: float(np.mean(v)) for d, v in per_shard.items()}, n=len(per_shard["spec"]))
             shard_rows.append(row)
-            # [PAPER] App. D.5: sharding "defeated every detector in all 352 shard tests"; App. P (Step 13, P13.6): Pass (0.00 for all)
+            # [PAPER] App. D.5: sharding "defeated every detector in all 352 shard tests"; Prediction log (Step 13, P13.6): Pass (0.00 for all)
             print(f"[{label}] sharded (one colluder per {SHARD}-account shard), per-shard paired power at alpha={ALPHA}, {src}: " + " ".join(f"{d}={row[d]:.2f}" for d in DETS) + f" (n={row['n']})")
     return dict(FPR=FPR, rows=rows, shard=shard_rows, TB=TB)
 
@@ -424,18 +424,18 @@ def get(res, src, K_, key="twoscale"):
     return next((r.get(key) for r in res["rows"] if r["source"] == src and r["K"] == K_), None)
 kA, kB = max(PART_A["KS"]), max(PART_B["KS"])
 u, rp = get(RES_A, "metamath_unique", kA), get(RES_A, "metamath_rephrase", kA)
-# [PAPER] App. P (Step 13, P13.1): Fail (0.88 vs 0.80); also Table 7 and App. D.3 ("from 0.88 to 0.80")
+# [PAPER] Prediction log (Step 13, P13.1): Fail (0.88 vs 0.80); also Table 7 and App. D.3 ("from 0.88 to 0.80")
 print(f"P13.1 weekly K={kA}: two-scale unique {fmt(u)} vs rephrase {fmt(rp)} (pass if diff >= 0.3)")
 wc, wd = get(RES_A, "wild_cluster", kA), get(RES_A, "wild_cluster_dedup", kA)
-# [PAPER] App. P (Step 13, P13.2): Fail (0.04 vs 0.01); also Table 7 (two-scale col)
+# [PAPER] Prediction log (Step 13, P13.2): Fail (0.04 vs 0.01); also Table 7 (two-scale col)
 print(f"P13.2 weekly K={kA}: two-scale natural dedup {fmt(wd)} vs natural raw {fmt(wc)} (pass if diff >= 0.2)")
-# [PAPER] App. P (Step 13, P13.3): Partial (0.6%; 9.8%)
+# [PAPER] Prediction log (Step 13, P13.3): Partial (0.6%; 9.8%)
 print(f"P13.3 two-scale FPR: weekly {fmt(RES_A['FPR']['twoscale'][0])} [{fmt(RES_A['FPR']['twoscale'][1])}, {fmt(RES_A['FPR']['twoscale'][2])}], 4-week {fmt(RES_B['FPR']['twoscale'][0])} [{fmt(RES_B['FPR']['twoscale'][1])}, {fmt(RES_B['FPR']['twoscale'][2])}]")
-# [PAPER] App. P (Step 13, P13.4): Pass (1.00; recall 0.17)
+# [PAPER] Prediction log (Step 13, P13.4): Pass (1.00; recall 0.17)
 print(f"P13.4 two-scale group precision/recall (metamath_unique, weekly K={kA}): {fmt(get(RES_A, 'metamath_unique', kA, 'ts_precision'))} / {fmt(get(RES_A, 'metamath_unique', kA, 'ts_recall'))}")
-# [PAPER] App. P (Step 13, P13.5): Pass (0.86; 0.00)
+# [PAPER] Prediction log (Step 13, P13.5): Pass (0.86; 0.00)
 print(f"P13.5 4-week K={kB}: metamath_unique {fmt(get(RES_B, 'metamath_unique', kB))}, random {fmt(get(RES_B, 'random', kB))}")
-# [PAPER] App. P (Step 13, P13.6): Pass (0.00 for all); App. D.5 (all 352 shard tests)
+# [PAPER] Prediction log (Step 13, P13.6): Pass (0.00 for all); App. D.5 (all 352 shard tests)
 for r in RES_B["shard"]: print(f"P13.6 sharded {r['source']}: per-shard two-scale {fmt(r['twoscale'])}, per-account {fmt(r['acct'])}, spectral {fmt(r['spec'])}")
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots(1, 2, figsize=(16, 5))

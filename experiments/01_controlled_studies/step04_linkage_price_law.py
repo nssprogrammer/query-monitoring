@@ -20,13 +20,13 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 4), row "One curve, x50 ∈ [1.0, 1.35]" (P4.1) | logistic-fit x50 of clean-λ_min power vs x; configurations classified by x > x50 | Pass (1.052; 47/48) | Part C cell, `x50`, prints "logistic fit: x50" and "configs classified correctly"; VERDICT REPORT "[C]" |
-# | App. P (Step 4), row "Herding S̄ falls with N" (P4.2) | whitened union S̄ of `herding` as N grows | Fail (rises) | Part B cell, column S for design `herding` across N; VERDICT REPORT "[B]" lines |
-# | App. P (Step 4), row "Aligned herding detected almost everywhere" (P4.3) | clean-λ_min power of `herding_aligned` vs x | Partial (exactly where x > 1) | Part B cell, columns x and clean for `herding_aligned` |
-# | App. P (Step 4), row "Spectral linkage AUC ≥ 0.9" (P4.4) | colluder-identification AUC, spectral vs pairwise, where clean λ_min fires | Pass (0.986 vs 0.481) | Part C cell, print "P4.4 linkage where clean_min fires" |
-# | App. P (Step 4), row "Oracle-only band exists" (P4.5) | power in the band 2.3 < z_oracle < √A, oracle vs spectral | Pass (0.75 vs 0.03) | Part C cell, print "P4.5 oracle-only band" |
+# | Prediction log (Step 4), row "One curve, x50 ∈ [1.0, 1.35]" (P4.1) | logistic-fit x50 of clean-λ_min power vs x; configurations classified by x > x50 | Pass (1.052; 47/48) | Part C cell, `x50`, prints "logistic fit: x50" and "configs classified correctly"; VERDICT REPORT "[C]" |
+# | Prediction log (Step 4), row "Herding S̄ falls with N" (P4.2) | whitened union S̄ of `herding` as N grows | Fail (rises) | Part B cell, column S for design `herding` across N; VERDICT REPORT "[B]" lines |
+# | Prediction log (Step 4), row "Aligned herding detected almost everywhere" (P4.3) | clean-λ_min power of `herding_aligned` vs x | Partial (exactly where x > 1) | Part B cell, columns x and clean for `herding_aligned` |
+# | Prediction log (Step 4), row "Spectral linkage AUC ≥ 0.9" (P4.4) | colluder-identification AUC, spectral vs pairwise, where clean λ_min fires | Pass (0.986 vs 0.481) | Part C cell, print "P4.4 linkage where clean_min fires" |
+# | Prediction log (Step 4), row "Oracle-only band exists" (P4.5) | power in the band 2.3 < z_oracle < √A, oracle vs spectral | Pass (0.75 vs 0.03) | Part C cell, print "P4.5 oracle-only band" |
 #
-# App. P consequences: "Lower-edge law" (P4.1), "Pool floor" (P4.2), "Appendix A.1" (P4.5). The law tested here
+# Prediction log consequences: "Lower-edge law" (P4.1), "Pool floor" (P4.2), "Appendix A.1" (P4.5). The law tested here
 # is the one stated without a number in App. E "Spectral detection condition" (a spectral test needs
 # |S̄ − 1|√m ≳ √A, a test told which accounts collude only |S̄ − 1|√m ≳ 1).
 #
@@ -330,7 +330,7 @@ for d in DIMS:
                            x=m_("z_oracle") / math.sqrt(A_), clean_min=m_("clean_min"), multi_min=m_("multi_min"), max=m_("max"),
                            oracle_low=m_("oracle_low"), auc_spectral=m_("auc_spectral"), auc_pairwise=m_("auc_pairwise"), n=len(rs))
                 rowsB.append(row)
-                # [PAPER] App. P (Step 4): herding S̄ vs N (rises: Fail, P4.2); herding_aligned detected exactly where x > 1 (Partial, P4.3)
+                # [PAPER] Prediction log (Step 4): herding S̄ vs N (rises: Fail, P4.2); herding_aligned detected exactly where x > 1 (Partial, P4.3)
                 print(f"d={d:2d} N={N:5d} {design:>15} A={A_:3d} h={b['h']}: S={row['S_union']:.3f} z_or={row['z_oracle']:6.2f} x={row['x']:5.2f} | "
                       f"clean={row['clean_min']:.2f} multi={row['multi_min']:.2f} max={row['max']:.2f} oracle={row['oracle_low']:.2f} | "
                       f"AUC spec/pair={row['auc_spectral']:.2f}/{row['auc_pairwise']:.2f}  ({time.time()-t0:.0f}s)")
@@ -348,14 +348,14 @@ def nll(p):
 fitp = minimize(nll, [1.1, 0.1], method="Nelder-Mead").x
 x50, width = float(fitp[0]), float(abs(fitp[1]))
 pred_ok = [(r["x"] > x50) == (r["clean_min"] > 0.5) for r in rowsB]
-# [PAPER] App. P (Step 4): one curve, x50 = 1.052, 47/48 configurations (locked range [1.0, 1.35])
+# [PAPER] Prediction log (Step 4): one curve, x50 = 1.052, 47/48 configurations (locked range [1.0, 1.35])
 print(f"logistic fit: x50 = {x50:.3f}, width = {width:.3f}  (locked prediction: x50 in [1.0, 1.35])")
 print(f"configs classified correctly by the single rule x > x50: {np.mean(pred_ok):.3f} ({sum(pred_ok)}/{len(pred_ok)})")
 fired = [r for r in rowsB if r["clean_min"] > 0.5]
-# [PAPER] App. P (Step 4): spectral vs pairwise linkage AUC, 0.986 vs 0.481
+# [PAPER] Prediction log (Step 4): spectral vs pairwise linkage AUC, 0.986 vs 0.481
 if fired: print(f"P4.4 linkage where clean_min fires (n={len(fired)}): spectral AUC {np.mean([r['auc_spectral'] for r in fired]):.3f}, pairwise {np.mean([r['auc_pairwise'] for r in fired]):.3f}")
 band = [r for r in rowsB if 2.3 < r["z_oracle"] < math.sqrt(r["A"])]
-# [PAPER] App. P (Step 4): oracle-only band, oracle 0.75 vs spectral 0.03
+# [PAPER] Prediction log (Step 4): oracle-only band, oracle 0.75 vs spectral 0.03
 if band: print(f"P4.5 oracle-only band (2.3 < z_or < sqrt(A), n={len(band)}): oracle power {np.mean([r['oracle_low'] for r in band]):.2f}, spectral {np.mean([r['clean_min'] for r in band]):.2f}")
 RESULTS["C"] = dict(x50=x50, width=width, frac_correct=float(np.mean(pred_ok)))
 

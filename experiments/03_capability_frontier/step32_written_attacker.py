@@ -18,38 +18,38 @@
 # Run on Kaggle (see "Kaggle:" line below for hardware/time). Seeds are fixed in the configuration cell;
 # re-runs vary by a few points (the paper reports run-to-run spread up to ~0.07-0.14 for weekly detection).
 #
-# This is the expanded rerun of Step 32. App. P records P32a–i from the first run of Step 32 (this script repeats
+# This is the expanded rerun of Step 32. Prediction log records P32a–i from the first run of Step 32 (this script repeats
 # those measurements as a replication, so its printed values for P32a–i may differ from the first-run outcomes quoted
-# below) and P32j–p from this rerun. App. P ("A mislabelled source in Step 32") explains why the first run's
+# below) and P32j–p from this rerun. Prediction log ("A mislabelled source in Step 32") explains why the first run's
 # `tilted_c05` source was discarded and removed here; the tilted results in the paper are Step 27's.
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | §6 'The covert end'; App. G.2; App. P (Step 32, "Iterative rewriting reaches AUC ≤ 0.65"); App. N 'Representation' | held-out discriminator AUC, real on-task prompts vs written rewrites (first pass, then two regeneration rounds) | "AUC 0.97–0.98" (§6); "AUC 0.98 … after two more rounds … 0.97" (G.2); "Fail (0.98, 0.97, 0.97)" (App. P); "AUC 0.98" (App. N) | Cell V, `crossfit(...)` → `VOI_AUCS`; prints "[W] round …" and "[W] discriminator AUC by round"; Cell Z "P32j" |
+# | §6 'The covert end'; App. G.2; Prediction log (Step 32, "Iterative rewriting reaches AUC ≤ 0.65"); App. N 'Representation' | held-out discriminator AUC, real on-task prompts vs written rewrites (first pass, then two regeneration rounds) | "AUC 0.97–0.98" (§6); "AUC 0.98 … after two more rounds … 0.97" (G.2); "Fail (0.98, 0.97, 0.97)" (Prediction log); "AUC 0.98" (App. N) | Cell V, `crossfit(...)` → `VOI_AUCS`; prints "[W] round …" and "[W] discriminator AUC by round"; Cell Z "P32j" |
 # | §6 'The covert end'; App. G.2 | rewrites that passed as user-like (posterior < 0.5 and in S_v) | "7.9%"; "395 of 5,000 rewrites (7.9%)" | Cell V, `keep` → `VOI_KEEP`, `len(VOICED)`; print "[W] discriminator AUC by round … kept"; Cell Z "P32b" |
-# | App. P (Step 32, "Written prompts can be made user-like") | P32b, first run | "Fail (AUC 0.98; 4.3% pass)" | first run; same computation as above (Cell V; Cell Z "P32b") |
-# | §6 'The covert end'; App. G.2; App. P (Step 32, "Distribution-matched attacker evades and gains ≥ 6") | importance-resampled (distribution-matched) campaign `matched_c05`: detection and gain at 3,000 queries | "evaded every detector and gained 4.4 points—42% of the dataset gain"; "Fail (evades; +4.4, ESS 151)" | Cell W `[W] matched_c05` row (`RES`); Cell D `DRES[("matched_c05", sd)]`; Cell Z "P32k". The 42% is relative to Step 19's all-math +10.4 |
-# | §6 'The covert end'; App. G.2; App. P (P32k row) | effective sample size of the resampled rewrites | "effective sample of only 151 distinct rewrites"; "ESS 151" | Cell V, `ESS = 1/sum(wts**2)`; print "[W] … effective sample size"; Cell Z "P32k" |
+# | Prediction log (Step 32, "Written prompts can be made user-like") | P32b, first run | "Fail (AUC 0.98; 4.3% pass)" | first run; same computation as above (Cell V; Cell Z "P32b") |
+# | §6 'The covert end'; App. G.2; Prediction log (Step 32, "Distribution-matched attacker evades and gains ≥ 6") | importance-resampled (distribution-matched) campaign `matched_c05`: detection and gain at 3,000 queries | "evaded every detector and gained 4.4 points—42% of the dataset gain"; "Fail (evades; +4.4, ESS 151)" | Cell W `[W] matched_c05` row (`RES`); Cell D `DRES[("matched_c05", sd)]`; Cell Z "P32k". The 42% is relative to Step 19's all-math +10.4 |
+# | §6 'The covert end'; App. G.2; Prediction log (P32k row) | effective sample size of the resampled rewrites | "effective sample of only 151 distinct rewrites"; "ESS 151" | Cell V, `ESS = 1/sum(wts**2)`; print "[W] … effective sample size"; Cell Z "P32k" |
 # | §6 'The frontier, in one sentence'; App. G.2 | share of the detectable campaign's gain given up by covert campaigns | "58–79%" | not isolated (summary): 58% = 1 − 4.4/10.4 uses this script's `matched_c05` gain; 79% is Step 29d's tilted campaign |
 # | §6; App. G.2; App. N 'Capability' | covert gains and their size in problems | "covert gains of 1.1–4.4 points are differences of 4–18 of 400 problems" (§6); "differences are 4–18 problems out of 400" (App. N) | Cell D (`tilted_v_c05` +1.1 to `matched_c05` +4.4; 400 = `S32["N_EVAL"]`) |
 # | App. G.2 | student baseline | "solves 14 of 400 problems at baseline" | Cell D, `BASE`; print "[D] base GSM8K" |
 # | App. G.2 | rewrites passing the first filter, distilled on their own | "The 213 rewrites that passed the first filter gained 3.5 points on their own" | first run of Step 32; plausibly the all-written campaign (`voiced_c1`, Cell D) |
-# | App. P (Step 32, "Written campaign keeps capability (≥ 6)") | P32d, `voiced_c05` gain at 3,000, first run | "Fail (+2.2; 213 unique prompts)" | first run; recomputed in Cell D `voiced_c05`; Cell Z "P32d" |
-# | App. P (Step 32, "Written campaign evades") | P32c, `voiced_c05` / `voiced_c1` weekly detection, first run | "Pass (0.00; 0.10 all on task)" | first run; recomputed in Cell W `[W] voiced_c05`, `[W] voiced_c1`; Cell Z "P32c" |
+# | Prediction log (Step 32, "Written campaign keeps capability (≥ 6)") | P32d, `voiced_c05` gain at 3,000, first run | "Fail (+2.2; 213 unique prompts)" | first run; recomputed in Cell D `voiced_c05`; Cell Z "P32d" |
+# | Prediction log (Step 32, "Written campaign evades") | P32c, `voiced_c05` / `voiced_c1` weekly detection, first run | "Pass (0.00; 0.10 all on task)" | first run; recomputed in Cell W `[W] voiced_c05`, `[W] voiced_c1`; Cell Z "P32c" |
 # | Fig. 1a (points "written in users' voice", "written, distribution-matched") | hollowed weekly detection (development weeks) vs gain at 3,000 queries | plotted (caption: "kept at most 42% of the dataset campaign's gain") | Cell W `tsRc` for `voiced_c05`, `matched_c05`; Cell D gains |
-# | App. P (Step 32, "Value-defined task region rare") | P32a, benign share p_v of the value-defined region | "Pass (0.53%)" | Cell V, `P_V`; print "[V] value-defined region"; Cell Z "P32a" |
-# | App. H; App. P (Step 32, "Value-defined tilted campaign ≥ 4 points") | value-defined on-task pool prompts; `tilted_v_c05` gain at 3,000 | "only 972 on-task prompts … gained 1.1 points at 3,000 queries"; "Fail (+1.1)" | Cell V `ONV_KEYS` (print "[V] … attacker-pool on-task"); Cell D `tilted_v_c05`; Cell Z "P32e" |
-# | App. H; App. P (Step 32, "Personas evade query detectors, type count ≥ 0.9") | persona campaign: detection, type-count detector, gain | "evaded every query-level detector and gained 3.5 points from 1,891 queries … caught it 0.58 of the time"; "Fail (0.00; type count 0.58)" | Cell W `[W] persona` (`typecount`); Cell D `persona` (print "[D] persona … pairs"); Cell Z "P32l" |
-# | Cor. 1 (§4); App. B 'The least-favourable campaign'; App. P (Step 32, "Majority-on-task accounts rare") | benign share of majority-on-task accounts q | "q = 0.25%"; "Pass (0.25%)" (the paper derives "about 14 posing accounts" at A = 10^5 from it; K* is not computed here) | Cell W, `Q_TYPE`; print "[types]"; Cell Z "P32m" |
-# | App. P (Step 32, "Per-account topicality sees tilted campaigns") | P32f, held-out false alarms of the topicality HC test | "Fail (25% false alarms)" | Cell W, `FPR["topic"]`; print "[weekly] held-out FPR"; Cell Z "P32f" |
-# | App. P (Step 32, "Pooling artefact ≥ 2× random") | P32g, same-week share of null-selected groups vs random | "Partial (1.9–2.1×)" | Cell P, `same` / `expct`; print "[P] … same-week share"; Cell Z "P32g" |
-# | App. P (Step 32, "Per-week centring keeps multi-outlier") | P32h, per-week-centred Tmax oracle TPR at 10^4 | "Pass (1.00)" | Cell P, rows with `centre_week=True`; Cell Z "P32h" |
-# | App. P (Step 32, "Multi-outlier deployable at 2,500") | P32i, deployed Tmax false alarms | "Fail (30% false alarms)" | Cell P, `DEP["fpr"]["Tmax"]`; print "[P-dep]"; Cell Z "P32i/n" |
-# | §5 'Scale: selection fails before the barrier does'; App. D.5 'Why this is not yet a production result'; App. P (Step 32, "Multi-outlier deployable at 10^4") | best deployed calibration of multi-outlier selection | "5% false alarms, not 1%"; "at 5,000–7,552 account-weeks"; "Fail (5% false alarms at 7,552)" | Cell P, `DEP["fpr"]["Tmax"]` (A = 10,000 capped to 0.8 × test account-weeks); print "[P-dep]"; Cell Z "P32i/n" |
+# | Prediction log (Step 32, "Value-defined task region rare") | P32a, benign share p_v of the value-defined region | "Pass (0.53%)" | Cell V, `P_V`; print "[V] value-defined region"; Cell Z "P32a" |
+# | App. H; Prediction log (Step 32, "Value-defined tilted campaign ≥ 4 points") | value-defined on-task pool prompts; `tilted_v_c05` gain at 3,000 | "only 972 on-task prompts … gained 1.1 points at 3,000 queries"; "Fail (+1.1)" | Cell V `ONV_KEYS` (print "[V] … attacker-pool on-task"); Cell D `tilted_v_c05`; Cell Z "P32e" |
+# | App. H; Prediction log (Step 32, "Personas evade query detectors, type count ≥ 0.9") | persona campaign: detection, type-count detector, gain | "evaded every query-level detector and gained 3.5 points from 1,891 queries … caught it 0.58 of the time"; "Fail (0.00; type count 0.58)" | Cell W `[W] persona` (`typecount`); Cell D `persona` (print "[D] persona … pairs"); Cell Z "P32l" |
+# | Cor. 1 (§4); App. B 'The least-favourable campaign'; Prediction log (Step 32, "Majority-on-task accounts rare") | benign share of majority-on-task accounts q | "q = 0.25%"; "Pass (0.25%)" (the paper derives "about 14 posing accounts" at A = 10^5 from it; K* is not computed here) | Cell W, `Q_TYPE`; print "[types]"; Cell Z "P32m" |
+# | Prediction log (Step 32, "Per-account topicality sees tilted campaigns") | P32f, held-out false alarms of the topicality HC test | "Fail (25% false alarms)" | Cell W, `FPR["topic"]`; print "[weekly] held-out FPR"; Cell Z "P32f" |
+# | Prediction log (Step 32, "Pooling artefact ≥ 2× random") | P32g, same-week share of null-selected groups vs random | "Partial (1.9–2.1×)" | Cell P, `same` / `expct`; print "[P] … same-week share"; Cell Z "P32g" |
+# | Prediction log (Step 32, "Per-week centring keeps multi-outlier") | P32h, per-week-centred Tmax oracle TPR at 10^4 | "Pass (1.00)" | Cell P, rows with `centre_week=True`; Cell Z "P32h" |
+# | Prediction log (Step 32, "Multi-outlier deployable at 2,500") | P32i, deployed Tmax false alarms | "Fail (30% false alarms)" | Cell P, `DEP["fpr"]["Tmax"]`; print "[P-dep]"; Cell Z "P32i/n" |
+# | §5 'Scale: selection fails before the barrier does'; App. D.5 'Why this is not yet a production result'; Prediction log (Step 32, "Multi-outlier deployable at 10^4") | best deployed calibration of multi-outlier selection | "5% false alarms, not 1%"; "at 5,000–7,552 account-weeks"; "Fail (5% false alarms at 7,552)" | Cell P, `DEP["fpr"]["Tmax"]` (A = 10,000 capped to 0.8 × test account-weeks); print "[P-dep]"; Cell Z "P32i/n" |
 # | App. D.5 'Why this is not yet a production result' | deployed multi-outlier power at 5,000–7,552 | "caught unpadded campaigns 0.53–1.00 of the time and padded ones 0.03–0.10" | Cell P, `DEP[src]["Tmax"]`; print "[P-dep] … unique … mixed" |
 # | App. K | deployed precision of the flagged group at 5,000–7,552 account-weeks | "(0.73 and 0.54)" | Cell P, `DEP["metamath_unique"]["precision"]`; print "[P-dep] … precision" (the "16–42 legitimate accounts" is derived in App. K) |
-# | App. P (Step 32, "≤ 100 benign accounts flagged per week at 10^5") | P32p, reviewer workload | "Pass (44–59 at A ≥ 5,000)" | Cell P, `DEP["benign_flagged_per_week_at_1e5"]`; print "[P-dep] … benign accounts flagged"; Cell Z "P32i/n" |
-# | §5 'Scale: selection fails before the barrier does'; App. D.5 'For providers'; App. L item 6; App. P (Step 32, "Linked 30%: expansion ≥ 0.8 …") | seeded hollowed expansion from 30% linked colluders (15 of 50, +50 accounts) at 2,500–10,000 | "recovered 96–100% of the rest"; "Partial (1.00, 0.96; metadata 0.67)" | Cell P, `seeded(...)` → `link_seeded`, `link_recall`, `link_meta_only`; print "[P] … linked colluders"; Cell Z "P32o" |
+# | Prediction log (Step 32, "≤ 100 benign accounts flagged per week at 10^5") | P32p, reviewer workload | "Pass (44–59 at A ≥ 5,000)" | Cell P, `DEP["benign_flagged_per_week_at_1e5"]`; print "[P-dep] … benign accounts flagged"; Cell Z "P32i/n" |
+# | §5 'Scale: selection fails before the barrier does'; App. D.5 'For providers'; App. L item 6; Prediction log (Step 32, "Linked 30%: expansion ≥ 0.8 …") | seeded hollowed expansion from 30% linked colluders (15 of 50, +50 accounts) at 2,500–10,000 | "recovered 96–100% of the rest"; "Partial (1.00, 0.96; metadata 0.67)" | Cell P, `seeded(...)` → `link_seeded`, `link_recall`, `link_meta_only`; print "[P] … linked colluders"; Cell Z "P32o" |
 # | App. F Table 11 (cols "Tmax unpadded / padded", rows A = 2,500 and 10,000) | multi-outlier oracle TPR in pooled populations | "1.00 / 0.83" and "1.00 / 0.17" | plausibly replicated by Cell P rows with `centre_week=False` (`row["Tmax"]`); the table's primary source is the Step 27–31 script |
 #
 # Not reported in the paper: the rerun's own `voiced_c05` / `voiced_c1` detection and gains (the paper quotes the first
@@ -69,7 +69,7 @@
 # * **P — the pooling artefact and deployable calibration at scale.** Same-week share of the groups multi-outlier selection picks in pooled null windows (against the random expectation); multi-outlier selection with rows centred **per source week**; and deployed T_max at A = 2,500 with per-week centring and conformal thresholds from an earlier period (weeks 8–35, tested on 36–55).
 # * **D — distillation.** SmolLM2-360M, full fine-tuning, GSM8K (400 problems), 3,000 queries, two seeds: voiced_c05, voiced_c1, tilted_v_c05 (Step 19/29d references at 3,000: all-math +10.4, half padding +7.6, tilted +2.2).
 #
-# | ID | Locked prediction (locked in this notebook; outcomes in App. P (prediction log)) |
+# | ID | Locked prediction (locked in this notebook; outcomes in the prediction log (docs/prediction_log.md)) |
 # |---|---|
 # | **P32a** | The value-defined task region is rare: p_v ≤ 5% |
 # | **P32b** | Written prompts can be made user-like: held-out classifier AUC (real on-task vs written) ≤ 0.75, and ≥ 50% of rewrites pass the filter |
@@ -369,7 +369,7 @@ neg = np.flatnonzero((~is_pool[ACCT]) & (WEEK < 8)); neg = np.random.default_rng
 clf_v = LogisticRegression(max_iter=2000, class_weight="balanced").fit(np.vstack([D_GSM.astype(np.float32), E16[neg].astype(np.float32)]), np.r_[np.ones(len(D_GSM)), np.zeros(len(neg))])
 POSTV = np.zeros(len(E16), np.float32)
 for s0 in range(0, len(E16), 200000): POSTV[s0:s0 + 200000] = clf_v.predict_proba(E16[s0:s0 + 200000].astype(np.float32))[:, 1]
-# [PAPER] App. P (Step 32, P32a): value-defined region benign share p_v 0.53% (first run; recomputed here)
+# [PAPER] Prediction log (Step 32, P32a): value-defined region benign share p_v 0.53% (first run; recomputed here)
 SV = POSTV >= 0.5; P_V = float(SV[~is_pool[ACCT]].mean())
 POOL_KEYS = np.array(sorted(i for i in POOL_TXT if POOL_TXT[i][0] and POOL_TXT[i][1])); ONV_KEYS = POOL_KEYS[SV[POOL_KEYS]]
 if len(ONV_KEYS) < 50:
@@ -428,7 +428,7 @@ else:
                 if s0 % (10 * S32["GEN_BS"]) == 0: print(f"[W] generated {len(outs)}/{len(qs)} (strong={strong}); e.g. {outs[-1][:120]!r}")
             return outs
         voiced_txt = regen([q for q, _ in src_rows], False)
-    # [PAPER] §6 / App. G.2: discriminator AUC 0.98, then 0.97 after two regeneration rounds; App. P (P32j): 0.98, 0.97, 0.97
+    # [PAPER] §6 / App. G.2: discriminator AUC 0.98, then 0.97 after two regeneration rounds; Prediction log (P32j): 0.98, 0.97, 0.97
     D_all = embed(voiced_txt); P_gen, auc0 = crossfit(D_all); VOI_AUCS = [auc0]
     for rnd in range(S32.get("ROUNDS", 2)):
         bad = np.flatnonzero(P_gen >= 0.5)
@@ -440,7 +440,7 @@ else:
     if not SYNTHETIC_TEST:
         del gm, enc_m; gc.collect(); torch.cuda.empty_cache()
     inS = clf_v.predict_proba(D_all)[:, 1] >= 0.5
-    # [PAPER] §6 / App. G.2: 395 of 5,000 rewrites (7.9%) passed as user-like (App. P P32b, first run: 4.3% pass)
+    # [PAPER] §6 / App. G.2: 395 of 5,000 rewrites (7.9%) passed as user-like (Prediction log P32b, first run: 4.3% pass)
     keep = (P_gen < 0.5) & inS; VOI_RELAXED = False
     if keep.sum() < 200:
         VOI_RELAXED = True; keep = P_gen <= np.quantile(P_gen, 0.5)
@@ -449,7 +449,7 @@ else:
     # importance-resampled upper bound: resample all in-region rewrites with weights = odds(real | x)
     cand = np.flatnonzero(inS) if inS.sum() >= 50 else np.arange(len(D_all)); wts = np.clip((1 - P_gen[cand]) / np.maximum(P_gen[cand], 1e-3), 0, 50); wts = wts / wts.sum()
     mi = np.random.default_rng(11).choice(cand, len(cand), replace=True, p=wts); MATCHED = [(voiced_txt[i], src_rows[i][1]) for i in mi]; D_MAT = D_all[mi].astype(np.float16)
-    # [PAPER] §6 / App. G.2 / App. P (P32k): effective sample of 151 distinct rewrites
+    # [PAPER] §6 / App. G.2 / Prediction log (P32k): effective sample of 151 distinct rewrites
     ESS = float(1.0 / np.sum(wts ** 2))
     VOI_AUC, VOI_KEEP = VOI_AUCS[-1], float(keep.mean())
     with open(CACHE32, "wb") as fh: pickle.dump((VOICED, D_VOI, MATCHED, D_MAT, VOI_AUCS, VOI_KEEP, VOI_RELAXED, ESS), fh)
@@ -787,10 +787,10 @@ for b in TB:
     pr_t = [topic_hc(r, REFT[b]) for r in calw]                              # out of sample: reference from earlier weeks, threshold from the 8 weeks before b
     TH[b] = {d: float(np.quantile([r[d] for r in prior], 1 - ALPHA)) for d in DETW + ["typecount"]}; TH[b]["topic"] = float(np.quantile(pr_t, 1 - ALPHA))
 DETS = DETW + ["topic", "typecount"]
-# [PAPER] Cor. 1 / App. B / App. P (P32m): q = 0.25% (paper derives about 14 posing accounts at A = 10^5 from it)
+# [PAPER] Cor. 1 / App. B / Prediction log (P32m): q = 0.25% (paper derives about 14 posing accounts at A = 10^5 from it)
 Q_TYPE = float(np.mean([SV[g].mean() >= 0.5 for b in WEEKS for g in GA[b]]))
 print(f"[types] benign share of majority-on-task accounts q = {Q_TYPE:.4f}")
-# [PAPER] App. P (Step 32, P32f): per-account topicality HC at 25% false alarms (FPR["topic"])
+# [PAPER] Prediction log (Step 32, P32f): per-account topicality HC at 25% false alarms (FPR["topic"])
 FPR = {d: boot_ci([np.mean([r[d] > TH[b][d] for r in NULLW[b]]) for b in TB]) for d in DETS}
 print("[weekly] held-out FPR: " + " ".join(f"{d}={FPR[d][0]:.4f}" for d in DETS))
 RES = []
@@ -814,7 +814,7 @@ for src in ["metamath_unique", "metamath_mixed", "tilted_v_c05", "voiced_c05", "
         for d in DETS:
             if acc[d]: pw[d].append(np.mean(acc[d]))
     row = dict(source=src, **{d: boot_ci(pw[d]) for d in DETS}, **{d + "_roc": roc(nv[d], av[d]) for d in DETS}); RES.append(row)
-    # [PAPER] §6 / App. G.2: matched_c05 evaded every detector; App. H / App. P (P32l): persona 0.00, type count 0.58; App. P (P32c, first run): voiced 0.00; 0.10; Fig. 1a x-axis = tsRc of voiced_c05 / matched_c05
+    # [PAPER] §6 / App. G.2: matched_c05 evaded every detector; App. H / Prediction log (P32l): persona 0.00, type count 0.58; Prediction log (P32c, first run): voiced 0.00; 0.10; Fig. 1a x-axis = tsRc of voiced_c05 / matched_c05
     print(f"[W] {src:>14} | deployed " + " ".join(f"{d}={row[d][0]:.2f}" for d in DETS) + " | oracle " + " ".join(f"{d}={row[d+'_roc']['tpr1']:.2f}" for d in DETS) + f"  ({time.time()-t0:.0f}s)")
 
 # %% [markdown]
@@ -855,7 +855,7 @@ for A_ in S32["A_P"]:
         idx, lab, vols, wk = pwin(A_, np.random.default_rng(SEED + 51 * A_ + t), POOLW5)
         for g in groups_of(Z[idx], lab, vols, BL[0]):
             if len(g) < 2: continue
-            # [PAPER] App. P (Step 32, P32g): same-week share 1.9–2.1× the random expectation
+            # [PAPER] Prediction log (Step 32, P32g): same-week share 1.9–2.1× the random expectation
             w_ = wk[g]; same.append(np.mean(w_[:, None] == w_[None, :])); _, c_ = np.unique(wk, return_counts=True); expct.append(np.sum((c_ / c_.sum()) ** 2))
     for centre in [False, True]:
         nul = [stats32(Z[i], l, v, *BL, weeks=w if centre else None) for i, l, v, w in (pwin(A_, np.random.default_rng(SEED + 31 * A_ + t), POOLW5) for t in range(S32["NUL_P"]))]
@@ -864,13 +864,13 @@ for A_ in S32["A_P"]:
         for src in ["metamath_unique", "metamath_mixed"]:
             att = [pattack(A_, src, np.random.default_rng(SEED + 37 * A_ + t + len(src)), POOLW5, centre) for t in range(S32["ATT_P"])]
             row = dict(A=A_, centre_week=centre, source=src, same_week=float(np.mean(same)) if same else float("nan"), expected=float(np.mean(expct)) if expct else float("nan"))
-            # [PAPER] App. P (P32h): per-week-centred Tmax 1.00 at 10^4 (centre=True); centre=False rows plausibly replicate App. Table 11 Tmax (primary source Step 27–31)
+            # [PAPER] Prediction log (P32h): per-week-centred Tmax 1.00 at 10^4 (centre=True); centre=False rows plausibly replicate App. Table 11 Tmax (primary source Step 27–31)
             for d in DETW: row[d] = float(np.mean([x[d] > np.quantile([y[d] for y in nul], 0.99) for x in att]))
             if not centre:
                 sa_ = [pattack_seeded(A_, src, np.random.default_rng(SEED + 37 * A_ + t + len(src))) for t in range(S32["ATT_P"])]
                 for key in ["seeded", "meta_only"]:
                     th_ = np.quantile([y[key] for y in nul_seed], 0.99); row["link_" + key] = float(np.mean([x[key] > th_ for x in sa_]))
-                # [PAPER] §5 / App. D.5 / App. P (P32o): seeded expansion 1.00, recall 0.96 ("96–100%"), metadata alone 0.67
+                # [PAPER] §5 / App. D.5 / Prediction log (P32o): seeded expansion 1.00, recall 0.96 ("96–100%"), metadata alone 0.67
                 row["link_recall"] = float(np.mean([x["recall"] for x in sa_]))
             POOLRES.append(row)
             print(f"[P] A={A_} centre_week={centre} {src:>16}: oracle TPR C {row['tsC']:.2f} Rc {row['tsRc']:.2f} Tmax {row['Tmax']:.2f} | same-week share {row['same_week']:.3f} vs random {row['expected']:.3f}" + (f" | {S32['LINKED']} linked colluders: metadata only {row['link_meta_only']:.2f}, seeded hollowed expansion {row['link_seeded']:.2f} (colluder recall {row['link_recall']:.2f})" if not centre else "") + f"  ({time.time()-t0:.0f}s)")
@@ -882,9 +882,9 @@ for A_req in S32["A_DEPS"]:
     thr = {d: float(np.quantile([x[d] for x in cal], 1 - ALPHA)) for d in DETW}
     tnul = [stats32(Z[i], l, v, *BL, weeks=w) for i, l, v, w in (pwin(A_, np.random.default_rng(SEED + 71 + t), testp) for t in range(S32["TEST_DEP"]))]
     fl = [x for x in tnul if x["Tmax"] > thr["Tmax"]]; gsz = float(np.mean([len(x["gT"]) for x in tnul]))
-    # [PAPER] App. P (P32i, P32n): deployed Tmax false alarms 30% at 2,500, 5% at 7,552; §5 / App. D.5: "5% false alarms, not 1%"
+    # [PAPER] Prediction log (P32i, P32n): deployed Tmax false alarms 30% at 2,500, 5% at 7,552; §5 / App. D.5: "5% false alarms, not 1%"
     DEP = dict(A=A_, fpr={d: float(np.mean([x[d] > thr[d] for x in tnul])) for d in DETW}, null_group_size=gsz)
-    # [PAPER] App. P (Step 32, P32p): 44–59 benign accounts flagged per week at 10^5 (A ≥ 5,000)
+    # [PAPER] Prediction log (Step 32, P32p): 44–59 benign accounts flagged per week at 10^5 (A ≥ 5,000)
     DEP["benign_flagged_per_week_at_1e5"] = float(1e5 / A_ * DEP["fpr"]["Tmax"] * gsz)
     for src in ["metamath_unique", "metamath_mixed"]:
         att = [pattack(A_, src, np.random.default_rng(SEED + 81 + t + len(src)), testp, True) for t in range(S32["ATT_DEP"])]
@@ -1001,7 +1001,7 @@ print(f"[D] base GSM8K {BASE.mean():.3f}; written pairs {len(VOICED)}, value-reg
 for var in ["voiced_c05", "voiced_c1", "matched_c05", "persona", "tilted_v_c05"]:
     for sd in S32["SEEDS"]:
         pairs = pairs_for(var, S32["BUD"], np.random.default_rng(SEED + 1000 * sd)); model = train_full(STUDENT, pairs, sd, tokA, 5e-5)
-        # [PAPER] §6 / App. G.2: matched_c05 +4.4 (42% of +10.4); App. H / App. P: tilted_v_c05 +1.1, persona +3.5 from 1,891 queries; App. P (P32d, first run): voiced_c05 +2.2
+        # [PAPER] §6 / App. G.2: matched_c05 +4.4 (42% of +10.4); App. H / Prediction log: tilted_v_c05 +1.1, persona +3.5 from 1,891 queries; Prediction log (P32d, first run): voiced_c05 +2.2
         DRES[(var, sd)] = gsm_correct(model).mean(); del model; gc.collect(); torch.cuda.empty_cache()
         print(f"[D] {var:>13} seed={sd} ({len(pairs)} pairs): GSM8K {DRES[(var, sd)]:.3f} (gain {100*(DRES[(var, sd)]-BASE.mean()):+.1f})  ({time.time()-t0:.0f}s)")
 
@@ -1012,7 +1012,7 @@ for var in ["voiced_c05", "voiced_c1", "matched_c05", "persona", "tilted_v_c05"]
 # ===== Cell Z: predictions and verdict =====
 g = lambda src, d: next(r[d][0] for r in RES if r["source"] == src)
 gain = lambda v: float(np.mean([100 * (DRES[(v, s)] - BASE.mean()) for s in S32["SEEDS"] if (v, s) in DRES]))
-# [PAPER] App. P (Step 32 rows): outcomes of P32a–p as printed below (P32a–i quote the first run; this rerun replicates them)
+# [PAPER] Prediction log (Step 32 rows): outcomes of P32a–p as printed below (P32a–i quote the first run; this rerun replicates them)
 print(f"P32a p_v = {P_V:.4f} (pass if <= 0.05)")
 print(f"P32b discriminator AUC {VOI_AUC:.3f} (<= 0.75), kept {VOI_KEEP:.3f} (>= 0.5), filter relaxed: {VOI_RELAXED}")
 print(f"P32c voiced_c05 weekly: two-scale {g('voiced_c05','tsC'):.2f} (<= 0.10), hollowed {g('voiced_c05','tsRc'):.2f}, Tmax {g('voiced_c05','Tmax'):.2f} (<= 0.25); voiced_c1: hollowed {g('voiced_c1','tsRc'):.2f}")

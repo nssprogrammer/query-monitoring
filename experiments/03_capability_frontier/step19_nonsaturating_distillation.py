@@ -20,7 +20,7 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. Table 14 caption; §6 "Two regimes"; App. G.1; Fig. 6a caption; App. P (Step 19), "SmolLM2-360M lacks the skill" | base SmolLM2-360M GSM8K accuracy (first 400 problems); P19.1 | 3.5%; Pass (3.5%) | Cell 7, `BASE_A`; Cell 9 "P19.1" print |
+# | App. Table 14 caption; §6 "Two regimes"; App. G.1; Fig. 6a caption; Prediction log (Step 19), "SmolLM2-360M lacks the skill" | base SmolLM2-360M GSM8K accuracy (first 400 problems); P19.1 | 3.5%; Pass (3.5%) | Cell 7, `BASE_A`; Cell 9 "P19.1" print |
 # | App. G.2 ("the student solves 14 of 400 problems at baseline") | baseline problems solved | 14 of 400 | Cell 7, `BASE_A` (fraction of 400) |
 # | App. Table 14, row "SmolLM2-360M, GSM8K", col "All math"; §6 "Two regimes"; App. G.1; Fig. 6a | gain at 1,000 / 3,000 / 10,000 queries | +7.5 ± 0.0 / +10.4 ± 0.1 / +15.9 ± 0.9 (text: 7.5, 10.4 and 15.9 points) | Cell 7, summary print "[A] n=...: unique" |
 # | App. Table 14, row "SmolLM2-360M, GSM8K", col "Half natural, mixed"; Fig. 6a | gain at 1,000 / 3,000 / 10,000 queries | +3.9 ± 0.6 / +7.6 ± 0.6 / +12.1 ± 1.1 | Cell 7, summary print "[A] n=...: mixed" |
@@ -30,10 +30,10 @@
 # | Table 2 (gains in parentheses, cols "First weekly alarm" / "Anytime-valid") | GSM8K gain held at the week of first detection, 1,640 queries a week | 8.8, 12.7 (dataset); 9.5, 15.5, 7.9, 5.6 (half padding) | not isolated: derived from this script's Part A unique / mixed gain curves (Cell 7) at the cumulative queries of the detection week; that step and the detection weeks are not computed here |
 # | App. Table 14, row "Qwen2.5-1.5B, MATH-500" and caption | base accuracy; gain all math / mixed / paired cost at 1,000 and 4,000 queries | base 22.8%; +12.0 / +11.4 / −0.6 (1,000); +11.6 / +9.6 / −2.0 (4,000) | Cell 8 (Part B), `BASE_B`, `RB` |
 # | §6 "Two regimes"; App. G.1 | Qwen2.5-1.5B on MATH-500 | flat from 1,000 to 4,000 queries | Cell 8 (Part B) |
-# | App. P (Step 19), "Extraction regime: all-math gains rise ≥ 5 points, 1k to 10k" | P19.2 | Pass (+7.5 to +15.9) | Cell 9 "P19.2" print |
-# | App. P (Step 19), "Price of stealth: mixed ≤ all-math − 2 at 3k and 10k" | P19.3 | Pass (−2.8, −3.8) | Cell 9 "P19.3" print |
-# | App. P (Step 19), "MATH-500 (1.5B): all-math ≥ +3, mixed ≤ 70% of it" | P19.4 | Fail (+11.6; 83%) | Cell 9 "P19.4" print |
-# | App. P Table 16, rows "Extraction student" and "Elicitation students" (Qwen2.5-1.5B) | training settings | learning rate 5 × 10−5, effective batch 16 (micro-batch 4); micro-batch 2 with 4 accumulation steps | Cell 1 (`LR_A`, `BS`), Cell 6 `train_full`, Cell 8 `train_lora_lowmem` |
+# | Prediction log (Step 19), "Extraction regime: all-math gains rise ≥ 5 points, 1k to 10k" | P19.2 | Pass (+7.5 to +15.9) | Cell 9 "P19.2" print |
+# | Prediction log (Step 19), "Price of stealth: mixed ≤ all-math − 2 at 3k and 10k" | P19.3 | Pass (−2.8, −3.8) | Cell 9 "P19.3" print |
+# | Prediction log (Step 19), "MATH-500 (1.5B): all-math ≥ +3, mixed ≤ 70% of it" | P19.4 | Fail (+11.6; 83%) | Cell 9 "P19.4" print |
+# | Prediction log Table 16, rows "Extraction student" and "Elicitation students" (Qwen2.5-1.5B) | training settings | learning rate 5 × 10−5, effective batch 16 (micro-batch 4); micro-batch 2 with 4 accumulation steps | Cell 1 (`LR_A`, `BS`), Cell 6 `train_full`, Cell 8 `train_lora_lowmem` |
 #
 # Not reported in the paper: per-seed raw accuracies in the verdict report; `step19_figure.png` (Fig. 6a also contains the tilted campaign from Step 29d).
 
@@ -375,16 +375,16 @@ if RUN_B:
 # ===== Cell 9: predictions, figure, verdict =====
 GA_ = lambda v, n: float(np.mean([100 * (RA[(v, n, s)].mean() - BASE_A.mean()) for s in SEEDS_A]))
 if RA:
-    # [PAPER] App. P (Step 19): P19.1 Pass (3.5%)
+    # [PAPER] Prediction log (Step 19): P19.1 Pass (3.5%)
     print(f"P19.1 base SmolLM2-360M GSM8K {100*BASE_A.mean():.1f}% (pass if <= 10%)")
     u = [GA_("unique", n) for n in BUD_A]
-    # [PAPER] App. P (Step 19): P19.2 Pass (+7.5 to +15.9)
+    # [PAPER] Prediction log (Step 19): P19.2 Pass (+7.5 to +15.9)
     print(f"P19.2 unique gains {['%+.1f' % x for x in u]} (pass if monotone and last − first >= 5)")
-    # [PAPER] App. P (Step 19): P19.3 Pass (−2.8, −3.8)
+    # [PAPER] Prediction log (Step 19): P19.3 Pass (−2.8, −3.8)
     for n in BUD_A[1:]: print(f"P19.3 n={n}: mixed {GA_('mixed', n):+.1f} vs unique {GA_('unique', n):+.1f} (pass if mixed <= unique − 2)")
 if RB:
     nb_ = max(BUD_B); u_, m_ = 100 * (RB[("unique", nb_)].mean() - BASE_B.mean()), 100 * (RB[("mixed", nb_)].mean() - BASE_B.mean())
-    # [PAPER] App. P (Step 19): P19.4 Fail (+11.6; 83%)
+    # [PAPER] Prediction log (Step 19): P19.4 Fail (+11.6; 83%)
     print(f"P19.4 MATH-500 n={nb_}: unique {u_:+.1f}, mixed {m_:+.1f} (ratio {m_/u_ if u_ > 0 else float('nan'):.2f}; pass if unique >= 3 and ratio <= 0.7)")
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots(1, 2, figsize=(12, 4.2))

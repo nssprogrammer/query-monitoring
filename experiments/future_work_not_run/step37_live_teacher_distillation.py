@@ -20,7 +20,7 @@
 # Specifically, it implements the §11 future-work item "distillation from a live teacher with more seeds, students and tasks"
 # (§11: the frontier rests on one 360M student, one benchmark, answers from datasets rather than a live teacher, and two seeds).
 # It also depends on outputs of Step 36, which was not run either. The predictions P37a–P37f below were written in this
-# notebook but never evaluated; they do not appear in App. P (prediction log). There is no reproduction table.
+# notebook but never evaluated; they do not appear in the prediction log (docs/prediction_log.md). There is no reproduction table.
 
 # %% [markdown]
 # Step 37 —The capability side of the frontier with a live teacher, five seeds and the full GSM8K test
@@ -30,7 +30,7 @@
 #
 # Campaigns at 3,000 queries: `dataset_ds` (MetaMathQA GSM prompts with dataset answers, the earlier setting), `dataset_live` (same prompts, teacher answers), `padded_live` (half those prompts, half off-task WildChat prompts), `tilted_live` (half on-task WildChat prompts from the attacker pool, half off-task), `written_live` (half LLM rewrites in the users' voice that passed the attacker's discriminator, half off-task).
 #
-# | ID | Prediction (written in this notebook only; never run, not evaluated, not in the paper's App. P) |
+# | ID | Prediction (written in this notebook only; never run, not evaluated, not in the paper's Prediction log) |
 # |---|---|
 # | **P37a** | With a live teacher the student is in the extraction regime: `dataset_live` gains ≥ 5 points |
 # | **P37b** | Padding costs ≥ 20% of the `dataset_live` gain, with the paired 95% interval of the difference excluding zero |

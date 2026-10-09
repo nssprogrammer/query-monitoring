@@ -20,14 +20,14 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 2), row "Tracy–Widom calibration to 10−3"; App. E "Spectral detection condition" ("over 20,000 null worlds analytic Tracy–Widom thresholds ... matched false-alarm rates from 10−1 to 10−4") | false-alarm rate of analytic TW thresholds on λ_min / λ_max, α = 0.1 ... 0.0001, N_NULL = 20,000 null worlds (GPU) | Pass (to 10−4); "from 10−1 to 10−4" | Part A cell, `rowsA` loop over alpha; VERDICT REPORT print "[A] FPR (min / max) at alpha" |
-# | App. P (Step 2), row "Raw fails, whitened calibrated under non-uniform traffic" | false alarms of the raw vs intensity-whitened statistic on a non-uniform benign null (A3) | Pass (100% vs 0.53%) | Part A cell, A3 prints "RAW" / "WHITENED"; VERDICT REPORT print "[A3]" |
-# | App. P (Step 2), row "TW-corrected f50 at unseen sizes" | gap between measured and TW-predicted f50 across L, γ | Pass (≤ 0.033) | Part B cell, print "f50 meas=... pred=..."; VERDICT REPORT "[B]" lines (max gap not isolated) |
-# | App. P (Step 2), row "Optimal window peak" | predicted vs measured optimal window n_max (C1) | Pass (37 vs 36) | Part C cell, print "predicted optimal nmax = ...; measured best = ..." |
-# | App. P (Step 2), row "N∗ ∝ A" | log-log slope of critical campaign size N* vs A (C2) | Pass (slope 0.95) | Part C cell, `slope_m`, print "log-log slope N* vs A: measured"; VERDICT REPORT "[C2] log-log slope" |
-# | App. P (Step 2), row "Same-marginal stratified attacker detectable" | whitened clean-λ_min rate for S2 `warped_jitter` (Part D) | Pass (1.00) | Part D cell, row "S2 warped_jitter", column WHT cln; VERDICT REPORT "[D] S2 warped_jitter" |
+# | Prediction log (Step 2), row "Tracy–Widom calibration to 10−3"; App. E "Spectral detection condition" ("over 20,000 null worlds analytic Tracy–Widom thresholds ... matched false-alarm rates from 10−1 to 10−4") | false-alarm rate of analytic TW thresholds on λ_min / λ_max, α = 0.1 ... 0.0001, N_NULL = 20,000 null worlds (GPU) | Pass (to 10−4); "from 10−1 to 10−4" | Part A cell, `rowsA` loop over alpha; VERDICT REPORT print "[A] FPR (min / max) at alpha" |
+# | Prediction log (Step 2), row "Raw fails, whitened calibrated under non-uniform traffic" | false alarms of the raw vs intensity-whitened statistic on a non-uniform benign null (A3) | Pass (100% vs 0.53%) | Part A cell, A3 prints "RAW" / "WHITENED"; VERDICT REPORT print "[A3]" |
+# | Prediction log (Step 2), row "TW-corrected f50 at unseen sizes" | gap between measured and TW-predicted f50 across L, γ | Pass (≤ 0.033) | Part B cell, print "f50 meas=... pred=..."; VERDICT REPORT "[B]" lines (max gap not isolated) |
+# | Prediction log (Step 2), row "Optimal window peak" | predicted vs measured optimal window n_max (C1) | Pass (37 vs 36) | Part C cell, print "predicted optimal nmax = ...; measured best = ..." |
+# | Prediction log (Step 2), row "N∗ ∝ A" | log-log slope of critical campaign size N* vs A (C2) | Pass (slope 0.95) | Part C cell, `slope_m`, print "log-log slope N* vs A: measured"; VERDICT REPORT "[C2] log-log slope" |
+# | Prediction log (Step 2), row "Same-marginal stratified attacker detectable" | whitened clean-λ_min rate for S2 `warped_jitter` (Part D) | Pass (1.00) | Part D cell, row "S2 warped_jitter", column WHT cln; VERDICT REPORT "[D] S2 warped_jitter" |
 #
-# Consequences recorded in App. P: analytic thresholds adopted; whitening adopted.
+# Consequences recorded in Prediction log: analytic thresholds adopted; whitening adopted.
 #
 # Not reported in the paper: null λ_min/λ_max moments vs TW, heterogeneous-size FPR (A2), the eigenvector-overlap
 # formula check, per-configuration f50 and FPR checks, per-n_max f50 (C1), per-A N* values (C2), the other
@@ -340,7 +340,7 @@ print(f"lam_min: measured {lmin.mean():.5f} ± {lmin.std():.5f} | TW pred {mu_m 
 print(f"lam_max: measured {lmax.mean():.5f} ± {lmax.std():.5f} | TW pred {mu_p + sg_p*TW_MEAN:.5f} ± {sg_p*TW_SD:.5f}")
 rowsA = []
 print(f"{'alpha':>8} {'thr_min':>9} {'FPR_min':>9} {'cnt':>5} {'thr_max':>9} {'FPR_max':>9} {'cnt':>5} {'expected':>8}")
-# [PAPER] App. P (Step 2) and App. E: analytic TW thresholds over 20,000 null worlds, false alarms matched "from 10−1 to 10−4"
+# [PAPER] Prediction log (Step 2) and App. E: analytic TW thresholds over 20,000 null worlds, false alarms matched "from 10−1 to 10−4"
 for a in [0.1, 0.05, 0.01, 0.001, 0.0001]:
     tm, tM = thr_min(A0, m0, a), thr_max(A0, m0, a)
     c1, c2 = int((lmin < tm).sum()), int((lmax > tM).sum())
@@ -370,7 +370,7 @@ for t in range(N_A3):
     pts, lab, cnt = build_world(benign_bump(L0 * L0, rng), BASE["K"], A0, 0.0, rng, benign_fn=benign_bump)
     acc3.append(spectra_raw_white(pts, lab, cnt, modes0, BASE["K"], REF_BUMP, tmA, tMA))
 A3 = {k: float(np.mean([r[k] for r in acc3])) for k in ["raw_clean_min", "raw_multi_min", "raw_max", "wht_clean_min", "wht_multi_min", "wht_max"]}
-# [PAPER] App. P (Step 2): raw vs whitened false alarms under non-uniform traffic, Pass (100% vs 0.53%)
+# [PAPER] Prediction log (Step 2): raw vs whitened false alarms under non-uniform traffic, Pass (100% vs 0.53%)
 print(f"A3 non-uniform null, N={N_A3}, N_REF={N_REF}, per-side alpha=0.005 (expect ~0.005 each when calibrated):")
 print(f"   RAW      : any-min={A3['raw_clean_min']+A3['raw_multi_min']:.4f} (multi {A3['raw_multi_min']:.4f})  max={A3['raw_max']:.4f}")
 print(f"   WHITENED : any-min={A3['wht_clean_min']+A3['wht_multi_min']:.4f} (multi {A3['wht_multi_min']:.4f})  max={A3['wht_max']:.4f}")
@@ -417,7 +417,7 @@ for c in cfgs:
         nfp += spectrum(pts, lab, cnt, modes, vectors=False)["lam_min"] < c["lam_thr"]
     c.update(fgrid=[float(x) for x in fgrid], power=pw, lam_min=lms, ov_meas=ovm, ov_pred=ovp,
              f50_meas=interp_cross(fgrid, pw), fpr_check=nfp / NN, T=T)
-    # [PAPER] App. P (Step 2): TW-corrected f50 at unseen sizes, |meas − pred| Pass (≤ 0.033)
+    # [PAPER] Prediction log (Step 2): TW-corrected f50 at unseen sizes, |meas − pred| Pass (≤ 0.033)
     print(f"L={c['L']:3d} g={c['gamma']:.2f}: f50 meas={c['f50_meas']:.3f} pred={c['f50_pred']:.3f} asym={c['fstar']:.3f} "
           f"| FPR@thr={c['fpr_check']:.3f} | power: " + " ".join(f"{f:.2f}:{p:.2f}" for f, p in zip(fgrid, pw)))
 RESULTS["B"] = cfgs
@@ -448,7 +448,7 @@ ms_t, Sd_t = window_table(L1, L1 - 1)
 pred_curve = [(nm, f50_pred(Sd_t[nm], A1 / ms_t[nm], thr_min(A1, ms_t[nm], 0.01))) for nm in range(10, L1) if ms_t[nm] > 0 and A1 / ms_t[nm] <= 0.8]
 best = max(pred_curve, key=lambda z: z[1])
 meas_ok = [r for r in rowsC1 if r["f50_meas"] == r["f50_meas"]]
-# [PAPER] App. P (Step 2): optimal window peak, Pass (37 vs 36)
+# [PAPER] Prediction log (Step 2): optimal window peak, Pass (37 vs 36)
 print(f"predicted optimal nmax = {best[0]} (f50={best[1]:.3f}); measured best = {max(meas_ok, key=lambda r: r['f50_meas'])['nmax'] if meas_ok else 'n/a'}")
 
 # ---- C2: critical campaign size N* vs number of monitored accounts A (f=0, optimal window)
@@ -476,7 +476,7 @@ for A in C2_AS:
     print(f"A={A:4d}: " + " ".join(f"L{L}:{p:.2f}{'*' if d else ''}" for L, p, d in line) +
           f" | N* meas={rowsC2[-1]['Nstar_meas']:.0f} pred={rowsC2[-1]['Nstar_pred']:.0f}")
 ok = [r for r in rowsC2 if r["Nstar_meas"] == r["Nstar_meas"]]
-# [PAPER] App. P (Step 2): N* ∝ A, measured log-log slope 0.95
+# [PAPER] Prediction log (Step 2): N* ∝ A, measured log-log slope 0.95
 slope_m = np.polyfit(np.log([r["A"] for r in ok]), np.log([r["Nstar_meas"] for r in ok]), 1)[0] if len(ok) >= 2 else float('nan')
 slope_p = np.polyfit(np.log([r["A"] for r in rowsC2]), np.log([r["Nstar_pred"] for r in rowsC2]), 1)[0] if len(rowsC2) >= 2 else float('nan')
 print(f"log-log slope N* vs A: measured {slope_m:.3f}, predicted {slope_p:.3f}  ('*' = predicted detectable)")
@@ -529,7 +529,7 @@ for i, (sc, name, fn, bfn, ref) in enumerate(ZOO):
         acc.append(spectra_raw_white(pts, lab, cnt, modes0, BASE["K"], ref, tmin, tmax))
     row = {k: float(np.mean([a[k] for a in acc])) for k in acc[0]}; row.update(scenario=sc, design=name)
     rowsD.append(row)
-    # [PAPER] App. P (Step 2): S2 warped_jitter (same-marginal stratified attacker), whitened clean λ_min 1.00
+    # [PAPER] Prediction log (Step 2): S2 warped_jitter (same-marginal stratified attacker), whitened clean λ_min 1.00
     print(f"{sc:>2} {name:>20} {row['S_union_wht']:7.3f} | {row['raw_clean_min']:7.2f} {row['raw_multi_min']:5.2f} {row['raw_max']:5.2f} | "
           f"{row['wht_clean_min']:7.2f} {row['wht_multi_min']:5.2f} {row['wht_max']:5.2f} {row['wht_ov_min']:6.2f} {row['wht_ov_max']:6.2f}")
 RESULTS["D"] = dict(thr_min=tmin, thr_max=tmax, rows=rowsD)

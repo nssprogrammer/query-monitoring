@@ -20,12 +20,12 @@
 #
 # | Paper location | Quantity | Value in paper | Where computed here |
 # |---|---|---|---|
-# | App. P (Step 6), row "Spectral vs global crossover at K ≈ 2.3 √A" (P6.1) | informative cells where the predicted winner (spectral below, global above the crossover) wins | Pass (7 of 8 cells; 2/2) | Part 5 print "P6.1 informative cells" |
+# | Prediction log (Step 6), row "Spectral vs global crossover at K ≈ 2.3 √A" (P6.1) | informative cells where the predicted winner (spectral below, global above the crossover) wins | Pass (7 of 8 cells; 2/2) | Part 5 print "P6.1 informative cells" |
 # | App. E 'CIFAR-10 regime map' | regime map: spectral dominates when many colluders send few queries each and K ≲ 2.3 √A; per-account tests and Higher Criticism suffice with few heavy colluders; global stream wins with many colluders | 2.3 | Part 5 head-to-head table (`winner` column) / VERDICT `[d]` lines |
-# | App. P (Step 6), row "HC ≥ per-account; spectral ≥ HC at N = 2,000" (P6.2) | cell counts | Pass (29/30; 8/10) | Part 5 print "P6.2 HC≥acct in ... cells; spectral≥HC ..." |
-# | App. P (Step 6), row "Random campaigns ≤ 2%; linkage AUC ≈ 0.5" (P6.3) | random-campaign false alarms; spectral linkage AUC | Pass (1.9%; 0.49–0.51) | Part 5 prints "P6.3 random-campaign false alarms" and "spectral linkage AUC on random campaigns by A" |
-# | App. P (Step 6), row "No real strategy triggers the lower edge" (P6.4); App. E 'Spectral detection condition' ("No real extraction strategy we tested triggered the lower edge") | missing-mode rate on real strategies | Pass (0.002) | Part 5 print "P6.4 missing-mode rate" |
-# | Table 16 (App. P, "Main settings"), CIFAR-10 rows | bandwidths with Bonferroni correction; calibration | h ∈ {2, 4, 8} with Bonferroni correction; 1,000 null worlds per configuration, Bonferroni over bandwidths | Cell 1 configuration (`HS`, `N_NULL`); Cell 5 `ALPHA_B` |
+# | Prediction log (Step 6), row "HC ≥ per-account; spectral ≥ HC at N = 2,000" (P6.2) | cell counts | Pass (29/30; 8/10) | Part 5 print "P6.2 HC≥acct in ... cells; spectral≥HC ..." |
+# | Prediction log (Step 6), row "Random campaigns ≤ 2%; linkage AUC ≈ 0.5" (P6.3) | random-campaign false alarms; spectral linkage AUC | Pass (1.9%; 0.49–0.51) | Part 5 prints "P6.3 random-campaign false alarms" and "spectral linkage AUC on random campaigns by A" |
+# | Prediction log (Step 6), row "No real strategy triggers the lower edge" (P6.4); App. E 'Spectral detection condition' ("No real extraction strategy we tested triggered the lower edge") | missing-mode rate on real strategies | Pass (0.002) | Part 5 print "P6.4 missing-mode rate" |
+# | Table 16 (App. O, "Main settings"), CIFAR-10 rows | bandwidths with Bonferroni correction; calibration | h ∈ {2, 4, 8} with Bonferroni correction; 1,000 null worlds per configuration, Bonferroni over bandwidths | Cell 1 configuration (`HS`, `N_NULL`); Cell 5 `ALPHA_B` |
 #
 # Not reported in the paper: fidelity values (re-computed from Step 5), per-cell powers with Wilson intervals, per-account
 # linkage AUC, the low-side global test (`glob_lo`), herding cells individually and the figure `step6_figure.png`.
@@ -441,7 +441,7 @@ RESULTS["step6"] = rows6
 
 # %%
 # ===== Part 5: predictions =====
-# [PAPER] App. P (Step 6, "Random campaigns ≤ 2%; linkage AUC ≈ 0.5"): Pass (1.9%; 0.49–0.51)
+# [PAPER] Prediction log (Step 6, "Random campaigns ≤ 2%; linkage AUC ≈ 0.5"): Pass (1.9%; 0.49–0.51)
 print("P6.3 random-campaign false alarms (nominal 0.01 combined):")
 for d in DETECTORS: print(f"   {d:>8}: {np.mean([r[d] for r in rows6 if r['strategy'] == 'random']):.3f}")
 print("   spectral linkage AUC on random campaigns by A: " + ", ".join(f"A={a}: {np.mean([r['auc_spec'] for r in rows6 if r['strategy']=='random' and r['A']==a]):.3f}" for a in AS))
@@ -458,14 +458,14 @@ for r in rows6:
     print(f"{r['strategy']:>8} {r['N']:5d} {r['A']:4d} {r['K']:3d} {r['K']/math.sqrt(r['A']):7.2f} | {cell('spec'):>17} {cell('glob_hi'):>17} {cell('hc'):>17} {cell('acct'):>17} | {win}")
 inf = [h for h in H2H if 0.05 < max(h["spec"], h["glob_hi"]) < 0.999 or abs(h["spec"] - h["glob_hi"]) > 0.05]
 lo = [h for h in inf if h["ratio"] < 2.3]; hi = [h for h in inf if h["ratio"] >= 2.3]
-# [PAPER] App. P (Step 6, "Spectral vs global crossover at K ≈ 2.3 √A"): Pass (7 of 8 cells; 2/2)
+# [PAPER] Prediction log (Step 6, "Spectral vs global crossover at K ≈ 2.3 √A"): Pass (7 of 8 cells; 2/2)
 print(f"\nP6.1 informative cells (not both saturated): K<2.3√A -> spectral≥global in {sum(h['spec']>=h['glob_hi'] for h in lo)}/{len(lo)}; "
       f"K≥2.3√A -> global≥spectral in {sum(h['glob_hi']>=h['spec'] for h in hi)}/{len(hi)}")
 conc = [r for r in rows6 if r["strategy"] in ("entropy", "kcenter") and r["N"] == min(CHECKS)]
-# [PAPER] App. P (Step 6, "HC ≥ per-account; spectral ≥ HC at N = 2,000"): Pass (29/30; 8/10)
+# [PAPER] Prediction log (Step 6, "HC ≥ per-account; spectral ≥ HC at N = 2,000"): Pass (29/30; 8/10)
 print(f"P6.2 HC≥acct in {sum(r['hc']>=r['acct'] for r in rows6 if r['strategy']!='random')}/{sum(1 for r in rows6 if r['strategy']!='random')} cells; "
       f"spectral≥HC (kcenter/entropy, N={min(CHECKS)}) in {sum(r['spec']>=r['hc'] for r in conc)}/{len(conc)}")
-# [PAPER] App. P (Step 6, "No real strategy triggers the lower edge"): Pass (0.002); App. E 'Spectral detection condition'
+# [PAPER] Prediction log (Step 6, "No real strategy triggers the lower edge"): Pass (0.002); App. E 'Spectral detection condition'
 print(f"P6.4 missing-mode rate on real strategies: {np.mean([r['mm'] for r in rows6 if r['strategy']!='random']):.3f} (nominal ≤ 0.01)")
 RESULTS["h2h"] = H2H
 
