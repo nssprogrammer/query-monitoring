@@ -7,14 +7,14 @@ An attacker who evades the monitor but learns nothing has not won. To weigh dete
 
 \paragraph{The covert end.} Proposition~\ref{prop:lfc}'s least-detectable campaign---half real WildChat prompts in the math region, half the rest---evaded every detector and gained 2.2 points at 3{,}000 queries, against 10.4: covertness cost 79\% of the gain. To test whether WildChat's math is simply the wrong math, we let the attacker \emph{write} useful prompts in users' voices. An instruction-tuned model rewrote GSM8K-style problems in the style of real WildChat messages, but a classifier still told the rewrites from real prompts with AUC 0.97--0.98, and only 7.9\% passed as user-like. Resampling all rewrites to match real on-task prompts as closely as the classifier could measure gave a campaign that evaded every detector and gained 4.4 points---42\% of the dataset gain, the best any covert campaign achieved---from an effective sample of only 151 distinct rewrites.
 
-\takeaway{The frontier, in one sentence.}{In our testbed, every campaign that evaded every detector also gave up 58--79\% of what a detectable campaign transferred, and each was limited by its supply of prompts that are both useful and indistinguishable from users'.}
+\takeaway{The frontier, in one sentence.}{In our testbed, every campaign that evaded every detector also gave up 58\% or more of what a detectable campaign transferred, and each was limited by its supply of prompts that are both useful and indistinguishable from users'.}
 
 This is narrower than it sounds: one 360M student, one benchmark, answers from datasets rather than a live teacher, and two seeds; the covert gains of 1.1--4.4 points are differences of 4--18 of 400 problems. And attackers with a user base do not face the supply limit (Section~\ref{sec:world}).
 
 \paragraph{Capability held at first detection.} What an attacker optimises is the capability it holds when first caught. Table~\ref{tab:timefrontier} combines the gain curves with detection times at 1{,}640 queries a week under two rules applied identically to every detector: the \emph{first weekly alarm} at a 1\% threshold, which is fast but accumulates false alarms (null runs alarmed within 16 weeks a quarter of the time on untouched weeks), and the \emph{anytime-valid} conformal test martingale, which holds the probability of any false alarm, ever, at 1\%.
 
 \begin{table}[t]
-\caption{Capability held at first detection: GSM8K gain (points) of the extraction-regime student at the number of queries sent by the median week of first detection, at 1{,}640 queries a week. Each cell: development weeks / untouched weeks. ``None'': no alarm within 16 weeks.}
+\caption{Capability held at first detection: GSM8K gain (points) of the extraction-regime student at the number of queries sent by the median week of first detection, at 1{,}640 queries a week. Each cell: development weeks / untouched weeks. ``none'': no alarm within 16 weeks.}
 \label{tab:timefrontier}
 \begin{center}
 \footnotesize\setlength{\tabcolsep}{3.5pt}
@@ -34,4 +34,4 @@ Any & Least detectable & $\approx$0.01 / $\le$0.04 & \multicolumn{2}{c}{indistin
 \end{center}
 \end{table}
 
-Against the two-scale and multi-outlier tests, padding on the untouched weeks bought evasion for at least a quarter of a year at a cost of a quarter to a half of the gain. Against hollowed selection it bought nothing: padded campaigns were caught in the first week. The time to an anytime-valid alarm for hollowed selection is the most important number we did not measure.
+Against the two-scale and multi-outlier tests, padding on the untouched weeks bought evasion for at least a quarter of a year in most runs at a cost of a quarter to a half of the gain. Against hollowed selection it bought nothing: padded campaigns were caught in the first week. The time to an anytime-valid alarm for hollowed selection is the most important number we did not measure.

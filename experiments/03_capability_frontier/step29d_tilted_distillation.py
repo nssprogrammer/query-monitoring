@@ -23,7 +23,7 @@
 # | App. Table 14, row "SmolLM2-360M, tilted (least detectable)", col "Half natural, mixed" | tilted_c05 gain at 3,000 / 10,000 queries | +2.2 ± 0.2 / +1.5 ± 0.2 | Cell 7, summary print "[A] tilted_c05 n=..." |
 # | App. Table 14, tilted rows, col "Paired cost" | cost against the all-math campaign of the same size | −8.2 / −14.4 | not isolated: tilted gain here minus Step 19's all-math gain (+10.4, +15.9) |
 # | §6 "The covert end"; App. G.2; Fig. 1a and Fig. 6a ("least detectable (tilted)") | gain at 3,000 queries, against 10.4; covertness cost | 2.2 points; 79% of the gain | Cell 7, tilted_c05 n = 3000; 79% = 1 − 2.2/10.4 with Step 19's reference (not computed here) |
-# | §6 and App. G.2 "The frontier, in one sentence" | upper end of the share of gain given up by campaigns that evaded every detector | 58–79% | upper end only (79%), as above; the 58% end comes from Step 32 |
+# | §6 and App. G.2 "The frontier, in one sentence" | share of gain given up by the tilted campaign, one of the covert campaigns behind "gave up 58% or more" | 79% | 79% = 1 − 2.2/10.4, as above; the 58% bound comes from Step 32 |
 # | App. H (text) | on-task prompts in the attacker's pool; on-task share of the 10,000-query tilted campaign | 2,933; 29% on task | Cell 4, `len(ON_PAIRS)` in the "task region" print; the 29% follows from `tilted()` capping on-task draws at `len(ON_PAIRS)` |
 # | Prediction log (Step 29), "Base-rate on-task prompts distil (≥ 8 points at 10k)" | P29d | Fail (+1.5) | Cell 9 "P29d" print |
 #

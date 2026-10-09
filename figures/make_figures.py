@@ -60,8 +60,8 @@ for i, (k, v) in enumerate(vals.items()):
     bars = ax[1].bar(x + (i - 1) * w, v, w, color=cols[i], label=k)
     for xb, vb in zip(x + (i - 1) * w, v):
         if vb >= 0.01: ax[1].text(xb, vb + 0.02, f"{vb:.2f}", ha="center", va="bottom", fontsize=7)
-# [PAPER] Fig. 1b dotted line: realised false alarms 1.9% (Table 3, "False alarms", Hollowed) -> step35
-ax[1].axhline(0.019, color="k", lw=0.8, ls=":", label="false alarms (1.9%)")
+# [PAPER] Fig. 1b dotted line at 1.9%, legend "1.8–1.9%": realised false alarms of the three detectors (Table 3, "False alarms") -> step35
+ax[1].axhline(0.019, color="k", lw=0.8, ls=":", label="false alarms (1.8–1.9%)")
 ax[1].set_xticks(x); ax[1].set_xticklabels(dets, fontsize=8.5); ax[1].set_xlim(-0.55, 2.55); ax[1].set_ylim(0, 1.12); ax[1].set_ylabel("weekly detection")
 ax[1].set_title("(b) Frozen detectors, 17 untouched weeks", loc="left")
 ax[1].legend(loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=2, frameon=False, fontsize=8, columnspacing=1.0, handlelength=1.4)

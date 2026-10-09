@@ -103,8 +103,8 @@ All data are public; WildChat requires accepting its license on Hugging Face.
 
 | Used for | Resource |
 |---|---|
-| Benign traffic, development weeks | `allenai/WildChat-1M` (AI2 ImpACT license; accounts are hashed IPs) |
-| Benign traffic, untouched weeks | `allenai/WildChat-4.8M` (6 May – 1 Sep 2024; 31 earlier weeks as calibration history) |
+| Benign traffic, development weeks | `allenai/WildChat-1M` (ODC-BY license; accounts are hashed IPs) |
+| Benign traffic, untouched weeks | `allenai/WildChat-4.8M` (ODC-BY license; 6 May – 1 Sep 2024; 31 earlier weeks as calibration history) |
 | Campaign prompts | MetaMathQA, Magicoder-OSS-Instruct, Alpaca, GSM8K (train), MMLU |
 | Capability evaluation | GSM8K (test), MATH-500 |
 | Controlled studies | CIFAR-10 |
@@ -131,9 +131,9 @@ The figure script plots the numbers recorded from the experiments rather than re
 
 ## Numbers in the paper that no script computes
 
-- Counts from public reports of real campaigns in §1 and §8 (e.g. 24,000 accounts, 3,500–5,000 accounts, 5,380 accounts) are quoted from the cited reports.
+- Counts from public reports of real campaigns in §1 and §8 (e.g. 24,000 accounts, more than 3,500 accounts, 5,380 accounts) are quoted from the cited reports.
 - Analytic values derived in the text from measured inputs: the ≈51 extra on-task queries of the square-root law (from p = 1.48%, Step 27–31) and K* ≈ 14 posing accounts (from q = 0.25%, Step 32), and the 16–42 legitimate accounts throttled per detection (App. K, from Step 32's precision).
-- Composite values that join two scripts, such as Table 2's gains at the week of first detection (Steps 19 + 22/23/27–31/35) and the 58–79% covertness cost (Steps 19, 29d, 32). The comments in both scripts say so.
+- Composite values that join two scripts, such as Table 2's gains at the week of first detection (Steps 19 + 22/23/27–31/35) and the covertness cost of 58% or more (Steps 19, 29d, 32). The comments in both scripts say so.
 
 ## Responsible use
 
